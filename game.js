@@ -512,9 +512,11 @@ function initThree(){
  lanternLight=new THREE.PointLight(0xffc46a,0,26);scene.add(lanternLight);
  window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
 }
-function makeLabel(txt,scale){const c=document.createElement('canvas');c.width=512;c.height=128;const x=c.getContext('2d');
- x.fillStyle='rgba(8,6,4,0.72)';x.fillRect(0,24,512,80);x.strokeStyle='#c9a227';x.lineWidth=3;x.strokeRect(4,28,504,72);
- x.fillStyle='#e8dcc0';x.font='44px Georgia';x.textAlign='center';x.textBaseline='middle';x.fillText(txt,256,66);
+function makeLabel(txt,scale){const c=document.createElement('canvas');c.width=1024;c.height=256;const x=c.getContext('2d');
+ x.fillStyle='rgba(8,6,4,0.72)';x.fillRect(0,48,1024,160);x.strokeStyle='#c9a227';x.lineWidth=6;x.strokeRect(8,56,1008,144);
+ x.fillStyle='#e8dcc0';x.textAlign='center';x.textBaseline='middle';
+ let fs=84;x.font=fs+'px Georgia';while(x.measureText(txt).width>950&&fs>20){fs-=4;x.font=fs+'px Georgia';}
+ x.shadowColor='#000';x.shadowBlur=12;x.fillText(txt,512,132);
  const t=new THREE.CanvasTexture(c);const m=new THREE.SpriteMaterial({map:t,transparent:true,depthWrite:false});
  const s=new THREE.Sprite(m);s.scale.set(10*(scale||1),2.5*(scale||1),1);return s;}
 
@@ -612,7 +614,7 @@ function buildWorld(){
  // torch posts with lights
  [[6,4],[-28,-4],[20,-12],[-12,20],[48,40]].forEach(([x,z])=>{addBox(x,1.5,z,0.25,3,0.25,0x3a2a1a);
   const l=new THREE.PointLight(0xffa04a,1.0,20);l.position.set(x,3.4,z);scene.add(l);torches.push(l);
-  const f=new THREE.Mesh(new THREE.SphereGeometry(0.25,8,6),new THREE.MeshBasicMaterial({color:0xffc46a}));f.position.set(x,3.3,z);scene.add(f);});
+  const f=new THREE.Mesh(new THREE.SphereGeometry(0.25,8,6),new THREE.MeshBasicMaterial({color:0xffc46a}));f.position.set(x,3.3,z);scene.add(f);glowAt(x,3.4,z,3.5,0.5);});
  plantForage();spawnHorses();placeCarts();placeBeds();placeWorks();buildGraveyard();buildMansion();buildCottages();
  // corral rails by the cabins
  [[26,34,8,0.3],[26,40,8,0.3]].forEach(([x,z,w,d])=>{addBox(x,0.6,z,w,1.0,d,0x5a4630);});
@@ -901,7 +903,8 @@ function hurtFoe(f,dmg,ranged){f.hp-=dmg;AudioSys.sfx('hit');blood(f.mesh.positi
  subtitle(f.d.n+': '+choice(['“Pay us.”','“The ledger bleeds.”','“Mud to mud, debt to debt.”','“Hssss.”','“You weigh nothing.”']));
  if(f.hp<=0)killFoe(f);}
 function blood(x,z){const p=new THREE.Mesh(new THREE.SphereGeometry(0.16,6,4),new THREE.MeshBasicMaterial({color:0x8a1010}));
- p.position.set(x,rand(0.5,1.5),z);scene.add(p);setTimeout(()=>scene.remove(p),600);}
+ p.position.set(x,rand(0.5,1.5),z);scene.add(p);setTimeout(()=>scene.remove(p),600);
+ for(let i=0;i<8;i++)spawnP(x,1,z,rand(-3,3),rand(1,5),rand(-3,3),rand(0.4,0.9),0xaa1818);}
 function killFoe(f){scene.remove(f.mesh);foes.splice(foes.indexOf(f),1);
  G.kills++;G.killsByFoe[f.type]=(G.killsByFoe[f.type]||0)+1;
  addKarma(2,'the commune breathes easier');
@@ -1473,7 +1476,9 @@ function animate(t){requestAnimationFrame(animate);const dt=Math.min(0.05,(t-las
  advanceTime(dt);survival(dt);sanityAura(dt);updateSky();nightSpawns(dt);
  foes.forEach(f=>foeUpdate(f,dt));npcs.forEach(n=>npcUpdate(n,dt));
  critters.forEach(c=>critterUpdate(c,dt));critterSpawns(dt);horses.forEach(h=>horseUpdate(h,dt));
- fires.forEach(f=>{f.flame.rotation.y+=dt*3;});forageUpdate();
+ fires.forEach(f=>{f.flame.rotation.y+=dt*3;});forageUpdate();updateParticles(dt);
+ waterTex.offset.x+=dt*0.02;waterTex.offset.y+=dt*0.013;
+ for(const m of mists){m.position.x+=dt*0.4;if(m.position.x>45)m.position.x=-95;m.material.opacity=(isNight()?0.17:0.07)*(G.weather==='rain'?1.5:1);}
  // interact prompt
  const ni=nearestInteract();const ip=$('interact-prompt');
  if(G.mounted&&!G.dead&&!dlgOpen){ip.classList.remove('hidden');
@@ -1485,7 +1490,7 @@ function animate(t){requestAnimationFrame(animate);const dt=Math.min(0.05,(t-las
  miniT-=dt;if(miniT<=0){miniT=1;checkQuestVisit();drawMini();refreshTracker();ck3alerts();
   $('clock-day').textContent='Day '+G.day+' · 1666';$('clock-time').textContent=(isNight()?'☾ ':'☀ ')+fmtT(G.time);}
  renderer.render(scene,camera);}
-function boot(){initThree();buildWorld();buildPlayer();spawnNPCs();bindInput();wireButtons();
+function boot(){initThree();buildWorld();initParticles();initMist();buildPlayer();spawnNPCs();bindInput();wireButtons();
  spawnFoe('risen',40,10);spawnFoe('risen',-50,30);spawnFoe('ghost',-66,10);
  spawnCritter('rabbit',34,10);spawnCritter('rabbit',-44,30);spawnCritter('squirrel',50,-14);spawnCritter('deer',64,24);
  spawnCritter('turkey',40,36);spawnCritter('duck',-46,50);spawnCritter('gator',12,78);spawnCritter('gator',-38,60);
