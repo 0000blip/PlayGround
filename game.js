@@ -2154,7 +2154,7 @@ function loadWinGeom(){try{const g=JSON.parse(localStorage.getItem(WIN_GEOM_KEY)
   if(r.left!=null){el.style.left=r.left+'px';el.style.top=r.top+'px';}
   if(r.w){el.style.width=r.w+'px';el.style.minHeight=r.h+'px';}}}catch(e){}}
 function saveWinGeom(){try{const g={};document.querySelectorAll('.panel').forEach(el=>{if(!el.id)return;const r=el.getBoundingClientRect();g[el.id]={left:Math.round(r.left),top:Math.round(r.top),w:Math.round(r.width),h:Math.round(r.height)};});
- ['trade','dialogue'].forEach(id=>{const el=document.getElementById(id);if(!el)return;const r=el.getBoundingClientRect();g[id]={left:Math.round(r.left),top:Math.round(r.top),w:Math.round(r.width),h:Math.round(r.height)};});
+ ['trade','dialogue','music-win'].forEach(id=>{const el=document.getElementById(id);if(!el||el.classList.contains('hidden')&&id!=='music-win')return;const r=el.getBoundingClientRect();g[id]={left:Math.round(r.left),top:Math.round(r.top),w:Math.round(r.width),h:Math.round(r.height)};});
  localStorage.setItem(WIN_GEOM_KEY,JSON.stringify(g));}catch(e){}}
 function makeMovable(el,h){if(!el||!h)return;h.style.cursor='move';h.style.touchAction='none';
  h.addEventListener('mousedown',e=>{if(e.button!==0)return;if(/INPUT|BUTTON|TEXTAREA|SELECT|A/.test(e.target.tagName))return;
@@ -2165,6 +2165,7 @@ function makeMovable(el,h){if(!el||!h)return;h.style.cursor='move';h.style.touch
   window.addEventListener('mousemove',mv);window.addEventListener('mouseup',up);e.preventDefault();});}
 function bootWindows(){document.querySelectorAll('.panel').forEach(p=>makeMovable(p,p.querySelector('h3')));
  makeMovable($('trade'),$('trade')&&$('trade').querySelector('h3'));makeMovable($('dialogue'),$('dialogue')&&document.getElementById('dlg-head'));
+ makeMovable($('music-win'),$('mus-title'));
  loadWinGeom();document.addEventListener('mouseup',()=>{try{saveWinGeom();}catch(e){}});}
 /* ============ BODY HEALTH (Zomboid-style) ============ */
 const PARTS=[['head','Head','🧠'],['torso','Torso','🫀'],['larm','L Arm','💪'],['rarm','R Arm','💪'],['lleg','L Leg','🦵'],['rleg','R Leg','🦵']];
