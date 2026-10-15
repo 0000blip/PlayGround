@@ -101,18 +101,25 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 @keyframes tick{to{transform:translateX(-100%)}}
 .game-sub{font-size:17px;color:var(--gold);letter-spacing:2px}
 .game-tag{font-style:italic;color:var(--dim);margin:6px 0 18px}
-.menu-buttons{display:grid;grid-template-columns:1fr 1fr;gap:14px 30px;width:min(880px,94vw);min-width:0;align-items:start}
-/* odd twisted configuration: spread across the screen, staggered, asymmetric, tri-color edged */
-.menu-buttons .btn{border-radius:4px;width:100%;max-width:400px}
+.menu-buttons{display:grid;grid-template-columns:1fr 1fr;gap:16px 30px;width:min(920px,94vw);min-width:0;align-items:start}
+/* odd twisted configuration: spread across the screen, every button its own weird */
+.menu-buttons .btn{border-radius:4px;width:100%;animation-duration:4s}
 .menu-buttons .btn:nth-child(odd){grid-column:1;justify-self:start}
 .menu-buttons .btn:nth-child(even){grid-column:2;justify-self:end}
-.menu-buttons .btn:nth-child(1){border-radius:4px 26px 4px 26px;border-left:4px solid var(--coral);margin-top:4px}
-.menu-buttons .btn:nth-child(2){border-radius:26px 4px 26px 4px;border-right:4px solid var(--teal);margin-top:20px}
-.menu-buttons .btn:nth-child(3){border-radius:4px 4px 26px 4px;border-left:4px solid var(--gold);margin-top:0}
-.menu-buttons .btn:nth-child(4){border-radius:26px 4px 4px 26px;border-right:4px solid var(--coral);margin-top:16px}
-.menu-buttons .btn:nth-child(5){border-radius:4px 26px 26px 4px;border-left:4px solid var(--teal);margin-top:0}
-.menu-buttons .btn:nth-child(6){border-radius:26px 4px 26px 4px;border-right:4px solid var(--gold);margin-top:14px}
-@media (max-width:640px){.menu-buttons{grid-template-columns:1fr;width:min(420px,92vw)}.menu-buttons .btn:nth-child(n){grid-column:1;justify-self:stretch;max-width:none;margin-top:0}}
+.menu-buttons .btn:nth-child(1){grid-column:1/-1;justify-self:center;width:min(580px,92%);font-size:21px;padding:15px 32px;border-radius:6px 34px 6px 34px;border-left:5px solid var(--coral);border-right:2px solid var(--teal);rotate:-.8deg;animation-name:floaty;box-shadow:0 0 22px rgba(245,72,66,.25)}
+.menu-buttons .btn:nth-child(2){max-width:280px;font-size:13px;padding:8px 16px;border-radius:30px 6px 30px 6px;border-right:4px solid var(--teal);rotate:.9deg;margin-top:18px;animation-name:jit;animation-duration:2.3s}
+.menu-buttons .btn:nth-child(3){max-width:380px;font-size:16px;padding:12px 24px;border-radius:6px 6px 30px 6px;border-left:4px solid var(--gold);rotate:-.6deg;margin-top:2px;animation-name:wob;animation-duration:5.2s;box-shadow:0 0 16px rgba(201,162,39,.2)}
+.menu-buttons .btn:nth-child(4){max-width:330px;font-size:15px;padding:12px 20px;border-radius:30px 6px 6px 30px;border-right:4px solid var(--coral);rotate:.5deg;margin-top:14px;animation-name:pulse;animation-duration:3.4s}
+.menu-buttons .btn:nth-child(5){max-width:390px;font-size:14px;padding:9px 22px;letter-spacing:3px;border-radius:6px 30px 30px 6px;border-left:4px solid var(--teal);rotate:-.4deg;margin-top:2px;animation-name:drift;animation-duration:4.6s}
+.menu-buttons .btn:nth-child(6){grid-column:1/-1;justify-self:center;max-width:300px;font-size:13px;padding:8px 18px;border-radius:30px 6px 30px 6px;border-right:4px solid var(--gold);border-left:2px solid var(--coral);rotate:.7deg;margin-top:6px;animation-name:flickglow;animation-duration:3s}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes jit{0%,100%{transform:translate(0,0)}25%{transform:translate(1px,-1px)}50%{transform:translate(-1px,1px)}75%{transform:translate(1px,1px)}}
+@keyframes wob{0%,100%{transform:rotate(-.6deg)}50%{transform:rotate(.8deg) translateY(-2px)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
+@keyframes drift{0%,100%{transform:translateX(0)}50%{transform:translateX(5px)}}
+@keyframes flickglow{0%,100%{box-shadow:0 0 8px rgba(201,162,39,.2)}50%{box-shadow:0 0 20px rgba(102,242,219,.45)}}
+@media (max-width:640px){.menu-buttons{grid-template-columns:1fr;width:min(420px,92vw)}.menu-buttons .btn:nth-child(n){grid-column:1;justify-self:stretch;max-width:none;margin-top:0;rotate:0deg}}
+@media (prefers-reduced-motion:reduce){.menu-buttons .btn,.game-title,.menu-bg-orn{animation:none!important}}
 .btn{background:linear-gradient(180deg,#3c3445,#241e2e);border:1px solid #6b5626;color:var(--ink);padding:10px 22px;border-radius:6px;font-family:inherit;font-size:15px;cursor:pointer;letter-spacing:1px}
 .btn:hover{border-color:var(--teal);background:linear-gradient(180deg,#2c3440,#141a20);box-shadow:0 0 14px rgba(102,242,219,.3);text-shadow:0 0 8px rgba(102,242,219,.6)}
 .btn.big{font-size:18px;padding:13px 26px;border-color:var(--gold)}
