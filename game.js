@@ -85,6 +85,9 @@ const ITEMS={
  venom:{n:'Venom sac',e:'☠',d:'Moccasin venom. Poison — or, doctored, cure.',price:6},
  coon:{n:'Raccoon',e:'🦝',d:'Night-bandit, greasy and sweet. +16 hunger.',use:'eat',hunger:16,price:3},
  possum:{n:'Opossum',e:'🐀',d:'Played dead; lost the argument. +14 hunger.',use:'eat',hunger:14,price:3},
+ wine:{n:'Claret',e:'🍷',d:'French wine, cellared through the crossing. +6 hunger, +12 reason.',use:'drink',hunger:6,sanity:12,price:6},
+ tafia:{n:'Tafia',e:'🥃',d:'Raw cane spirit. Burns clean through grief. +2 hunger, +18 reason, −5 HP.',use:'drink',hunger:2,sanity:18,hp:-5,price:8},
+ tobacco:{n:'Pipe tobacco',e:'🚬',d:'Virginia leaf. Smoke a bowl and watch the mist. +10 reason, −2 HP.',use:'smoke',sanity:10,hp:-2,price:3},
 };
 const RECIPES=[
  {id:'bandage',n:'Linen bandage',need:{plank:0,herb:1},make:{bandage:1},txt:'herb → bandage (+25 HP)'},
@@ -115,6 +118,7 @@ const NPC_DEFS=[
  {id:'taxman',n:'Huissier Poulain',role:'the Seigneur’s taxman',e:'💰',x:2,z:-40,c:0x2a3a7a,d:'Powdered wig, ink-stained fingers. Collects in coin what cannot be collected in souls.'},
  {id:'doctor',n:'Chirurgien Fauche',role:'barber-surgeon',e:'🩸',x:12,z:-4,c:0x7a2a2a,d:'Bleeds patients and purses alike. Knows anatomy; learning mercy.'},
  {id:'lucile',n:'Lucile, child-runner',role:'messenger, 11 years old',e:'🧒',x:10,z:2,c:0xa08a3a,d:'Swift as rumour. Carries letters, warnings, and other people’s secrets.'},
+ {id:'seraphine',n:'Dame Séraphine',role:'lady of the evening, licensed by hunger',e:'💋',x:17,z:-3,c:0x8a2a4a,d:'Powder, patch, and a patience the priests envy. Sells company, conversation, and the only honest forgetfulness in the parish.'},
 ];
 const FOE_DEFS={
  risen:{n:'The Risen',e:'🧟',hp:45,dmg:10,spd:2.2,xp:1,col:0x5a6a4a,txt:'Plague-dead in grave linen. They rise where wages were withheld.'},
@@ -381,6 +385,28 @@ function renderStash(){const c=stashCart;if(!c)return;const T=$('trade-theirs'),
   Y.appendChild(d);});
  $('trade-info').textContent='A mobile commons: take or leave freely. Rides with you.';}
 function nearestCart(){let best=null,bd=4.5;for(const c of carts){const d=dist2(G.pos.x,G.pos.z,c.mesh.position.x,c.mesh.position.z);if(d<bd){bd=d;best=c;}}return best;}
+/* ---- beds: sleep until dawn ---- */
+function placeBeds(){[['Cabin bunk',24,26,0x6a1a2e],['Chapel pew',-36,-8,0x3a3a5a],['Swamp hammock',12,76,0x2e5a2e],['Herbalist cot',-18,28,0x5a4a1a]].forEach(([nm,x,z,blanket])=>{
+ const fr=new THREE.Mesh(new THREE.BoxGeometry(2.3,0.4,1.3),mat(0x5a4630));fr.position.set(x,0.35,z);scene.add(fr);
+ const mt=new THREE.Mesh(new THREE.BoxGeometry(2.1,0.25,1.1),mat(0x9a8a6a));mt.position.set(x,0.65,z);scene.add(mt);
+ const bl=new THREE.Mesh(new THREE.BoxGeometry(1.2,0.15,1.15),mat(blanket));bl.position.set(x-0.4,0.8,z);scene.add(bl);
+ interactables.push({kind:'bed',name:nm,x,z,r:2.8,txt:'Sleep until dawn (E)'});});}
+function doSleep(bed){if(G.time>=6&&G.time<18){subtitle('Only owls and the guilty sleep by day. Come back at dusk.');return;}
+ for(const f of foes){if(dist2(G.pos.x,G.pos.z,f.mesh.position.x,f.mesh.position.z)<14){toast('Too dangerous — the dark is standing too close. Clear it or run.','bad');return;}}
+ const lt=$('letterbox-top'),lb=$('letterbox-bot');lt.style.height='12vh';lb.style.height='12vh';
+ setTimeout(()=>{lt.style.height='0';lb.style.height='0';},1400);
+ const nextDay=G.time>=6.2;if(nextDay){G.day++;AudioSys.bell();toast('☀ Day '+G.day+' — the bell counts what the Seigneur cannot.','good');
+  if(G.day===3)subtitle('The air tastes of iron. Tonight the bell will toll thirteen.');
+  unlockQuests();}
+ G.time=6.2;G.weather=choice(['mist','mist','clear','mosquitoes']);
+ G.hunger=clamp(G.hunger-30,0,100);
+ const nightmare=(G.sanity<35||G.infected>0)&&Math.random()<0.45;
+ if(nightmare){G.sanity=clamp(G.sanity+10,0,100);G.hp=clamp(G.hp-10,1,G.maxhp);
+  subtitle('You dream of ledgers written in teeth. You wake chewing the blanket.');toast('Nightmare. (+10 🕯 only, −10 ❤)','bad');}
+ else{G.sanity=clamp(G.sanity+45,0,100);G.hp=clamp(G.hp+25,0,G.maxhp);
+  if(G.hunger<=0){G.hp=clamp(G.hp-10,1,G.maxhp);toast('You slept hungry. The belly keeps its own ledger.','bad');}
+  else toast('🛏 You slept at '+bed.name+'. (+45 🕯, +25 ❤)','good');AudioSys.sfx('pray');}
+ refreshHUD();checkEnding();}
 /* ============ STATE ============ */
 const G={started:false,paused:false,dead:false,ending:false,day:1,time:8.0,weather:'mist',kills:0,buried:0,
  hp:100,maxhp:100,hunger:100,stam:100,sanity:100,karma:0,coins:20,infected:0,weapon:'rapier',lantern:false,
@@ -514,7 +540,7 @@ function buildWorld(){
  [[6,4],[-28,-4],[20,-12],[-12,20],[48,40]].forEach(([x,z])=>{addBox(x,1.5,z,0.25,3,0.25,0x3a2a1a);
   const l=new THREE.PointLight(0xffa04a,1.0,20);l.position.set(x,3.4,z);scene.add(l);torches.push(l);
   const f=new THREE.Mesh(new THREE.SphereGeometry(0.25,8,6),new THREE.MeshBasicMaterial({color:0xffc46a}));f.position.set(x,3.3,z);scene.add(f);});
- plantForage();spawnHorses();placeCarts();
+ plantForage();spawnHorses();placeCarts();placeBeds();
  // corral rails by the cabins
  [[26,34,8,0.3],[26,40,8,0.3]].forEach(([x,z,w,d])=>{addBox(x,0.6,z,w,1.0,d,0x5a4630);});
 }
@@ -531,7 +557,7 @@ function makeHumanoid(coat,skin,hat){const g=new THREE.Group();
  return g;}
 function buildPlayer(){playerMesh=makeHumanoid(0x4a3a5a,0xd9b48f,'tricorn');playerMesh.position.set(G.pos.x,0,G.pos.z);scene.add(playerMesh);
  const sw=new THREE.Mesh(new THREE.BoxGeometry(0.1,1.1,0.2),mat(0xb0b0b0));sw.position.set(0.5,1.3,0.5);playerMesh.add(sw);playerMesh.userData.sword=sw;}
-function spawnNPCs(){NPC_DEFS.forEach(d=>{const g=makeHumanoid(d.c,0xd9b48f,d.id==='taxman'?'wig':(d.id==='anselme'?'hood':(d.id==='odette'||d.id==='lucile'?'coif':'tricorn')));
+function spawnNPCs(){NPC_DEFS.forEach(d=>{const g=makeHumanoid(d.c,0xd9b48f,d.id==='taxman'?'wig':(d.id==='anselme'?'hood':((d.id==='odette'||d.id==='lucile'||d.id==='seraphine')?'coif':'tricorn')));
   g.position.set(d.x,0,d.z);scene.add(g);
   const lb=makeLabel(d.e+' '+d.n,0.55);lb.position.set(0,2.9,0);g.add(lb);
   npcs.push({...d,mesh:g,wx:d.x,wz:d.z,tx:d.x,tz:d.z,wt:0,dead:false,follow:false});});}
@@ -621,11 +647,14 @@ function foeUpdate(f,dt){const m=f.mesh;f.cd-=dt;
   let nx=m.position.x+dx*spd*dt,nz=m.position.z+dz*spd*dt;
   const c=collide(nx,nz,0.6);m.position.x=c.x;m.position.z=c.z;
   m.lookAt(px,0,pz);
-  if(f.type==='ghost'){m.position.y=0.4+Math.sin(performance.now()/400)*0.3;G.sanity-=dt*3;}
+  if(f.type==='ghost')m.position.y=0.4+Math.sin(performance.now()/400)*0.3;
   if(f.type==='demon'&&Math.random()<dt*0.8){hurtPlayer(12,'demon-fire');toast('🔥 The Bête breathes furnace-air!','bad');}
   if(d<(f.boss?3.2:1.8)&&f.cd<=0){f.cd=f.boss?1.2:1.5;
    let dmg=f.d.dmg+rand(-3,4);if(f.type==='ghost')dmg=8+G.infected*2;
-   hurtPlayer(dmg,f.d.n);toast(f.d.e+' '+f.d.n+' wounds you (−'+Math.round(dmg)+' HP)','bad');}
+   hurtPlayer(dmg,f.d.n);
+   const fright={risen:3,wolf:5,ghost:8,vamp:6,demon:10}[f.type]||3;
+   G.sanity=Math.max(0,G.sanity-fright);if(G.sanity<=10)subtitle('🕯 Your hands will not stop shaking.');
+   toast(f.d.e+' '+f.d.n+' wounds you (−'+Math.round(dmg)+' HP, −'+fright+' 🕯)','bad');}
  } else {f.wt-=dt;if(f.wt<=0){f.wt=rand(2,5);f.tx=m.position.x+rand(-14,14);f.tz=m.position.z+rand(-14,14);}
   const dx=f.tx-m.position.x,dz=f.tz-m.position.z,dd=Math.hypot(dx,dz);
   if(dd>1){const c=collide(m.position.x+dx/dd*spd*0.4*dt,m.position.z+dz/dd*spd*0.4*dt,0.6);m.position.x=c.x;m.position.z=c.z;}}
@@ -686,8 +715,22 @@ function survival(dt){const night=isNight();
  const chap=dist2(G.pos.x,G.pos.z,-34,-12)<13;
  if(dark&&!nearFire&&!chap)G.sanity-=dt*2.2;else if(nearFire||chap||G.lantern)G.sanity=Math.min(100,G.sanity+dt*3);
  if(G.sanity<=0){G.hp-=dt*2;if(Math.random()<dt*0.2)subtitle('The faces in the mist wear your outstanding debts.');}
+ if(G.sanity<30&&Math.random()<dt*0.06)subtitle('🕯 '+choice(['“Pay us…” breathes the dark.','Something counts your debts aloud.','The mist wears a face you buried.','Thirteen bells. Twelve were real.','Your shadow arrives a moment late.']));
+ if(G.hp<=0){G.hp=0;die('hunger, fever and the dark together');}
  // lantern drains nothing (pine is cheap); sprint drains stam
  refreshHUD();}
+function sanityDesc(s){return s>80?'Steadfast':s>55?'Steady':s>30?'Shaken':s>10?'Unraveling':'Gone to the mist';}
+/* every horror in the parish gnaws at reason */
+function sanityAura(dt){if(G.dead||!G.started||G.paused)return;
+ const chap=dist2(G.pos.x,G.pos.z,-34,-12)<13;
+ let nearFire=false;for(const f of fires){if(dist2(G.pos.x,G.pos.z,f.x,f.z)<6){nearFire=true;break;}}
+ const ward=(G.lantern||nearFire||chap)?0.5:1;
+ for(const f of foes){const d=dist2(G.pos.x,G.pos.z,f.mesh.position.x,f.mesh.position.z);
+  let rate=0,r=0;
+  if(f.type==='risen'){rate=1.0;r=8;}else if(f.type==='wolf'){rate=isNight()?3.0:1.6;r=12;}
+  else if(f.type==='ghost'){rate=3.5;r=14;if(chap)rate*=0.4;}
+  else if(f.type==='vamp'){rate=2.5;r=12;}else if(f.type==='demon'){rate=4.0;r=24;}
+  if(rate>0&&d<r)G.sanity=Math.max(0,G.sanity-rate*ward*(1-d/(r*1.5))*dt*1.5);}}
 function advanceTime(dt){const prev=G.time;G.time+=dt*(24/480);
  if(G.time>=24){G.time-=24;G.day++;AudioSys.bell();toast('☀ Day '+G.day+' — the bell counts what the Seigneur cannot.','good');
   if(G.day===3){subtitle('The air tastes of iron. Tonight the bell will toll thirteen.');AudioSys.setMode('night');}
@@ -723,10 +766,10 @@ function toast(msg,cls){const t=document.createElement('div');t.className='toast
  while($('toasts').children.length>3)$('toasts').firstChild.remove();setTimeout(()=>{t.style.opacity=0;setTimeout(()=>t.remove(),500);},3600);}
 let subT=null;function subtitle(msg,ms){const s=$('subtitle');s.innerHTML=msg;s.classList.remove('hidden');
  if(subT)clearTimeout(subT);subT=setTimeout(()=>s.classList.add('hidden'),ms||4200);}
-function refreshHUD(){$('bar-hp').style.width=(100*G.hp/G.maxhp)+'%';$('txt-hp').textContent=Math.ceil(G.hp);
+function refreshHUD(){$('bar-hp').style.width=clamp(100*G.hp/G.maxhp,0,100)+'%';$('txt-hp').textContent=Math.max(0,Math.ceil(G.hp));
  $('bar-hunger').style.width=G.hunger+'%';$('txt-hunger').textContent=Math.ceil(G.hunger);
  $('bar-stam').style.width=G.stam+'%';$('txt-stam').textContent=Math.ceil(G.stam);
- $('bar-sanity').style.width=G.sanity+'%';$('txt-sanity').textContent=Math.ceil(G.sanity);
+ $('bar-sanity').style.width=clamp(G.sanity,0,100)+'%';$('txt-sanity').textContent=Math.max(0,Math.ceil(G.sanity));
  $('bar-karma').style.width=((G.karma+100)/2)+'%';$('txt-karma').textContent=G.karma;
  $('karma-title').textContent='⚖ '+karmaTitle(G.karma);
  $('clock-day').textContent='Day '+G.day+' · 1666';
@@ -743,6 +786,8 @@ function useItem(id){const it=ITEMS[id];if(!it)return;if(!hasItem(id,1)){toast('
  else if(it.use==='heal'){takeItem(id,1);G.hp=clamp(G.hp+it.hp,0,G.maxhp);if(it.cure)G.infected=0;AudioSys.sfx('eat');toast(it.e+' '+it.n+' (+'+it.hp+' ❤)'+(it.cure?' · fever broken':''),'good');}
  else if(it.use==='equip'){G.weapon=id;if(id==='torch')G.lantern=true;AudioSys.sfx('pickup');toast(it.e+' Wielding: '+it.n);refreshHotbar();}
  else if(it.use==='bless'){toast('📖 The Geneva bible rides in your pocket. Apparitions & vampires fear its margins.','good');}
+ else if(it.use==='drink'){takeItem(id,1);G.hunger=clamp(G.hunger+(it.hunger||0),0,100);G.sanity=clamp(G.sanity+(it.sanity||10),0,100);if(it.hp)G.hp=clamp(G.hp+it.hp,1,G.maxhp);AudioSys.sfx('eat');toast(it.e+' '+it.n+' (+'+(it.sanity||10)+' 🕯)'+(id==='tafia'?' — fire all the way down.':''),'good');}
+ else if(it.use==='smoke'){takeItem(id,1);G.sanity=clamp(G.sanity+(it.sanity||10),0,100);G.hp=clamp(G.hp+it.hp,1,G.maxhp);AudioSys.sfx('pray');toast('🚬 You smoke a slow bowl. The mist keeps its distance. (+'+(it.sanity||10)+' 🕯)','good');}
  else toast(it.d);refreshHUD();}
 function refreshTracker(){const t=$('quest-tracker');t.innerHTML='';
  G.qactive.slice(0,4).forEach(id=>{const q=qdef(id),s=G.quests[id];const d=document.createElement('div');d.className='qtask';
@@ -789,7 +834,7 @@ function renderChar(){$('char-body').innerHTML=
  '<div class="char-row"><span>⚖ Karma</span><b>'+G.karma+' — '+karmaTitle(G.karma)+'</b></div>'+
  '<div class="char-row"><span>❤ Health</span><b>'+Math.ceil(G.hp)+' / '+G.maxhp+'</b></div>'+
  '<div class="char-row"><span>🍖 Belly</span><b>'+Math.ceil(G.hunger)+'</b></div>'+
- '<div class="char-row"><span>🕯 Reason</span><b>'+Math.ceil(G.sanity)+'</b></div>'+
+ '<div class="char-row"><span>🕯 Reason</span><b>'+Math.ceil(Math.max(0,G.sanity))+' — '+sanityDesc(G.sanity)+'</b></div>'+
  '<div class="char-row"><span>🩸 Bite fever</span><b>'+(G.infected>0?'INFECTED — herb/tonic!':'clean')+'</b></div>'+
  '<div class="char-row"><span>🗡 Weapon</span><b>'+ITEMS[G.weapon].n+'</b></div>'+
  '<div class="char-row"><span>☠ Kills</span><b>'+G.kills+' '+Object.entries(G.killsByFoe).map(([k,v])=>FOE_DEFS[k].e+v).join(' ')+'</b></div>'+
@@ -820,8 +865,9 @@ function drawBig(){const c=$('bigmap'),x=c.getContext('2d');x.fillStyle='#0d0b08
 /* ============ DIALOGUE + TRADE ============ */
 let dlgOpen=null;
 function openDialogue(n){dlgOpen=n;$('dialogue').classList.remove('hidden');
+ if(G.sanity<60){G.sanity=Math.min(100,G.sanity+2);refreshHUD();} // a human voice steadies
  $('dlg-portrait').textContent=n.e;$('dlg-name').textContent=n.n;$('dlg-role').textContent=n.role;
- $('dlg-karma').textContent='⚖ '+G.karma+' · '+(G.dispo[n.id]||0)+' ♥';showDlgPage(mainPage(n));}
+ $('dlg-karma').textContent='⚖ '+G.karma+' · '+(G.dispo[n.id]||0)+' ♥';const [pg,ch]=mainPage(n);showDlgPage(pg,ch);}
 function showDlgPage(text,choices){$('dlg-text').innerHTML=text;const c=$('dlg-choices');c.innerHTML='';
  choices.forEach(ch=>{const b=document.createElement('button');b.className='choice '+(ch.cls||'');b.innerHTML=ch.label;
   b.onclick=()=>{AudioSys.sfx('pickup');ch.fn&&ch.fn();};c.appendChild(b);});}
@@ -832,14 +878,17 @@ function mainPage(n){const disp=G.dispo[n.id]||0;
  if(n.id==='taxman')t='“Ah, another arrear with legs. The Seigneur’s patience is a ledger, citizen. Thirty livres for the cabins — or I take the Irishman. Which entry shall I ink?”';
  if(n.id==='anselme')t='“Child of the mud. The dead queue at my door longer than the living. Bury them, banish them, and never — <i>never</i> — trust a sealed pew. What weighs on you?”';
  if(n.id==='manon')t='“Mm. You smell of fever and iron. Sit. The swamp provides what the Seigneur withholds — if you know where to kneel. What ails the commune today?”';
+ if(n.id==='seraphine')t='“Oh, a live one, and trembling. Come in, cher — the night is for the dead, but the lamp is for us. Talk, confession, or the full forgetfulness?”';
  const ch=[];
  questsHere.forEach(q=>{const s=G.quests[q.id];
   if(s.st==='open')ch.push({label:'📜 “'+q.n+'” — hear the need',cls:'good',fn:()=>{acceptQuest(q.id);showDlgPage('“'+q.desc+'”<br><br><i>Quest taken. The ledger remembers.</i>',[{label:'“Done. I’ll go.” (leave)',fn:closeDialogue}]);}});
   else{let prog=q.obj.map(o=>{if(o.t==='collect'){const h=o.item==='coin'?G.coins:(G.inv[o.item]||0);return Math.min(h,o.n)+'/'+o.n+' '+o.label;}if(o.t==='kill')return (s.have['k_'+o.foe]||0)+'/'+o.n+' '+o.label;if(o.t==='bury')return (s.have.bury||0)+'/'+o.n;if(o.t==='forage')return (s.have.forage||0)+'/'+o.n+' '+o.label;if(o.t==='hunt')return (s.have.hunt||0)+'/'+o.n+' '+o.label;return o.label;}).join(' · ');
    ch.push({label:'📜 “'+q.n+'” — progress: '+prog,fn:()=>showDlgPage('“'+q.desc+'”<br><br><i>'+prog+'</i>',[{label:'Back',fn:()=>openDialogue(n)}])});}});
  ch.push({label:'💬 “Talk — what is this place, truly?”',fn:()=>lorePage(n)});
- if(['baptiste','manon','doctor','odette'].includes(n.id))ch.push({label:'⚖ “Trade.”',fn:()=>openTrade(n)});
+ if(['baptiste','manon','doctor','odette','seraphine'].includes(n.id))ch.push({label:'⚖ “Trade.”',fn:()=>openTrade(n)});
  if(n.id!=='taxman'&&!n.follow)ch.push({label:'🤝 “Walk with me. The commune defends itself.” (recruit)',cls:'good',fn:()=>recruit(n)});
+ if(n.id==='anselme')ch.push({label:'🕯 “Bless me, Father — the dark gets in.” (confess, +reason)',cls:'good',fn:()=>shrive(n)});
+ if(n.id==='seraphine')ch.push({label:'💋 “Company, conversation, forgetfulness.” (4 livres, +peace)',fn:()=>comfort(n)});
  ch.push({label:'🎭 “Surely you can bend the truth, for a friend…” (deceive)',fn:()=>deceive(n)});
  if(n.id==='taxman')ch.push({label:'💰 Pay the tithe — 30 livres (save Seamus)',cls:'good',fn:()=>payTax(n)});
  if(n.id==='taxman')ch.push({label:'🗡 “The ledger ends here, leech.” (drive him off / fight)',cls:'danger',fn:()=>fightTax(n)});
@@ -857,6 +906,16 @@ function recruit(n){if(n.follow){closeDialogue();return;}
  if(G.karma>=8||(G.dispo[n.id]||0)>0){n.follow=true;G.companions.push(n.id);G.dispo[n.id]=(G.dispo[n.id]||0)+1;addKarma(2,'no one walks alone');
   showDlgPage('“Then we walk together. You carry the pamphlet; I’ll carry the club.”<br><br><i>'+n.n+' joins you (fights beside you). J to track, K to see standing.</i>',[{label:'“To the barricades.”',fn:closeDialogue}]);}
  else showDlgPage('“Walk with you? The mud speaks well of you, but not <i>that</i> well. Raise your standing (karma 8+, or do my quest first).”',[{label:'Back',fn:()=>openDialogue(n)}]);}
+function shrive(n){const now=performance.now();
+ if(n.calmCd&&now<n.calmCd){showDlgPage('“Easy, child. Grace, like soup, must be taken one bowl at a time. Come back later.”',[{label:'Bow.',fn:()=>openDialogue(n)}]);return;}
+ n.calmCd=now+150000;G.sanity=clamp(G.sanity+16,0,100);addKarma(1,'a clean breast');AudioSys.sfx('pray');refreshHUD();
+ showDlgPage('You kneel on the cold mud. Out it comes — the bell, the teeth, the arithmetic. Anselme listens the way the swamp holds water: completely. “Ego te absolvo,” he says, “and mind the tithe-man on your way out.”<br><br><i>(+16 🕯, +1 ⚖)</i>',[{label:'“Amen. I feel human again.”',fn:closeDialogue}]);}
+function comfort(n){const now=performance.now();
+ if(n.calmCd&&now<n.calmCd){showDlgPage('“Patience, cher. Even forgetfulness must rest between customers.”',[{label:'Smile.',fn:()=>openDialogue(n)}]);return;}
+ if(G.coins<4){G.sanity=clamp(G.sanity+4,0,100);refreshHUD();
+  showDlgPage('You haven’t four livres to rub together. Séraphine sees it, pours you water anyway, and talks about Saumur in springtime until your hands stop shaking.<br><br><i>(+4 🕯, charity of the oldest profession)</i>',[{label:'“Merci.”',fn:closeDialogue}]);return;}
+ G.coins-=4;n.calmCd=now+150000;G.sanity=clamp(G.sanity+20,0,100);AudioSys.sfx('pray');refreshHUD();
+ showDlgPage('An hour of lamplight, laughter, and strictly no talk of debts or teeth. Séraphine declares you “cured of respectability, which was the disease.”<br><br><i>(−4 livres, +20 🕯)</i>',[{label:'“The parish owes you a bell.”',fn:closeDialogue}]);}
 function deceive(n){if(Math.random()<0.55){const gain=randi(4,10);G.coins+=gain;addKarma(-4,'a lie, sweetly told');
   showDlgPage('You spin a tale of drowned tolls and vanished receipts. '+n.n+' blinks — and your purse grows heavier by '+gain+' livres.<br><i>(−4 karma. Lies compound like interest.)</i>',[{label:'Smile.',fn:closeDialogue}]);}
  else{G.dispo[n.id]=(G.dispo[n.id]||0)-1;addKarma(-2,'caught lying');
@@ -874,7 +933,7 @@ function fightTax(n){n.dead=true;scene.remove(n.mesh);G.taxPaid=true;addKarma(-6
  const s=G.quests['q_tax'];if(s.st==='active')completeQuest('q_tax');else if(s.st==='open'){acceptQuest('q_tax');completeQuest('q_tax');}
  addItem('coin',20);closeDialogue();toast('🗡 Poulain flees without wig or ledger. The cabins cheer. (−6 ⚖, +20 livres)','good');}
 /* trade */
-const STOCKS={baptiste:['rapier','axe','ammo','nail','plank'],manon:['herb','tonic','bandage','stew'],doctor:['tonic','bandage','fang'],odette:['bread','stew','herb','plank']};
+const STOCKS={baptiste:['rapier','axe','ammo','nail','plank','tobacco'],manon:['herb','tonic','bandage','stew'],doctor:['tonic','bandage','fang','tafia','wine'],odette:['bread','stew','herb','plank','wine','tobacco'],seraphine:['tobacco','wine','stew']};
 let tradeNPC=null;
 function priceOf(n,buying){const base=(ITEMS[n]||{price:5}).price||5;let p=base*(buying?1.3:0.6);
  if(G.karma>=35)p*=buying?0.8:1.2;else if(G.karma<=-12)p*=buying?1.3:0.8;return Math.max(1,Math.round(p));}
@@ -911,6 +970,7 @@ function doInteract(it){if(!it)return;AudioSys.sfx('pickup');
  if(it.kind==='horse'){mountHorse(it.horse);return;}
  if(it.kind==='cart'){mountCart(it.cart);return;}
  if(it.kind==='forage'){gatherForage(it);return;}
+ if(it.kind==='bed'){doSleep(it);return;}
  if(it.kind==='grave'){if(G.looted[it.id]){subtitle('A tended mound. Someone scratched: “PAID IN FULL.”');return;}
   G.looted[it.id]=1;buryAt();if(Math.random()<0.4){addItem('coin',2);toast('Among the roots: 2 forgotten livres.','good');}return;}
  if(it.kind==='fire'){G.hp=clamp(G.hp+8,0,G.maxhp);G.sanity=clamp(G.sanity+14,0,100);G.hunger=Math.max(0,G.hunger-4);
@@ -950,7 +1010,9 @@ function lootCrate(it){const nm=it.name;
   else if(r<0.65){addItem('nail',randi(1,2));toast('📌 Nails.','good');}
   else if(r<0.75){addItem('coin',randi(2,7));AudioSys.sfx('gold');toast('🪙 Livres!','good');}
   else if(r<0.83){addItem('ammo',randi(1,3));toast('🧨 Cartridges.','good');}
-  else if(r<0.9){addItem('powder_herb',1);toast('🧂 Brimstone.','good');}
+  else if(r<0.88){addItem('powder_herb',1);toast('🧂 Brimstone.','good');}
+  else if(r<0.92){addItem('tobacco',1);toast('🚬 Pipe tobacco. The mist fears it.','good');}
+  else if(r<0.96){addItem('wine',1);toast('🍷 A bottle of claret, cellared through the crossing.','good');}
   else{addItem('stew',1);toast('🍲 Bayou stew, still warm. Suspicious. Delicious.','good');}
   if(Math.random()<0.12){G.infected=1;toast('🤢 Something bit you in the crate-shadow. Fever rises — herb/tonic!','bad');}}
  refreshHUD();refreshHotbar();}
@@ -1057,7 +1119,7 @@ function animate(t){requestAnimationFrame(animate);const dt=Math.min(0.05,(t-las
  camera.lookAt(G.pos.x,1.5,G.pos.z);
  torchLight.position.set(G.pos.x,2.5,G.pos.z);
  // systems
- advanceTime(dt);survival(dt);updateSky();nightSpawns(dt);
+ advanceTime(dt);survival(dt);sanityAura(dt);updateSky();nightSpawns(dt);
  foes.forEach(f=>foeUpdate(f,dt));npcs.forEach(n=>npcUpdate(n,dt));
  critters.forEach(c=>critterUpdate(c,dt));critterSpawns(dt);horses.forEach(h=>horseUpdate(h,dt));
  fires.forEach(f=>{f.flame.rotation.y+=dt*3;});forageUpdate();
@@ -1083,7 +1145,7 @@ function boot(){initThree();buildWorld();buildPlayer();spawnNPCs();bindInput();w
  unlockQuests();refreshHUD();refreshHotbar();
  $('loading').style.display='none';
  // expose for tests
- window.__game={G,foes,npcs,critters,horses,carts,interactables,spawnFoe,spawnCritter,acceptQuest,completeQuest,addItem,startGame,mountHorse,mountCart,dismount,openStash};
+ window.__game={G,foes,npcs,critters,horses,carts,interactables,spawnFoe,spawnCritter,acceptQuest,completeQuest,addItem,useItem,startGame,mountHorse,mountCart,dismount,openStash};
  requestAnimationFrame(animate);}
 boot();
 
