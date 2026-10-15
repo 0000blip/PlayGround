@@ -523,6 +523,10 @@ function buildWorld(){
   ['Swamp Shack',10,74,6,6,0x5a4a38,0x3a4a2a,'Jean-Baptiste’s shack on stilts. Dry floor, wet philosophy.'],
   ['Bayou Hut',-52,52,6,5,0x5a4a38,0x3a4a2a,'Landing hut. Nets, pirogues, and news from the maroons.'],
   ['Gallows Oak Hut',-8,-30,5,5,0x6a5a40,0x3a2a1a,'Rope-store by the old oak. Nobody volunteers to sweep.'],
+  ['Fishing Hut',-59,43,6,5,0x5a4a38,0x3a4a2a,'Nets, lines, and the smell of honest work. Poles by the door.'],
+  ['Smoke Hut',-14,94,5,5,0x5a4a38,0x3a3a3a,'Crabs and fish smoke here. The mosquitoes respect it.'],
+  ['Hunting Cabin',34,92,7,6,0x6a5238,0x4a3a22,'Antler pegs, drying racks, and quiet. Mind the bear sign.'],
+  ['Trapper Cabin',56,24,6,5,0x6a5238,0x4a3a22,'Pelts stretched, traps oiled. The east woods pay in fur.'],
  ];
  B.forEach(([nm,x,z,w,d,wall,roof])=>{
   addBox(x,1.7,z,w,3.4,d,wall);addRoof(x,5.1,z,w+1.4,d+1.4,roof);
@@ -543,7 +547,7 @@ function buildWorld(){
  for(let i=0;i<22;i++){const x=rand(-84,-56),z=rand(-6,22);addBox(x,0.7,z,0.18,1.4,0.18,0x8a8072);addBox(x,1,z,0.8,0.18,0.18,0x8a8072);
   if(i<6)interactables.push({kind:'grave',name:'Shallow grave '+(i+1),x,z,r:2.6,txt:'Bury / mourn (E)',id:'grave'+i});}
  // market stalls + crates (loot)
- const lootSpots=[[12,-2,'Market crate'],[26,-16,'Smith crate'],[-14,24,'Herb bundle'],[4,-44,'Manor chest'],[76,18,'Mission cache'],[10,72,'Swamp cache'],[-50,50,'Landing cache'],[-32,-8,'Chapel box'],[22,26,'Cabin chest'],[-70,10,'Grave goods']];
+ const lootSpots=[[12,-2,'Market crate'],[26,-16,'Smith crate'],[-14,24,'Herb bundle'],[4,-44,'Manor chest'],[76,18,'Mission cache'],[10,72,'Swamp cache'],[-50,50,'Landing cache'],[-32,-8,'Chapel box'],[22,26,'Cabin chest'],[-70,10,'Grave goods'],[-57,45,'Tackle box'],[54,22,'Trap cache']];
  lootSpots.forEach(([x,z,nm])=>{const c=addBox(x,0.5,z,1.2,1,1.2,0x6a4a26);c.material.emissive=new THREE.Color(0x332200);
   interactables.push({kind:'loot',name:nm,x,z,r:2.8,txt:'Search '+nm});});
  // campfires / braziers
@@ -602,7 +606,7 @@ function workShift(st){const J=JOBS[st.job];if(!J)return;const w=G.work[st.job];
  if(J.table){const r=Math.random();let acc=0;for(const [id,n,ch] of J.table){acc+=ch;if(r<acc){addItem(id,n+(w.tier>=2?1:0));break;}}}
  w.xp+=J.xp||1;G.shifts=(G.shifts||0)+1;
  const nt=tierFor(w.xp);
- if(nt>w.tier){w.tier=nt;toast('⚒ '+J.n+': now <b>'+TIER_NAMES[nt]+'</b>! Better pay, better peace.','good');AudioSys.sfx('quest');}
+ if(nt>w.tier){w.tier=nt;notify('⚒','Promotion: '+J.n+' — '+TIER_NAMES[nt],'Better pay, better peace.',{major:true,action:{label:'Labours',fn:()=>togglePanel('panel-work',renderWork)}});AudioSys.sfx('quest');}
  const sg=J.sanity+Math.min(6,w.tier*2);G.sanity=clamp(G.sanity+sg,0,100);
  if(J.karma)addKarma(J.karma,J.n.toLowerCase()+'’s shift');
  if(J.risk&&Math.random()<J.risk){G.infected=1;toast('🤢 The ditch air gets in. Miasma fever! Herb or tonic.','bad');}
@@ -790,7 +794,7 @@ function nightSpawns(dt){spawnT-=dt;if(spawnT>0)return;const night=isNight();
  else if(roll<0.12)t='ghost';else if(roll<0.2)t='skeleton';
  if(t==='vamp'&&!isNight()&&Math.random()<0.7)t='risen';
  spawnFoe(t,x,z);}
-function bossSpawn(){const f=spawnFoe('demon',14,70);toast('😈 The mud splits. THE BÊTE DE L’ABÎME rises in the swamp!','bad');AudioSys.sfx('wolf');AudioSys.setMode('combat');
+function bossSpawn(){const f=spawnFoe('demon',14,70);notify('😈','THE BÊTE DE L’ABÎME rises','The mud splits. The swamp’s interest, come to collect.',{tone:'war',major:true});AudioSys.sfx('wolf');AudioSys.setMode('combat');
  $('boss-bar').classList.remove('hidden');subtitle('The swamp’s compound interest, come to collect. Bring silver, fire, and friends.');}
 let spawnT=5;
 function isNight(){return G.time>=20||G.time<5;}
@@ -823,8 +827,7 @@ function blood(x,z){const p=new THREE.Mesh(new THREE.SphereGeometry(0.16,6,4),ne
 function killFoe(f){scene.remove(f.mesh);foes.splice(foes.indexOf(f),1);
  G.kills++;G.killsByFoe[f.type]=(G.killsByFoe[f.type]||0)+1;
  addKarma(2,'the commune breathes easier');
- const feed=$('killfeed');const div=document.createElement('div');div.textContent='☠ '+f.d.n+' laid to rest ('+G.kills+')';feed.prepend(div);while(feed.children.length>4)feed.lastChild.remove();
- setTimeout(()=>div.remove(),6000);
+ notify('☠',f.d.n+' laid to rest','The commune breathes easier. ('+G.kills+' total)');
  if(f.type==='wolf'&&Math.random()<0.8)dropLoot(f,'pelt',1);
  if(f.type==='vamp'){dropLoot(f,'fang',1);if(Math.random()<0.5)dropLoot(f,'coin',8);}
  if(f.type==='skeleton'){dropLoot(f,'bone',1);if(Math.random()<0.4)dropLoot(f,'coin',4);}
@@ -882,7 +885,7 @@ function unlockQuests(){qdefAll().forEach(q=>{if(!G.quests[q.id])G.quests[q.id]=
  else s.st='open';});}
 function qdefAll(){return QUESTS;}
 function acceptQuest(id){const s=G.quests[id];if(s.st!=='open')return;s.st='active';G.qactive.push(id);
- AudioSys.sfx('quest');toast('📜 Quest taken: '+qdef(id).n);renderQuests();checkQuestItem();}
+ AudioSys.sfx('quest');notify('📜','New directive: '+qdef(id).n,'The ledger remembers. The mud watches.',{tone:'lore',major:true,action:{label:'Ledger',fn:()=>togglePanel('panel-quests',renderQuests)}});renderQuests();checkQuestItem();}
 function checkQuestItem(){for(const id of [...G.qactive]){const q=qdef(id),s=G.quests[id];let done=true;
  for(const o of q.obj){if(o.t==='collect'){const have=o.item==='coin'?G.coins:(G.inv[o.item]||0);s.have[o.item]=Math.min(have,o.n);if(have<o.n)done=false;}else done=false;}
  if(done)completeQuest(id);}refreshTracker();}
@@ -903,10 +906,11 @@ function completeQuest(id){const q=qdef(id),s=G.quests[id];if(s.st==='done')retu
  s.st='done';G.qactive=G.qactive.filter(x=>x!==id);
  if(q.rw){for(const k in q.rw){if(k==='karma')addKarma(q.rw[k],q.n);else if(k==='coin'){G.coins+=q.rw[k];}else if(q.rw[k]>0)addItem(k,q.rw[k]);}}
  if(id==='q_tax')G.taxPaid=true;
- AudioSys.sfx('quest');toast('✔ Quest complete: '+q.n+' — the ledger remembers.','good');
+ AudioSys.sfx('quest');notify('✔','Decision resolved: '+q.n,'The ledger remembers. The commune nods.',{major:true,action:{label:'Ledger',fn:()=>togglePanel('panel-quests',renderQuests)}});
  subtitle('“'+choice(['The commune nods.','The mud approves.','Even the bell sounds pleased.','Debts burned, page by page.'])+'”');
  unlockQuests();renderQuests();refreshHUD();checkEnding();}
 function onBossDead(){$('boss-bar').classList.add('hidden');AudioSys.bell();
+ notify('⚜','The Bête is leveled','The swamp steams. The ledgers burn. History holds its breath.',{major:true});
  for(const id of [...G.qactive]){const q=qdef(id);if(q.obj.some(o=>o.t==='kill'&&o.foe==='demon'))completeQuest(id);}
  if(!G.endingShown){G.endingShown=true;showEnding();}}
 function checkEnding(){const l=G.quests['q_level'];if(l&&l.st==='done')return;
@@ -1179,7 +1183,7 @@ const STOCKS={baptiste:['rapier','axe','ammo','nail','plank','tobacco'],manon:['
 let tradeNPC=null;
 const HAGGLE_NAMES=['Stranger','Known Face','Haggler','Merchant','Factor of the Bayou'];
 function gainHaggle(){if(!G.haggle)G.haggle={xp:0,tier:0};G.haggle.xp++;const nt=tierFor(G.haggle.xp);
- if(nt>G.haggle.tier){G.haggle.tier=nt;toast('⚖ Trading skill: now <b>'+HAGGLE_NAMES[nt]+'</b>! Better prices everywhere.','good');AudioSys.sfx('gold');}}
+ if(nt>G.haggle.tier){G.haggle.tier=nt;notify('⚖','Trading renown: '+HAGGLE_NAMES[nt],'Better prices everywhere.',{major:true,action:{label:'Soul',fn:()=>togglePanel('panel-char',renderChar)}});AudioSys.sfx('gold');}}
 function priceOf(n,buying){const base=(ITEMS[n]||{price:5}).price||5;let p=base*(buying?1.3:0.6);
  if(G.karma>=35)p*=buying?0.8:1.2;else if(G.karma<=-12)p*=buying?1.3:0.8;
  const hg=(G.haggle&&G.haggle.tier)||0;p*=buying?(1-0.05*hg):(1+0.08*hg);
@@ -1389,7 +1393,7 @@ function animate(t){requestAnimationFrame(animate);const dt=Math.min(0.05,(t-las
  else ip.classList.add('hidden');
  if(keys['e']&&dlgOpen==null){/* camera handled above; interact on keydown event */}
  // quest visits + tracker throttle
- miniT-=dt;if(miniT<=0){miniT=1;checkQuestVisit();drawMini();refreshTracker();
+ miniT-=dt;if(miniT<=0){miniT=1;checkQuestVisit();drawMini();refreshTracker();ck3alerts();
   $('clock-day').textContent='Day '+G.day+' · 1666';$('clock-time').textContent=(isNight()?'☾ ':'☀ ')+fmtT(G.time);}
  renderer.render(scene,camera);}
 function boot(){initThree();buildWorld();buildPlayer();spawnNPCs();bindInput();wireButtons();
