@@ -1100,6 +1100,21 @@ const RECORDS=[
  {id:'bassblues',file:'lib/music/Bass_Blues-A_Ricki.mp3',n:'Bass Blues — A. Ricki',note:'a parish recording, bass-first blues'},
  {id:'guitarblues',file:'lib/music/Guitar-1_Blues-A_Ricki.mp3',n:'Guitar Blues — A. Ricki',note:'a parish recording, guitar-led blues'},
  {id:'keysblues',file:'lib/music/Keys_Blues-A_Ricki.mp3',n:'Keys Blues — A. Ricki',note:'a parish recording, keys-led blues'},
+ {id:'weird',file:'lib/music/ainas-snerle-The-Weird-and-Wonderful.ogg',n:'The Weird and Wonderful',note:'Song 1 — strange and wonderful'},
+ {id:'bogwizard',file:'lib/music/Bog-Wizard-remix.ogg',n:'Bog Wizard (Orange Goblin Green Goblin remix)',note:'a swamp remix'},
+ {id:'siren',file:'lib/music/Siren-Song.ogg',n:'Siren Song',note:'to lure sailors onto the rocks'},
+ {id:'burningvelvet',file:'lib/music/Burning-Velvet-Weevilweed.ogg',n:'Burning Velvet Weevilweed',note:'smoke of the sacred weed'},
+ {id:'eelhuman',file:'lib/music/Eel-Eating-Human.ogg',n:'Eel Eating Human O’ Dunberdine',note:'Roast Pork Pig Band — flay away!'},
+ {id:'illgotten',file:'lib/music/Ill-Gotten-Gains.ogg',n:'Ill-Gotten-Gains',note:'Roast Pork Pig Band — the gut-scrapin’ ballad'},
+ {id:'blobfish',file:'lib/music/Blobfish-Quartet.ogg',n:'Blobfish Quartet (barbershop)',note:'Show 1, underwater music'},
+ {id:'carnivale',file:'lib/music/Carnivale-Bizarre.ogg',n:'Carnivale Bizarre',note:'the one-night circus theme'},
+ {id:'kremlinmarch',file:'lib/music/Kremlin-Gremlin-March.ogg',n:'Kremlin Gremlin March',note:'left foot, right foot, crush'},
+ {id:'pisspickled',file:'lib/music/Piss-Pickled-Fish.ogg',n:'Piss-Pickled Fish',note:'lyrics by the Kremlin Gremlin — don’t be afraid'},
+ {id:'earworms',file:'lib/music/earworms-demo.ogg',n:'Earworms (demo)',note:'from the Gonzo cassette'},
+ {id:'gnom',file:'lib/music/GNOM-Lament.ogg',n:'GNOM Lament for the Ohrwurms',note:'a small song for a fallen house'},
+ {id:'grandmother',file:'lib/music/Grandmother-Magick.ogg',n:'Great Goblin Grandmother Magick',note:'sing it right or suffer catastrophe'},
+ {id:'orca',file:'lib/music/Orca-Obscura-Pooka.ogg',n:'Orca Obscura Pooka',note:'four neutral shadow musicians'},
+ {id:'lootbody',file:'lib/music/Loot-The-Body.ogg',n:'Loot the Body (Nacht-Reuter)',note:'ride fast, loot faster'},
 ];
 let recordEl=null,recordBus=null;
 function makeImpulse(dur,decay){const c=AudioSys.ctx,len=Math.floor(c.sampleRate*dur);
