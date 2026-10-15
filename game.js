@@ -1055,7 +1055,7 @@ const JOB_SKILL={carpenter:'carp',cook:'cook',smith:'smith',farmer:'farm',hunter
 function renderSkills(){const l=$('skill-list');if(!l)return;l.innerHTML='<p style="font-size:13px;color:#a89a76">Level 10 in everything is sainthood. Pickpocket with 🤏 in talk, raise fists with G.</p>';
  for(const k in SKILLS){const sk=G.skills[k]||{xp:0,lvl:0};const next=sk.lvl<SKILL_MAX?skillNeed(sk.lvl+1):null;
   const d=document.createElement('div');d.className='craft-row';
-  d.innerHTML='<span>'+SKILLS[k].e+' <b>'+SKILLS[k].n+'</b> — level '+sk.lvl+' ('+sk.xp+(next?' / '+next+' XP':' XP, peak')+')<br><small>'+SKILLS[k].d+'</small></span>';
+  d.setAttribute('data-tip','skill:'+k);d.innerHTML='<span>'+SKILLS[k].e+' <b>'+SKILLS[k].n+'</b> — level '+sk.lvl+' ('+sk.xp+(next?' / '+next+' XP':' XP, peak')+')<br><small>'+SKILLS[k].d+'</small></span>';
   l.appendChild(d);}}
 /* ============ TRAITS (chosen at the crossing) ============ */
 const TRAITS={
@@ -1079,7 +1079,7 @@ const T=hasTrait;
 function traitPoints(){return -((G.traits||[]).reduce((a,id)=>a+(TRAITS[id]?TRAITS[id].cost:0),0));}
 function renderTraits(){const g=$('trait-grid');g.innerHTML='';
  for(const id in TRAITS){const t=TRAITS[id],on=(G.traits||[]).includes(id);
-  const d=document.createElement('div');d.className='trait'+(on?' on':'')+(t.cost<0?' neg':'');
+  const d=document.createElement('div');d.className='trait'+(on?' on':'')+(t.cost<0?' neg':'');d.setAttribute('data-tip','trait:'+id);
   d.innerHTML='<div class="tem">'+t.e+'</div><div><b>'+t.n+'</b> <span class="tcost">'+(t.cost>0?'−'+t.cost+' pts':'+'+(-t.cost)+' pts')+'</span><br><small>'+t.d+'</small></div>';
   d.onclick=()=>{const i=G.traits.indexOf(id);if(i>=0)G.traits.splice(i,1);else G.traits.push(id);AudioSys.sfx('pickup');renderTraits();};
   g.appendChild(d);}
@@ -1391,6 +1391,34 @@ function notify(icon,title,body,opts){opts=opts||{};const feed=$('ck3-feed');if(
  feed.prepend(d);
  while(feed.children.length>7){const kids=[...feed.children].reverse();(kids.find(k=>!k.classList.contains('major'))||kids[0]).remove();}
  return d;}
+function tipFor(key){const pc=(v,m)=>'<span class="tpct">'+Math.max(0,Math.round(v))+' / '+m+' ('+Math.max(0,Math.round(100*v/m))+'%)</span>';
+ switch(key){
+  case 'hp':return '<b>❤ Health</b><br>'+pc(G.hp,G.maxhp)+'<br><small>Empty bellies bleed it. Bite fever spends it. Bandages, stew and sleep buy it back. At zero: the chapel steps.</small>';
+  case 'hunger':return '<b>🍖 Belly</b><br>'+pc(G.hunger,100)+'<br><small>Burns over ~7 minutes, faster running or freezing. At zero your health drains. Forage, hunt, cook, buy.</small>';
+  case 'stam':return '<b>⚡ Stamina</b><br>'+pc(G.stam,100)+'<br><small>Sprinting spends it; standing still refunds it. Empty lungs mean slow feet.</small>';
+  case 'sanity':return '<b>🕯 Reason</b><br>'+pc(G.sanity,100)+' — '+sanityDesc(G.sanity)+'<br><small>Every horror gnaws it. Wine, smoke, sleep, confession and company restore it. Below 30 the dark talks back.</small>';
+  case 'mana':return '<b>🌀 Spirit</b><br>'+pc(G.mana,G.maxmana)+'<br><small>Fuel for conjure. Trickles back slowly; rituals at altars restore floods. Gris-gris raises the maximum.</small>';
+  case 'karma':return '<b>⚖ Karma — '+karmaTitle(G.karma)+'</b><br><span class="tpct">'+G.karma+' (−100 … +100)</span><br><small>Kindness, graves and honest work raise it; murder, theft and lies lower it. Saints get discounts and volunteers.</small>';
+  case 'clock':return '<b>🕰 The bell</b><br>Day '+G.day+' · '+fmtT(G.time)+'<br><small>A full day turns in 8 minutes. Night (20:00–05:00) belongs to the dead shift. The Leveling Night comes on Night 3.</small>';
+  default:break;}
+ if(key.startsWith('hot:')){const it=ITEMS[key.slice(4)];if(!it)return null;
+  return '<b>'+it.e+' '+it.n+'</b><br><small>'+it.d+'</small>'+(it.dmg?'<br><span class="tpct">Damage '+it.dmg+'</span>':'');}
+ if(key.startsWith('skill:')){const s=SKILLS[key.slice(6)];if(!s)return null;const sk=(G.skills&&G.skills[key.slice(6)])||{xp:0,lvl:0};
+  return '<b>'+s.e+' '+s.n+' — level '+sk.lvl+'</b><br>'+pc(sk.xp,sk.lvl<SKILL_MAX?skillNeed(sk.lvl+1):sk.xp)+'<br><small>'+s.d+'</small>';}
+ if(key.startsWith('trait:')){const t=TRAITS[key.slice(6)];if(!t)return null;
+  return '<b>'+t.e+' '+t.n+'</b> <small>'+(t.cost>0?'blessing, −'+t.cost+' pts':'scar, +'+(-t.cost)+' pts')+'</small><br><small>'+t.d+'</small>';}
+ if(key.startsWith('work:')){const J=JOBS[key.slice(5)];if(!J)return null;const w=(G.work&&G.work[key.slice(5)])||{xp:0,tier:0};
+  return '<b>'+J.e+' '+J.n+' — '+TIER_NAMES[w.tier]+'</b><br>'+pc(w.xp,w.tier<4?TIER_XP[w.tier+1]:w.xp)+'<br><small>~'+Math.round(J.pay*(1+0.3*w.tier))+' 🪙 · +'+(J.sanity+Math.min(6,w.tier*2))+' 🕯 · '+J.site+'</small>';}
+ if(key.startsWith('spell:')){const s=SPELLS.find(s=>s.id===key.slice(6));if(!s)return null;
+  return '<b>'+s.e+' '+s.n+'</b> <span class="tpct">'+s.cost+' 🌀</span><br><small>'+s.desc+'</small>';}
+ return null;}
+function bootTips(){const tip=document.getElementById('tooltip');if(!tip)return;
+ document.addEventListener('mouseover',e=>{const t=e.target&&e.target.closest?e.target.closest('[data-tip]'):null;
+  if(!t){tip.classList.add('hidden');return;}const h=tipFor(t.getAttribute('data-tip'));if(!h){tip.classList.add('hidden');return;}
+  tip.innerHTML=h;tip.classList.remove('hidden');});
+ document.addEventListener('mousemove',e=>{if(tip.classList.contains('hidden'))return;
+  tip.style.left=Math.min(innerWidth-290,e.clientX+16)+'px';tip.style.top=Math.min(innerHeight-140,e.clientY+14)+'px';});
+ document.addEventListener('mouseout',e=>{const r=e.relatedTarget;if(!r||!r.closest||!r.closest('[data-tip]'))tip.classList.add('hidden');});}
 function toast(msg,cls,major){const m={bad:['⚠','Peril','war'],good:['⚜','Good news','good'],lore:['📜','Chronicle','lore']}[cls]||['🔔','Notice','info'];
  notify(m[0],m[1],msg,{tone:m[2],major:!!major});}
 const AL={};
@@ -1417,7 +1445,7 @@ function refreshHUD(){$('bar-hp').style.width=clamp(100*G.hp/G.maxhp,0,100)+'%';
  $('inv-count').textContent='· '+Object.values(G.inv).reduce((a,b)=>a+b,0)+' things · '+G.coins+' livres';}
 const HOT=['rapier','axe','musket','torch','bread','tonic'];
 function refreshHotbar(){const h=$('hotbar');h.innerHTML='';HOT.forEach((id,i)=>{const it=ITEMS[id];const d=document.createElement('div');
- d.className='slot'+(G.weapon===id?' active':'');d.innerHTML='<span class="key">'+(i+1)+'</span><span class="em">'+it.e+'</span><span class="nm">'+it.n.split(' ')[0]+'</span><span class="ct">'+(G.inv[id]||'')+'</span>';
+ d.className='slot'+(G.weapon===id?' active':'');d.setAttribute('data-tip','hot:'+id);d.innerHTML='<span class="key">'+(i+1)+'</span><span class="em">'+it.e+'</span><span class="nm">'+it.n.split(' ')[0]+'</span><span class="ct">'+(G.inv[id]||'')+'</span>';
  d.title=it.n+' — '+it.d;d.onclick=()=>useItem(id);h.appendChild(d);});}
 function useItem(id){const it=ITEMS[id];if(!it)return;if(!hasItem(id,1)){toast('None left: '+it.n,'bad');return;}
  if(it.use==='eat'){takeItem(id,1);G.hunger=clamp(G.hunger+it.hunger*(1+0.05*skillLvl('cook')),0,100);if(it.hp)G.hp=clamp(G.hp+it.hp,0,G.maxhp);if(id==='yaupon'){G.sanity=clamp(G.sanity+12,0,100);toast('🍃 Cassina clarity. (+12 🕯)','good');}AudioSys.sfx('eat');toast(it.e+' You eat: '+it.n+' (+'+it.hunger+' 🍖)');}
@@ -1444,7 +1472,7 @@ function refreshTracker(){const t=$('quest-tracker');t.innerHTML='';
    if(o.t==='visit')return (s.have['v_'+o.zone]?'✔ ':'○ ')+o.label;
    return o.label;}).join(' · ');
   d.innerHTML='<b>'+q.n+'</b><div class="obj">'+objs+'</div>';t.appendChild(d);});}
-function closePanels(){['panel-inventory','panel-craft','panel-quests','panel-char','panel-map','panel-work','panel-spells'].forEach(p=>$(p).classList.add('hidden'));}
+function closePanels(){['panel-inventory','panel-craft','panel-quests','panel-char','panel-map','panel-work','panel-spells','panel-skills','panel-songs'].forEach(p=>{const el=document.getElementById(p);if(el)el.classList.add('hidden');});}
 function togglePanel(id,render){const el=document.getElementById(id);if(!el)return;const was=el.classList.contains('hidden');closePanels();if(was){if(render)render();el.classList.remove('hidden');AudioSys.sfx('pickup');}}
 function renderInventory(){const g=$('inv-grid');g.innerHTML='';const ids=Object.keys(G.inv);
  if(!ids.length)g.innerHTML='<i>Empty satchel. The mud provides — search crates (E).</i>';
@@ -1498,12 +1526,12 @@ function renderChar(){$('char-body').innerHTML=
  '<p style="font-style:italic;color:#a89a76">Saints get −20% prices, chapel sanctuary, and volunteers. Butchers pay +30%, are refused recruits, and the Bête hunts them first.</p>';}
 function renderWork(){const l=$('work-list');l.innerHTML='<p style="font-size:13px;color:#a89a76">Honest labour steadies the hands and the head: every shift pays coin, restores 🕯, and climbs its trade toward Grandmaster (better pay, better peace). Find the stations by their floating signs.</p>';
  for(const k in JOBS){const J=JOBS[k],w=G.work[k]||{xp:0,tier:0};const next=w.tier<4?TIER_XP[w.tier+1]:null;
-  const d=document.createElement('div');d.className='craft-row';
+  const d=document.createElement('div');d.className='craft-row';d.setAttribute('data-tip','work:'+k);
   d.innerHTML='<span>'+J.e+' <b>'+J.n+'</b> — '+TIER_NAMES[w.tier]+' ('+w.xp+(next?' / '+next+' XP':' XP,max')+')<br><small>~'+Math.round(J.pay*(1+0.3*w.tier))+' 🪙 · +'+(J.sanity+Math.min(6,w.tier*2))+' 🕯 · '+J.site+(J.need?' · needs 1 '+ITEMS[J.need].n:'')+(J.stake?' · '+J.stake+' stake':'')+'</small></span>';
   l.appendChild(d);}
  const t=document.createElement('div');t.style.cssText='font-size:13px;color:#c9a227;margin-top:8px;';t.textContent='Shifts worked in total: '+(G.shifts||0);l.appendChild(t);}
 function renderSpells(){const l=$('spell-list');l.innerHTML='<p style="font-size:13px;color:#a89a76">Spirit (🌀) trickles back slowly; rituals at altars (✝ crossroads, cemetery, bayou, chapel) restore it in floods. Carry a gris-gris for +20 max.</p>';
- SPELLS.forEach(s=>{const can=G.mana>=s.cost;const d=document.createElement('div');d.className='craft-row';
+ SPELLS.forEach(s=>{const can=G.mana>=s.cost;const d=document.createElement('div');d.className='craft-row';d.setAttribute('data-tip','spell:'+s.id);
   d.innerHTML='<span>'+s.e+' <b>'+s.n+'</b> <small>[key '+s.key+']</small><br><small>'+s.desc+' — <b>'+s.cost+' 🌀</b> (you: '+Math.floor(G.mana)+')</small></span>';
   const b=document.createElement('button');b.className='btn';b.textContent=can?'Cast':'—';b.disabled=!can;
   b.onclick=()=>{castSpell(s.id);renderSpells();};d.appendChild(b);l.appendChild(d);});}
@@ -1559,7 +1587,7 @@ function mainPage(n){const disp=G.dispo[n.id]||0;
  if(n.id!=='taxman'&&!n.follow)ch.push({label:'🤝 “Walk with me. The commune defends itself.” (recruit)',cls:'good',fn:()=>recruit(n)});
  if(n.id==='anselme')ch.push({label:'🕯 “Bless me, Father — the dark gets in.” (confess, +reason)',cls:'good',fn:()=>shrive(n)});
  if(n.id==='seraphine')ch.push({label:'💋 “Company, conversation, forgetfulness.” (4 livres, +peace)',fn:()=>comfort(n)});
- if(!n.dead)ch.push({label:'🤏 Lift something ('+Math.round((0.5+0.07*skillLvl('pick')+0.03*skillLvl('sneak'))*100)+'% — pickpocket)',fn:()=>pickpocket(n)});
+ if(!n.dead&&n.id!=='taxman')ch.push({label:'🤏 Lift something ('+Math.round((0.5+0.07*skillLvl('pick')+0.03*skillLvl('sneak'))*100)+'% — pickpocket)',fn:()=>pickpocket(n)});
  ch.push({label:'🎭 “Surely you can bend the truth, for a friend…” (deceive)',fn:()=>deceive(n)});
  if(n.id==='taxman')ch.push({label:'💰 Pay the tithe — 30 livres (save Seamus)',cls:'good',fn:()=>payTax(n)});
  if(n.id==='taxman')ch.push({label:'🗡 “The ledger ends here, leech.” (drive him off / fight)',cls:'danger',fn:()=>fightTax(n)});
@@ -1886,7 +1914,7 @@ function animate(t){requestAnimationFrame(animate);const dt=Math.min(0.05,(t-las
  miniT-=dt;if(miniT<=0){miniT=1;checkQuestVisit();drawMini();refreshTracker();ck3alerts();
   $('clock-day').textContent='Day '+G.day+' · 1666';$('clock-time').textContent=(isNight()?'☾ ':'☀ ')+fmtT(G.time);}
  renderer.render(scene,camera);}
-function boot(){initThree();buildWorld();initParticles();initMist();bootWindows();buildPlayer();spawnNPCs();
+function boot(){initThree();buildWorld();initParticles();initMist();bootWindows();bootTips();buildPlayer();spawnNPCs();
  const autoMus=()=>{try{if(!AudioSys.ctx)AudioSys.init();if(AudioSys.ctx&&AudioSys.ctx.state==='suspended')AudioSys.ctx.resume();}catch(e){}};
  window.addEventListener('pointerdown',autoMus);window.addEventListener('keydown',autoMus);bindInput();wireButtons();
  spawnFoe('risen',40,10);spawnFoe('risen',-50,30);spawnFoe('ghost',-66,10);
@@ -1898,7 +1926,7 @@ function boot(){initThree();buildWorld();initParticles();initMist();bootWindows(
  spawnCritter('heron',-40,56);spawnCritter('otter',14,80);
  spawnCritter('eagle',10,70);spawnCritter('eagle',-60,0);
  spawnSkelFarmers();spawnFoe('skeleton',-64,16);
- initWork();
+ initWork();initSkills();
  unlockQuests();refreshHUD();refreshHotbar();
  $('loading').style.display='none';
  // expose for tests

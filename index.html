@@ -17,21 +17,22 @@
 
   <div id="vignette"></div>
   <div id="damage-flash"></div>
+  <div id="tooltip" class="hidden"></div>
   <div id="letterbox-top" class="letterbox"></div>
   <div id="letterbox-bot" class="letterbox"></div>
 
   <!-- HUD -->
   <div id="hud" class="hidden">
     <div id="stats-panel">
-      <div class="stat"><span class="ico">❤</span><div class="bar"><div id="bar-hp"></div></div><span id="txt-hp" class="val">100</span></div>
-      <div class="stat"><span class="ico">🍖</span><div class="bar"><div id="bar-hunger"></div></div><span id="txt-hunger" class="val">100</span></div>
-      <div class="stat"><span class="ico">⚡</span><div class="bar"><div id="bar-stam"></div></div><span id="txt-stam" class="val">100</span></div>
-      <div class="stat"><span class="ico">🕯</span><div class="bar"><div id="bar-sanity"></div></div><span id="txt-sanity" class="val">100</span></div>
-      <div class="stat"><span class="ico">🌀</span><div class="bar"><div id="bar-mana" style="background:linear-gradient(90deg,#3a2a6e,#e0a0ff)"></div></div><span id="txt-mana" class="val">100</span></div>
-      <div class="stat karma-row"><span class="ico">⚖</span><div class="bar karma-bar"><div id="bar-karma"></div></div><span id="txt-karma" class="val">0</span></div>
-      <div id="karma-title">Wanderer of the Bayou</div>
+      <div class="stat" data-tip="hp"><span class="ico">❤</span><div class="bar"><div id="bar-hp"></div></div><span id="txt-hp" class="val">100</span></div>
+      <div class="stat" data-tip="hunger"><span class="ico">🍖</span><div class="bar"><div id="bar-hunger"></div></div><span id="txt-hunger" class="val">100</span></div>
+      <div class="stat" data-tip="stam"><span class="ico">⚡</span><div class="bar"><div id="bar-stam"></div></div><span id="txt-stam" class="val">100</span></div>
+      <div class="stat" data-tip="sanity"><span class="ico">🕯</span><div class="bar"><div id="bar-sanity"></div></div><span id="txt-sanity" class="val">100</span></div>
+      <div class="stat" data-tip="mana"><span class="ico">🌀</span><div class="bar"><div id="bar-mana" style="background:linear-gradient(90deg,#3a2a6e,#e0a0ff)"></div></div><span id="txt-mana" class="val">100</span></div>
+      <div class="stat karma-row" data-tip="karma"><span class="ico">⚖</span><div class="bar karma-bar"><div id="bar-karma"></div></div><span id="txt-karma" class="val">0</span></div>
+      <div id="karma-title" data-tip="karma">Wanderer of the Bayou</div>
     </div>
-    <div id="clock-panel">
+    <div id="clock-panel" data-tip="clock">
       <div id="clock-day">Day 1 · 1666</div>
       <div id="clock-time">☀ 08:00</div>
       <div id="clock-phase">Morning mists</div>
@@ -43,7 +44,7 @@
     <div id="killfeed"></div>
     <div id="ck3-feed"></div>
     <div id="interact-prompt" class="hidden">[E] <span id="interact-text">Talk</span></div>
-    <div id="controls-hint">WASD move · Mouse-drag/Q/E camera · LMB/Space attack · E talk/loot/mount · V cart stash · Tab bag · J quests · C craft · K character · B labours · R conjure · M map · F lantern · 1-6 wield · 7-0,- spells · Esc pause</div>
+    <div id="controls-hint">WASD move · Shift sprint · C sneak · Q shout · LMB attack · RMB aim · Space shove · E interact · F lantern · G fists · I bag · X craft · J quests · K soul · B labours · R conjure · Y skills · N songs · M map · 1-6 wield · 7-0,- spells · Esc pause</div>
     <div id="boss-bar" class="hidden"><div id="boss-name">BÊTE DE L'ABÎME</div><div class="bar big"><div id="boss-fill"></div></div></div>
   </div>
 
