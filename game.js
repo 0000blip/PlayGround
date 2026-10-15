@@ -78,8 +78,6 @@ tick(){if(!this.ctx||this.muted||!this.modes||(typeof G!=='undefined'&&G.musicHo
  if(G.song&&(G.song.cfg||SONGS[G.song.id])){const S=G.song.cfg||SONGS[G.song.id];M=S;s=G.song.steps%8;bar=Math.floor(G.song.steps/8)%S.chords.length;ch=S.chords[bar];root=S.bass[bar%S.bass.length];G.song.steps++;if(--G.song.left<=0){G.song=null;if(G.autoplay&&!G.musicHold)G.songGap=8;}}
  else{s=this.step%8;bar=Math.floor(this.step/8)%M.chords.length;ch=M.chords[bar];root=M.bass[bar%M.bass.length];this.step++;
   if(!G.song&&G.autoplay&&!G.musicHold&&G.started){G.songGap-=stepDur;if(G.songGap<=0){G.songGap=8;autoNext();}}}
- const semi=(typeof G!=='undefined'&&G.tone)||0,mul=semi?Math.pow(2,semi/12):1;
- if(mul!==1){ch=ch.map(f=>f*mul);root=root*mul;}
  if(s===0||(M.drum==='train'&&s===4)||(M.drum==='war'&&s===6))this.bassN(root,1.6,0.20);
  if(M.drum==='dirge'&&s===0)this.bassN(root/2,3.2,0.22);
  if(M.banjo&&(s%2===0||M.drum==='war'))this.ks(ch[(this.step>>1)%ch.length]*(s%4===2?2:1),M.drum==='war'?0.5:0.9,3200,0.20);
@@ -641,7 +639,7 @@ const G={started:false,paused:false,dead:false,ending:false,day:1,time:8.0,weath
  killsByFoe:{},taxPaid:false,debtBook:0,shoeFound:0,bellRung:false,endingShown:false,pos:{x:6,z:10}};
 QUESTS.forEach(q=>G.quests[q.id]={st:'lock',have:{}});
 G.work={};G.shifts=0;G.grave=null;G.mana=100;G.maxmana=100;G.haggle={xp:0,tier:0};G.traits=[];
-G.song=null;G.songGap=6;G.autoplay=false;G.musicHold=false;G.lastSong=null;G.sneaking=false;G.flash=0;G.worn={};G.craftSel=null;G.reloadT=0;G.dryT=0;G.playRate=0.7;G.tone=0;
+G.song=null;G.songGap=6;G.autoplay=false;G.musicHold=false;G.lastSong=null;G.sneaking=false;G.flash=0;G.worn={};G.craftSel=null;G.reloadT=0;G.dryT=0;G.playRate=0.7;
 function qdef(id){return QUESTS.find(q=>q.id===id);}
 function karmaTitle(k){if(k>=60)return 'Saint of the Bayou';if(k>=35)return 'Friend of the Commune';if(k>=12)return 'Trusted Neighbour';if(k>-12)return 'Wanderer of the Bayou';if(k>-35)return 'Suspect Soul';if(k>-60)return 'Hound of the Seigneur';return 'Butcher of the Mud';}
 function addKarma(n,why){G.karma=clamp(G.karma+n,-100,100);toast((n>0?'+':'')+n+' ⚖ '+(why||''),n>=0?'good':'bad');refreshHUD();}
@@ -2599,7 +2597,6 @@ function wireButtons(){
  knob($('knob-lfo'),{min:1,max:800,val:15,on:v=>{const d=DD();if(!d)return;d.rate=v/100;applyDub();}});
  knob($('knob-reso'),{min:5,max:120,val:22,on:v=>{const d=DD();if(!d)return;d.reso=v/10;applyDub();}});
  knob($('knob-dirt'),{min:10,max:80,val:24,on:v=>{const d=DD();if(!d)return;d.drive=v/10;applyDub();}});
- knob($('knob-tone'),{min:-7,max:7,val:0,on:v=>{if(typeof G!=='undefined')G.tone=Math.round(v);}});
  document.querySelectorAll('.mus-mode').forEach(b=>b.onclick=()=>{AudioSys.init();if(!AudioSys.dub)return;AudioSys.dub.mode=+b.dataset.m;applyDub();
   document.querySelectorAll('.mus-mode').forEach(x=>x.classList.toggle('on',x===b));});
  const msp=$('mus-speed'),msv=$('mus-speed-v');
@@ -2748,7 +2745,7 @@ function boot(){initThree();buildWorld();initParticles();initMist();bootWindows(
  unlockQuests();refreshHUD();refreshHotbar();
  $('loading').style.display='none';
  // expose for tests
- window.__game={G,foes,npcs,critters,horses,carts,boats,barricades,traps,interactables,spawnFoe,spawnCritter,acceptQuest,completeQuest,addItem,useItem,startGame,mountHorse,mountCart,dismount,openStash,boardBoat};
+ window.__game={G,AudioSys,foes,npcs,critters,horses,carts,boats,barricades,traps,interactables,spawnFoe,spawnCritter,acceptQuest,completeQuest,addItem,useItem,startGame,mountHorse,mountCart,dismount,openStash,boardBoat};
  requestAnimationFrame(animate);}
 boot();
 
