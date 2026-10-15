@@ -12,18 +12,67 @@ const fmtT=h=>{const H=Math.floor(h),M=Math.floor((h-H)*60);return String(H).pad
 const AudioSys={ctx:null,master:null,musicGain:null,mode:'menu',step:0,timer:null,muted:false,
 init(){if(this.ctx)return;try{this.ctx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){return;}
  this.master=this.ctx.createGain();this.master.gain.value=.7;this.master.connect(this.ctx.destination);
- this.musicGain=this.ctx.createGain();this.musicGain.gain.value=.34;this.musicGain.connect(this.master);this.loop();},
+ this.musicGain=this.ctx.createGain();this.musicGain.gain.value=.34;this.musicGain.connect(this.master);
+ /* tube amp warmth */
+ this.tube=this.ctx.createWaveShaper();const curve=new Float32Array(256);for(let i=0;i<256;i++){const v=i/255*2-1;curve[i]=Math.tanh(2.4*v);}this.tube.curve=curve;
+ const tl=this.ctx.createBiquadFilter();tl.type='lowpass';tl.frequency.value=3600;this.tube.connect(tl);tl.connect(this.musicGain);
+ this.dry=this.ctx.createGain();this.dry.gain.value=0.8;this.dry.connect(this.musicGain);
+ /* analog delay: dark echo */
+ this.dly=this.ctx.createDelay(1.5);this.dly.delayTime.value=0.38;const fb=this.ctx.createGain();fb.gain.value=0.42;
+ const dl=this.ctx.createBiquadFilter();dl.type='lowpass';dl.frequency.value=1500;
+ this.dly.connect(fb);fb.connect(dl);dl.connect(this.dly);
+ const wet=this.ctx.createGain();wet.gain.value=0.5;this.dly.connect(wet);wet.connect(this.musicGain);
+ this.loop();},
 toggle(){this.muted=!this.muted;if(this.master)this.master.gain.value=this.muted?0:.7;$('music-state').textContent=this.muted?'OFF':'ON';return !this.muted;},
 scales:{menu:[110,130.8,164.8,196,246.9,293.7],day:[146.8,164.8,174.6,196,220,246.9,293.7],night:[82.4,87.3,110,123.5,138.6,164.8],combat:[98,103.8,138.6,146.8,196,207.6],chapel:[130.8,146.8,164.8,196,220,261.6]},
-loop(){if(this.timer)clearInterval(this.timer);this.timer=setInterval(()=>this.tick(),420);},
-setMode(m){this.mode=m;},
-tick(){if(!this.ctx||this.muted)return;const sc=this.scales[this.mode]||this.scales.night;const c=this.ctx,t=c.currentTime;
- this.step++;
- const drone=!(this.step%8);const pluck=!(this.step%2)||Math.random()<.3;
- if(drone){const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=choice(sc)/2;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.16,t+.4);g.gain.linearRampToValueAtTime(0,t+3.4);o.connect(g);g.connect(this.musicGain);o.start(t);o.stop(t+3.6);}
- if(pluck){const o=c.createOscillator(),g=c.createGain();o.type=this.mode==='chapel'?'sine':(Math.random()<.3?'triangle':'sawtooth');o.frequency.value=choice(sc)*(this.mode==='night'?2:1);const f=c.createBiquadFilter();f.type='lowpass';f.frequency.value=this.mode==='combat'?2400:900;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(this.mode==='combat'?.11:.08,t+.03);g.gain.exponentialRampToValueAtTime(.0001,t+1.1);o.connect(f);f.connect(g);g.connect(this.musicGain);o.start(t);o.stop(t+1.2);}
- if(this.mode==='night'&&this.step%16===0)this.howl();
- if(this.mode==='combat'&&this.step%4===0)this.drum();},
+loop(){if(this.timer)clearInterval(this.timer);const M=(this.modes&&this.modes[this.mode])||{bpm:72};this.timer=setInterval(()=>this.tick(),Math.max(60,Math.round(60000/M.bpm/2)));},
+setMode(m){if(this.mode===m||!this.modes)return;this.mode=m;this.loop();},
+/* 16-Horsepower-style songbook: minor keys, train beats, banjo rolls, reeds */
+modes:{
+ menu:{bpm:80,drum:'brush',banjo:true,bass:[55,55,65.41,49],chords:[[220,261.63,329.63],[174.61,220,261.63],[196,246.94,293.66],[146.83,196,246.94]]},
+ day:{bpm:96,drum:'train',banjo:true,bass:[55,65.41,49,58.27],chords:[[220,261.63,329.63],[196,246.94,293.66],[174.61,220,261.63],[164.81,196,246.94]]},
+ night:{bpm:66,drum:'dirge',banjo:false,reed:true,bass:[41.2,41.2,49,38.89],chords:[[110,130.81,164.81],[98,123.47,146.83],[87.31,110,138.59]]},
+ combat:{bpm:132,drum:'war',banjo:true,bass:[55,55,58.27,65.41],chords:[[220,261.63,311.13],[196,233.08,293.66]]},
+ chapel:{bpm:60,drum:'none',banjo:false,reed:true,bass:[65.41,49,58.27,65.41],chords:[[261.63,329.63,392],[293.66,349.23,440],[329.63,415.3,493.88]]}},
+noiseBuf(){if(this._nb)return this._nb;const c=this.ctx,b=c.createBuffer(1,c.sampleRate,c.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;this._nb=b;return b;},
+ks(freq,dur,bright,vol){const c=this.ctx,t=c.currentTime;const N=Math.max(8,Math.round(c.sampleRate/freq));
+ const b=c.createBuffer(1,N,c.sampleRate),d=b.getChannelData(0);for(let i=0;i<N;i++)d[i]=(Math.random()*2-1)*(1-i/N*0.3);
+ const src=c.createBufferSource();src.buffer=b;src.loop=true;
+ const bp=c.createBiquadFilter();bp.type='bandpass';bp.frequency.value=freq;bp.Q.value=1.2;
+ const lp=c.createBiquadFilter();lp.type='lowpass';lp.frequency.value=bright||2500;
+ const g=c.createGain();g.gain.setValueAtTime(vol||0.2,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+ const send=c.createGain();send.gain.value=0.5;
+ src.connect(bp);bp.connect(lp);lp.connect(g);g.connect(this.tube);g.connect(this.dry);lp.connect(send);send.connect(this.dly);
+ src.start(t);src.stop(t+dur+0.05);},
+bassN(freq,dur,vol){const c=this.ctx,t=c.currentTime,o=c.createOscillator(),o2=c.createOscillator(),g=c.createGain();
+ o.type='triangle';o.frequency.value=freq;o2.type='sine';o2.frequency.value=freq/2;
+ g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+0.03);g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+ o.connect(g);o2.connect(g);g.connect(this.tube);o.start(t);o.stop(t+dur+0.05);o2.start(t);o2.stop(t+dur+0.05);},
+reedN(chord,dur,vol){const c=this.ctx,t=c.currentTime,g=c.createGain();
+ g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+1.1);g.gain.linearRampToValueAtTime(0.0001,t+dur);
+ const lfo=c.createOscillator(),lg=c.createGain();lfo.frequency.value=5.2;lg.gain.value=7;lfo.connect(lg);
+ chord.forEach(f=>{[0.997,1.003].forEach(dt=>{const o=c.createOscillator();o.type='sawtooth';o.frequency.value=f;lg.connect(o.detune);o.connect(g);o.start(t);o.stop(t+dur+0.05);});});
+ lfo.start(t);lfo.stop(t+dur+0.05);
+ const lp=c.createBiquadFilter();lp.type='lowpass';lp.frequency.value=2200;g.connect(lp);lp.connect(this.dly);lp.connect(this.dry);},
+kick(v){const c=this.ctx,t=c.currentTime,o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.setValueAtTime(110,t);o.frequency.exponentialRampToValueAtTime(38,t+0.22);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.3);o.connect(g);g.connect(this.dry);o.start(t);o.stop(t+0.32);},
+snare(v){const c=this.ctx,t=c.currentTime,s=c.createBufferSource();s.buffer=this.noiseBuf();const f=c.createBiquadFilter();f.type='highpass';f.frequency.value=1600;const g=c.createGain();g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.18);s.connect(f);f.connect(g);g.connect(this.dry);s.start(t);s.stop(t+0.2);
+ const o=c.createOscillator(),g2=c.createGain();o.type='triangle';o.frequency.value=190;g2.gain.setValueAtTime(v*0.6,t);g2.gain.exponentialRampToValueAtTime(0.001,t+0.1);o.connect(g2);g2.connect(this.dry);o.start(t);o.stop(t+0.12);},
+tom(v){const c=this.ctx,t=c.currentTime,o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.setValueAtTime(95,t);o.frequency.exponentialRampToValueAtTime(52,t+0.25);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.3);o.connect(g);g.connect(this.dry);o.start(t);o.stop(t+0.32);},
+tick2(v){const c=this.ctx,t=c.currentTime,s=c.createBufferSource();s.buffer=this.noiseBuf();s.playbackRate.value=1.7;const f=c.createBiquadFilter();f.type='highpass';f.frequency.value=6000;const g=c.createGain();g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.05);s.connect(f);f.connect(g);g.connect(this.dry);s.start(t);s.stop(t+0.07);},
+tick(){if(!this.ctx||this.muted||!this.modes)return;const M=this.modes[this.mode]||this.modes.night;const c=this.ctx,t=c.currentTime;
+ const s=this.step%8,bar=Math.floor(this.step/8)%M.chords.length,ch=M.chords[bar],root=M.bass[bar%M.bass.length];this.step++;
+ if(s===0||(M.drum==='train'&&s===4)||(M.drum==='war'&&s===6))this.bassN(root,1.6,0.20);
+ if(M.drum==='dirge'&&s===0)this.bassN(root/2,3.2,0.22);
+ if(M.banjo&&(s%2===0||M.drum==='war'))this.ks(ch[(this.step>>1)%ch.length]*(s%4===2?2:1),M.drum==='war'?0.5:0.9,3200,0.20);
+ if((this.mode==='night'||this.mode==='combat'||this.mode==='menu')&&s%3===0)this.ks(root/2,2.2,1400,0.16);
+ if((M.reed||this.mode==='night')&&s===0)this.reedN(ch,3.4,0.10);
+ const D=M.drum;
+ if(D==='train'){if(s===0||s===4)this.kick(0.22);if(s===2||s===6)this.snare(0.14);if(s%2===1)this.tick2(0.05);}
+ else if(D==='war'){if(s%2===0)this.kick(0.24);if(s===2||s===6)this.snare(0.18);if(s%2===1)this.tick2(0.07);if(s===4)this.tom(0.16);}
+ else if(D==='dirge'){if(s===0)this.kick(0.2);if(s===4)this.tom(0.14);if(s===2||s===6)this.tick2(0.04);}
+ else if(D==='brush'){if(s%2===1)this.tick2(0.035);}
+ if(s===0&&this.mode!=='combat'){const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=root/2;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.10,t+0.6);g.gain.linearRampToValueAtTime(0,t+4);o.connect(g);g.connect(this.musicGain);o.start(t);o.stop(t+4.1);}
+ if(this.mode==='night'&&this.step%32===0)this.howl();},
 drum(){const c=this.ctx,t=c.currentTime,o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.setValueAtTime(120,t);o.frequency.exponentialRampToValueAtTime(38,t+.25);g.gain.setValueAtTime(.22,t);g.gain.exponentialRampToValueAtTime(.001,t+.3);o.connect(g);g.connect(this.master);o.start(t);o.stop(t+.35);},
 howl(){const c=this.ctx,t=c.currentTime,o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.setValueAtTime(600,t);o.frequency.linearRampToValueAtTime(880,t+.5);o.frequency.linearRampToValueAtTime(520,t+1.4);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.05,t+.3);g.gain.linearRampToValueAtTime(0,t+1.6);o.connect(g);g.connect(this.musicGain);o.start(t);o.stop(t+1.7);},
 bell(){if(!this.ctx||this.muted)return;const c=this.ctx,t=c.currentTime;[523,392,659].forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(.12,t+i*.5);g.gain.exponentialRampToValueAtTime(.0001,t+i*.5+2);o.connect(g);g.connect(this.master);o.start(t+i*.5);o.stop(t+i*.5+2.1);});},
@@ -92,6 +141,8 @@ const ITEMS={
  wine:{n:'Claret',e:'🍷',d:'French wine, cellared through the crossing. +6 hunger, +12 reason.',use:'drink',hunger:6,sanity:12,price:6},
  tafia:{n:'Tafia',e:'🥃',d:'Raw cane spirit. Burns clean through grief. +2 hunger, +18 reason, −5 HP.',use:'drink',hunger:2,sanity:18,hp:-5,price:8},
  tobacco:{n:'Pipe tobacco',e:'🚬',d:'Virginia leaf. Smoke a bowl and watch the mist. +10 reason, −2 HP.',use:'smoke',sanity:10,hp:-2,price:3},
+ candle:{n:'Tallow candle',e:'🕯',d:'Light for altars, vigils, and the Loa’s attention. Burned in ritual.',price:2},
+ grisgris:{n:'Gris-gris bag',e:'🧿',d:'Red flannel, root, bone, verse. Carry it: +20 max spirit. Manon’s own recipe.',use:'charm',price:12},
 };
 const RECIPES=[
  {id:'bandage',n:'Linen bandage',need:{plank:0,herb:1},make:{bandage:1},txt:'herb → bandage (+25 HP)'},
@@ -178,7 +229,7 @@ const CODEX={
  Thesis:{t:'Gothic Marxism in five graves',b:`<h3>The commune of the dead and the living</h3><p><b>1.</b> The dead work the night shift — unburied labour, unpaid, unquiet.<b> 2.</b> The Seigneur encloses the swamp and charges rent on rain.<b> 3.</b> The Church counts souls as tithes.<b> 4.</b> The Loup-Garou is the peasant who learned to bite back.<b> 5.</b> The Leveling Night is the general strike of the graveyard.</p><p>Karma is not heaven’s ledger. It is the commune’s memory of you.</p>`},
  Bestiary:{t:'The Five Plagues',b:`<h3>Field notes, Chirurgien Fauche</h3><p><b>🧟 Risen</b> — the plague-dead. Slow. Bite breeds fever (eat tonic/herb).<br><b>🐺 Loup-Garou</b> — by day a neighbour; by moon a wolf. Silver ×3, fire fears it.<br><b>👻 Apparition</b> — grief with a face. Wounds reason (sanity). Lantern-light + blessed steel.<br><b>🧛 Sang-Mêlé</b> — vampire gentry. Vain, parleyable at dusk, deadly always. Fangs worth coin.<br><b>😈 Bête de l’Abîme</b> — the swamp’s compound interest. Appears Night 3+ in the swamp. Bring friends, silver, and spite.</p>`},
  FloraFauna:{t:'Forage & game of the parish',b:`<h3>What the unenclosed woods give (October)</h3><p>Fall is the honest season. <b>🌰 Pecans & hickory</b> drop ripe in October; <b>🍇 muscadines</b> hang September–October; <b>🍑 persimmons</b> sweeten after frost; <b>🥭 pawpaws</b> and <b>🍈 maypops</b> finish; <b>🌰 acorns</b> mast (leach the bitterness, as the Houma do); <b>🥔 groundnuts</b> — Apios tubers the Choctaw dig in fall. Year-round: <b>🫚 sassafras</b> root-tea, <b>🍃 yaupon</b> cassina (the woods’ only caffeine — steadying to the nerves), <b>🧅 wild onion</b>, <b>🌾 cattail</b> root-flour, <b>🦞 crawfish</b> in the shallows.</p><p><b>Game:</b> cottontail 🐇, gray squirrel 🐿, fall-fat deer 🦌, turkey 🦃 in autumn flocks, mallards 🦆 on the water — and 🐊 the alligator, which hunts back. Feral hogs (Spanish stock) root the cane. Note the <i>absent</i>: no armadillos yet — they will not waddle in for another century.</p><p><b>Teeth:</b> 🐊 alligator (rolls), 🐍 cottonmouth (venom = bite-fever; suck the wound, chew herb), 🐢 snapping turtle (slow, shears), 🐗 feral hogs — Spanish stock gone wild by 1666 — charge, 🐱 bobcats hunt at a run, 🐻 the black bear, old man of the canebrake, is a siege engine. <b>Small neighbours:</b> 🦝 raccoon (steals shine), 🐀 opossum (plays dead — convincingly), 🐸 bullfrog (gig for legs), 🐦 great heron, 🐢 box turtle, 🦦 otter, and 🦅 the bald eagle circling over it all, untouchable as a tax farmer.</p><p>Take only hunger’s share. The commune remembers greed the way the Seigneur remembers debts.</p>`},
- Music:{t:'A procedural dark score',b:`<h3>Five weathers of sound</h3><p>Menu drone, day Dorian harpsichord-plucks, night low Phrygian dread with wolf-howl synthesis, combat drums, chapel sine-choir. All synthesized live in WebAudio — no two nights identical, like grief.</p>`},
+ Music:{t:'A gothic-Americana score',b:`<h3>Five songs for the parish (16-Horsepower weather)</h3><p>Menu brush-drums, day train-beat with banjo rolls, night dirge with reeds, combat war-drums at 132, chapel hymn at 60 — all in brooding minor keys. The strings are Karplus-Strong physical models through a tube-amp waveshaper into a dark analog echo; the accordion is detuned reeds with bellows swell; the drums are synthesized kick, snare, toms and steel ticks. No recordings — only mathematics, which in the bayou amounts to the same haunting.</p>`},
 };
 /* ============ WILD PARISH: forage, game, horses, carts ============ */
 const FORAGE_DEFS={
