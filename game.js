@@ -275,6 +275,12 @@ const QUESTS=[
  {id:'q_pig_wife',n:'Jean-Luc’s Wife',giver:'jeanluc',chain:'side',karma:6,desc:'Babette Porcher went maypop-picking in the east and never came home — or so Jean-Luc says, checking over his shoulder. Walk the Bayou Landing; the maroon women know everything. Then settle it with him, kindly or honestly.',obj:[{t:'visit',zone:'bayou',label:'ask after Babette'},{t:'wife',n:1,label:'settle it with Jean-Luc'}],rw:{coin:8,karma:6}},
  {id:'q_pig_feed',n:'Mast and Mash',giver:'jeanluc',chain:'side',karma:5,desc:'“Pigs is honest. Pigs don’t sign.” Fatten the herd the old way — pannage: 3 acorns and 2 cattail roots for the trough.',obj:[{t:'collect',item:'acorn',n:3,label:'acorns'},{t:'collect',item:'cattail',n:2,label:'cattail roots'}],rw:{pork:2,coin:6,karma:5}},
  {id:'q_pig_boar',n:'The Boar Problem',giver:'jeanluc',chain:'side',karma:6,desc:'Feral boars circle the pen at night, Spanish ghosts with tusks. Take 3 head of game anywhere and Jean-Luc sleeps again.',obj:[{t:'hunt',n:3,label:'game taken'}],rw:{coin:12,ammo:2,karma:6}},
+ {id:'q_t_herb',n:'Manon’s Apprentice',giver:'manon',chain:'side',karma:6,trait:'herbalist',desc:'For Herbalists only: Manon needs hands that know leaves. Gather 8 wormwood & mugwort for the fever teas.',obj:[{t:'collect',item:'herb',n:8,label:'herbs'}],rw:{tonic:3,karma:6}},
+ {id:'q_t_boar',n:'The Old Boar',giver:'seamus',chain:'side',karma:8,trait:'hunter',desc:'For the Hunter-Born only: a scarred old boar roots the east woods and fears nothing. Take 8 head of game and bring back proof of the biggest.',obj:[{t:'hunt',n:8,label:'game taken'}],rw:{coin:20,karma:8}},
+ {id:'q_t_brave',n:'Stand the Bell',giver:'anselme',chain:'side',karma:10,trait:'brave',desc:'For the Brave only: the chapel yard needs a soul who will not run. Bury 5 paupers while the dead shift walks.',obj:[{t:'bury',n:5,label:'paupers buried'}],rw:{coin:10,bible:1,karma:10}},
+ {id:'q_t_garden',n:'Seamus’s Acre',giver:'seamus',chain:'side',karma:7,trait:'gardener',desc:'For Gardeners only: Seamus’s strip could feed three families in the right hands. Gather 8 wild foods to prove the hands.',obj:[{t:'forage',n:8,label:'wild foods'}],rw:{bread:3,karma:7}},
+ {id:'q_t_coward',n:'Face the Bell',giver:'anselme',chain:'side',karma:8,trait:'cowardly',desc:'For the Cowardly only: Anselme prescribes terror as medicine. Slay 3 loups and the fear may leave you for good.',obj:[{t:'kill',foe:'wolf',n:3,label:'loups slain'}],rw:{karma:8}},
+ {id:'q_t_haunt',n:'Lay Them Down',giver:'anselme',chain:'side',karma:10,trait:'haunted',desc:'For the Haunted only: what follows you can be faced. Banish 4 apparitions and sleep unaccompanied at last.',obj:[{t:'kill',foe:'ghost',n:4,label:'apparitions banished'}],rw:{karma:10}},
  {id:'q_risen',n:'The Night Shift',giver:'baptiste',chain:'side',karma:7,desc:'The Risen walk in force after dark. Put 6 back into the mud. The commune defends itself.',obj:[{t:'kill',foe:'risen',n:6,label:'risen laid to rest'}],rw:{ammo:6,coin:10,karma:7}},
  {id:'q_seal',n:'Seal of the Drowned',giver:'jean',chain:'side',karma:9,desc:'A demon-stain festers in the swamp heart. Gather 2 consecrated ash from destroyed apparitions? No — from the chapel brazier after banishings. Then cleanse the stain (E) in the swamp.',obj:[{t:'collect',item:'ash',n:2,label:'consecrated ash'}],rw:{coin:16,karma:9}},
  {id:'q_manor',n:'What the Manor Owes',giver:'seamus',chain:'main',karma:14,desc:'Seamus found the manor’s debt-book: 60 souls bought for 12 livres the head. Steal it from the manor chest (glowing crate behind the manor) and bring it to the market cross.',obj:[{t:'collect',item:'deed',n:2,label:'pages of the debt-book'}],rw:{karma:14,coin:15}},
@@ -359,8 +365,9 @@ function plantForage(){FORAGE_NODES.forEach(([spId,x,z])=>{const sp=FORAGE_DEFS[
 function forageUpdate(){const now=performance.now();for(const it of interactables){if(it.kind!=='forage'||!it.node)continue;
  it.node.visible=!(it.cd&&now<it.cd);}}
 function gatherForage(it){const sp=FORAGE_DEFS[it.species];addItem(sp.item,1);
- if(Math.random()<0.1*skillLvl('forage')+(T('rootwise')?0.15:0)){addItem(sp.item,1);toast('🌿 A forager’s eye: double '+sp.label+'.','good');}
- if(it.species==='crawfish'&&skillLvl('fish')>=3){addItem(sp.item,1);toast('🎣 Old water-hand: extra share.','good');}
+ if(Math.random()<0.1*skillLvl('forage')+(T('rootwise')?0.15:0)+(T('outdoorsman')?0.1:0)){addItem(sp.item,1);toast('🌿 A forager’s eye: double '+sp.label+'.','good');}
+ if(sp.item==='herb'&&T('herbalist')&&Math.random()<0.5){addItem('herb',1);toast('🌿 Herbalist’s hands: twin sprigs.','good');}
+ if(it.species==='crawfish'&&(skillLvl('fish')>=3||T('angler'))){addItem(sp.item,1);toast('🎣 Old water-hand: extra share.','good');}
  gainXp('forage',2);if(it.species==='crawfish')gainXp('fish',2);
  if(sp.item2&&Math.random()<0.35){addItem(sp.item2,1);toast(sp.e+' A bonus! '+ITEMS[sp.item2].n+'.','good');}
  else toast(sp.e+' Gathered '+sp.label+'.','good');
@@ -433,7 +440,7 @@ function makeCritterMesh(type){const g=new THREE.Group();
  return g;}
 function spawnCritter(type,x,z){const d=CRITTER_DEFS[type];const m=makeCritterMesh(type);m.position.set(x,0,z);scene.add(m);
  const c={type,d,mesh:m,hp:d.hp,tx:x,tz:z,wt:rand(0,3),cd:0,hx:x,hz:z};critters.push(c);return c;}
-function hurtCritter(c,dmg){if(c.d.flying)return;dmg*=(1+0.1*skillLvl('hunt'));c.hp-=dmg;blood(c.mesh.position.x,c.mesh.position.z);AudioSys.sfx('hit');
+function hurtCritter(c,dmg){if(c.d.flying)return;dmg*=(1+0.1*skillLvl('hunt'))*(T('hunter')?1.1:1);c.hp-=dmg;blood(c.mesh.position.x,c.mesh.position.z);AudioSys.sfx('hit');
  if(c.hp<=0)killCritter(c);
  else if(c.type==='opossum'&&!c.trick&&c.hp<c.d.hp*0.5){c.trick=true;c.mesh.rotation.z=1.4;toast('🐀 The opossum plays dead. It is very convincing. Sometimes mercy is the smarter tax.');}
  else{c.tx=c.mesh.position.x+(c.mesh.position.x-G.pos.x);c.tz=c.mesh.position.z+(c.mesh.position.z-G.pos.z);c.wt=3;}}
@@ -452,7 +459,7 @@ function critterUpdate(c,dt){const m=c.mesh;c.cd-=dt;
    if(d<2.2&&c.cd<=0){c.cd=1.6;hurtPlayer(c.d.dmg+rand(-3,3),c.d.n);toast(c.d.e+' '+c.d.n+(c.type==='gator'?' rolls!':' strikes!')+' (−HP)','bad');if(c.d.venom&&G.infected<=0){G.infected=1;toast('☠ Venom in the blood! Herb or tonic, quickly!','bad');}}return;}
   c.wt-=dt;if(c.wt<=0){c.wt=rand(4,9);c.tx=c.hx+rand(-10,10);c.tz=c.hz+rand(-10,10);}
  }else{
-  const fleeR=(G.sneaking?0.6:1)*Math.max(3,7-0.4*skillLvl('sneak'));
+  const fleeR=(G.sneaking?0.6:1)*(Math.max(3,7-0.4*skillLvl('sneak'))-(T('hunter')?1:0));
   if(d<fleeR&&!G.dead){const dx=(m.position.x-px)/d,dz=(m.position.z-pz)/d;const cc=collide(m.position.x+dx*c.d.spd*dt,m.position.z+dz*c.d.spd*dt,0.5);m.position.x=cc.x;m.position.z=cc.z;m.lookAt(m.position.x+dx,0,m.position.z+dz);return;}
   c.wt-=dt;if(c.wt<=0){c.wt=rand(3,8);c.tx=c.hx+rand(-16,16);c.tz=c.hz+rand(-16,16);}
  }
@@ -552,7 +559,7 @@ function doSleep(bed){if(G.time>=6&&G.time<18){subtitle('Only owls and the guilt
  const nightmare=(G.sanity<35||G.infected>0)&&Math.random()<0.45;
  if(nightmare){G.sanity=clamp(G.sanity+10,0,100);G.hp=clamp(G.hp-10,1,G.maxhp);
   subtitle('You dream of ledgers written in teeth. You wake chewing the blanket.');toast('Nightmare. (+10 🕯 only, −10 ❤)','bad');}
- else{G.sanity=clamp(G.sanity+45,0,100);G.hp=clamp(G.hp+25,0,G.maxhp);gainXp('vigor',4);
+ else{G.sanity=clamp(G.sanity+45*(T('restless')?0.5:1),0,100);G.hp=clamp(G.hp+25*(T('restless')?0.5:1),0,G.maxhp);gainXp('vigor',4);
   if(G.hunger<=0){G.hp=clamp(G.hp-10,1,G.maxhp);toast('You slept hungry. The belly keeps its own ledger.','bad');}
   else toast('🛏 You slept at '+bed.name+'. (+45 🕯, +25 ❤)','good');AudioSys.sfx('pray');}
  refreshHUD();checkEnding();}
@@ -575,6 +582,7 @@ function takeItem(id,n){n=n||1;if(id==='coin'){G.coins-=n;refreshHUD();return tr
 let renderer,scene,camera,sun,moon,hemi,torchLight,playerMesh,lanternLight;
 let camYaw=0,camDist=26,camH=20; // fixed isometric, Zomboid-style: W walks screen-up (north)
 const colliders=[],interactables=[],foes=[],npcs=[],fires=[],labels=[],torches=[],critters=[],horses=[],carts=[],barricades=[],boats=[],kegs=[],WATER=[],FOLIAGE=[];
+function regLeaf(m){FOLIAGE.push({m,base:m.material.color.clone()});}
 const WORLD=240;
 function mat(c){return new THREE.MeshLambertMaterial({color:c});}
 /* ---- procedural HD textures (canvas-baked, no downloads) ---- */
@@ -672,7 +680,7 @@ function buildWorld(){
   const swampy=dist2(x,z,10,80)<36;
   if(swampy&&Math.random()<0.5){ // cypress knee + trunk
    const t=new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.9,rand(7,11),7),mat(0x4a3a28));t.position.set(x,3.5,z);t.castShadow=true;scene.add(t);
-   const c=new THREE.Mesh(new THREE.ConeGeometry(rand(2.5,4),rand(4,7),8),mat(0x2e4a2e));c.position.set(x,9,z);scene.add(c);
+   const c=new THREE.Mesh(new THREE.ConeGeometry(rand(2.5,4),rand(4,7),8),mat(0x2e4a2e));c.position.set(x,9,z);scene.add(c);regLeaf(c);
    const m=new THREE.Mesh(new THREE.PlaneGeometry(2.4,1.4),new THREE.MeshLambertMaterial({color:0x6a7a5a,transparent:true,opacity:0.7}));m.position.set(x+1,7,z);scene.add(m);
   } else {const t=new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.6,rand(4,7),6),mat(0x4a3a28));t.position.set(x,2.5,z);t.castShadow=true;scene.add(t);
    const c=new THREE.Mesh(new THREE.SphereGeometry(rand(2,3.4),8,7),mat(Math.random()<0.5?0x2e4a26:0x3a5a2e));c.position.set(x,6,z);scene.add(c);}
@@ -777,14 +785,14 @@ function workShift(st){const J=JOBS[st.job];if(!J)return;const w=G.work[st.job];
  if(J.stake)pay+=Math.round(J.stake*rand(1.15,1.6)*(1+0.1*w.tier));
  G.coins+=pay;
  if(J.make)addItem(J.make,J.makeN+(w.tier>=2?1:0));
- if(J.table){const r=Math.random();let acc=0;for(const [id,n,ch] of J.table){acc+=ch;if(r<acc){addItem(id,n+(w.tier>=2?1:0)+((st.job==='farmer')?Math.floor(skillLvl('farm')/3):0));break;}}}
+ if(J.table){const r=Math.random();let acc=0;for(const [id,n,ch] of J.table){acc+=ch;if(r<acc){addItem(id,n+(w.tier>=2?1:0)+((st.job==='farmer')?Math.floor(skillLvl('farm')/3):0)+((st.job==='farmer'&&T('gardener'))?1:0));break;}}}
  w.xp+=J.xp||1;G.shifts=(G.shifts||0)+1;
  if(JOB_SKILL[st.job])gainXp(JOB_SKILL[st.job],2);
  const nt=tierFor(w.xp);
  if(nt>w.tier){w.tier=nt;notify('⚒','Promotion: '+J.n+' — '+TIER_NAMES[nt],'Better pay, better peace.',{major:true,action:{label:'Labours',fn:()=>togglePanel('panel-work',renderWork)}});AudioSys.sfx('quest');}
  const sg=J.sanity+Math.min(6,w.tier*2);G.sanity=clamp(G.sanity+sg,0,100);
  if(J.karma)addKarma(J.karma,J.n.toLowerCase()+'’s shift');
- if(J.risk&&Math.random()<J.risk){G.infected=1;toast('🤢 The ditch air gets in. Miasma fever! Herb or tonic.','bad');}
+ if(J.risk&&Math.random()<J.risk*(T('prone')?2:1)){G.infected=1;toast('🤢 The ditch air gets in. Miasma fever! Herb or tonic.','bad');}
  st.cd=performance.now()+J.cd;AudioSys.sfx('craft');
  toast(J.e+' '+choice(J.shift)+'<br>(+'+pay+' 🪙, +'+sg+' 🕯, '+TIER_NAMES[w.tier]+')','good');
  workProgress(st.job);refreshHUD();refreshHotbar();refreshTracker();}
@@ -864,7 +872,7 @@ function placeBarricade(){const ry=playerMesh?playerMesh.rotation.y:0;
  for(const s of [-1,1]){const post=new THREE.Mesh(new THREE.BoxGeometry(0.22,1.7,0.22),mat(0x4a3018));post.position.set(s*1.1,0.85,0);g.add(post);}
  g.position.set(x,0,z);g.rotation.y=ry+Math.PI/2;scene.add(g);
  const coll={x0:x-1.2,x1:x+1.2,z0:z-1.2,z1:z+1.2};colliders.push(coll);
- const maxhp=60+((G.work&&G.work.carpenter?G.work.carpenter.tier:0)*15)+skillLvl('carp')*10;
+ const maxhp=60+((G.work&&G.work.carpenter?G.work.carpenter.tier:0)*15)+skillLvl('carp')*10+(T('handy')?20:0);
  const it={kind:'barr',name:'Barricade',x,z,r:2.6,txt:'Mend (plank) / tear down (E)',node:g};
  const b={x,z,hp:maxhp,maxhp,mesh:g,coll,inter:it};it.ref=b;
  interactables.push(it);barricades.push(b);
@@ -877,7 +885,7 @@ function mendBarricade(b){if(b.hp>=b.maxhp){
   scene.remove(b.mesh);b.coll.dead=true;if(b.inter)b.inter.gone=true;barricades.splice(barricades.indexOf(b),1);
   addItem('plank',2);toast('🪵 Torn down. 2 planks reclaimed.','good');return;}
  if(!hasItem('plank',1)){toast('Need 1 plank to mend.','bad');return;}
- takeItem('plank',1);b.hp=Math.min(b.maxhp,b.hp+25+8*skillLvl('smith'));AudioSys.sfx('craft');
+ takeItem('plank',1);b.hp=Math.min(b.maxhp,b.hp+25+8*skillLvl('smith')+(T('handy')?15:0));AudioSys.sfx('craft');
  toast('🔨 Mended ('+Math.round(b.hp)+'/'+b.maxhp+' HP).','good');refreshHotbar();}
 function graveMarker(g){const m=new THREE.Group();
  const mound=new THREE.Mesh(new THREE.SphereGeometry(0.9,8,5),mat(0x3a2c1c));mound.scale.y=0.4;mound.position.y=0.1;m.add(mound);
@@ -1090,7 +1098,7 @@ const SKILLS={
 const SKILL_MAX=10;
 function skillNeed(l){return 25*l*(l+1);}
 function skillLvl(id){return (G.skills&&G.skills[id]&&G.skills[id].lvl)||0;}
-function gainXp(id,n){if(!G.skills)G.skills={};if(!G.skills[id])G.skills[id]={xp:0,lvl:0};const s=G.skills[id];s.xp+=n;
+function gainXp(id,n){n=Math.max(1,Math.round(n*(T('fastlearner')?1.3:1)*(T('slowlearner')?0.7:1)));if(!G.skills)G.skills={};if(!G.skills[id])G.skills[id]={xp:0,lvl:0};const s=G.skills[id];s.xp+=n;
  let nl=s.lvl;while(nl<SKILL_MAX&&s.xp>=skillNeed(nl+1))nl++;
  if(nl>s.lvl){s.lvl=nl;notify(SKILLS[id].e,'Skill mastered deeper: '+SKILLS[id].n+' '+nl,SKILLS[id].d,{major:true});AudioSys.sfx('quest');}}
 function initSkills(){if(!G.skills)G.skills={};for(const k in SKILLS)if(!G.skills[k])G.skills[k]={xp:0,lvl:0};}
@@ -1116,6 +1124,54 @@ const TRAITS={
  superstitious:{n:'Superstitious',e:'🕯',cost:-2,d:'You know what walks. Apparitions drain +50% reason.'},
  nightblind:{n:'Night-Blind',e:'🌑',cost:-2,d:'Dusk steals your eyes. +30% reason drain in darkness.'},
  haunted:{n:'Haunted',e:'👻',cost:-2,d:'Something followed you off the ship. Whispers start early; begin shaken.'},
+ athletic:{n:'Athletic',e:'🏃',cost:6,d:'A runner of levees. +50% stamina recovery, slower sprint hunger.'},
+ strong:{n:'Strong',e:'💪',cost:5,d:'Dockhands’ back. +20% melee damage.'},
+ fastheal:{n:'Fast Healer',e:'🩹',cost:4,d:'Clean blood. Health returns twice as fast when fed.'},
+ fastlearner:{n:'Fast Learner',e:'📖',cost:5,d:'The pamphlets took. +30% all experience.'},
+ slowlearner:{n:'Slow Student',e:'🐌',cost:-4,d:'Letters swim. −30% all experience.'},
+ brave:{n:'Brave',e:'🦁',cost:3,d:'Seen worse. Terror takes a third off.'},
+ cowardly:{n:'Cowardly',e:'🐔',cost:-3,d:'The knees know first. +50% fright. (Overcome it: face three wolves.)'},
+ inconspicuous:{n:'Inconspicuous',e:'🌫',cost:3,d:'Forgettable face. Horrors notice 20% later.'},
+ conspicuous:{n:'Conspicuous',e:'📯',cost:-2,d:'A face for wanted posters. Noticed 25% sooner.'},
+ nightowl:{n:'Night Owl',e:'🦉',cost:2,d:'The dark shift feels like home. Darkness gnaws 40% less.'},
+ nightvision:{n:'Night Eyes',e:'👁',cost:4,d:'Candleless sight. Darkness gnaws half.'},
+ cateyes:{n:'Cat’s Eyes',e:'🐱',cost:2,d:'Dusk pupils. Darkness gnaws 30% less.'},
+ outdoorsman:{n:'Outdoorsman',e:'🏕',cost:3,d:'Raised under sky. Finds a tenth more in the wild.'},
+ herbalist:{n:'Herbalist',e:'🌿',cost:3,d:'Knows every leaf. Wormwood doubles half the time. (Unlocks a Manon errand.)'},
+ handy:{n:'Handy',e:'🔨',cost:2,d:'Good with joints. +20 barricade strength, +15 mending.'},
+ faider:{n:'First Aider',e:'⛑',cost:2,d:'War taught bandages. +20% healing.'},
+ gardener:{n:'Gardener',e:'🌻',cost:2,d:'Green thumbs, black soil. Farm yields +1. (Unlocks a Seamus acre.)'},
+ angler:{n:'Angler',e:'🎣',cost:2,d:'Reads water like print. Pools often double.'},
+ hunter:{n:'Hunter-Born',e:'🏹',cost:3,d:'Raised on venison. +10% to game, slower to spook it. (Unlocks the big boar.)'},
+ brawler:{n:'Brawler',e:'🥊',cost:3,d:'Tavern-educated fists. +4 fist damage.'},
+ desens:{n:'Desensitized',e:'😐',cost:4,d:'Buried too many. Half fright, −30% gnawing.'},
+ graceful:{n:'Graceful',e:'🦢',cost:2,d:'Soft feet. Noticed 15% later.'},
+ gymnast:{n:'Gymnast',e:'🤸',cost:2,d:'Ship’s-rigging youth. +2% dodge, flat.'},
+ cook:{n:'Cook-Born',e:'🍲',cost:2,d:'Raised over a pot. Dishes nourish 15% more.'},
+ tailor:{n:'Needle-Born',e:'🧵',cost:2,d:'Sailmaker’s child. Healing crafts come easy.'},
+ nutritionist:{n:'Nutritionist',e:'🥗',cost:1,d:'Reads food like scripture. +5% all nourishment.'},
+ organized:{n:'Organized',e:'🗂',cost:2,d:'Everything labelled. Sells 10% dearer.'},
+ packmule:{n:'Packmule',e:'🐴',cost:2,d:'Carried harvests for years. Sprinting sips stamina.'},
+ lighteater:{n:'Light Eater',e:'🍽',cost:2,d:'Lives on air and spite. −15% hunger.'},
+ hearty:{n:'Hearty Appetite',e:'🍖',cost:-2,d:'A hollow leg. +20% hunger.'},
+ thickskin:{n:'Thick-Skinned',e:'🦏',cost:4,d:'Hide like cypress bark. −15% all damage taken.'},
+ thinskin:{n:'Thin-Skinned',e:'🩸',cost:-2,d:'Paper skin. +15% all damage taken.'},
+ weakstomach:{n:'Weak Stomach',e:'🤢',cost:-2,d:'Raw game may rebel. Cook it, cher.'},
+ smoker:{n:'Pipe Smoker',e:'🚬',cost:-2,d:'Needs the leaf. Each dawn without tobacco costs 10 reason.'},
+ clumsy:{n:'Clumsy',e:'🦶',cost:-2,d:'Two left feet. Swings sometimes hit only air.'},
+ shortsighted:{n:'Short-Sighted',e:'👓',cost:-2,d:'The far is a rumour. Muskets reach shorter.'},
+ hardhearing:{n:'Hard of Hearing',e:'🧏',cost:-3,d:'Cannon years. You shout twice as loud — everything hears.'},
+ restless:{n:'Restless Sleeper',e:'🛏',cost:-2,d:'The bunk never fits. Rest restores half.'},
+ prone:{n:'Prone to Illness',e:'🤒',cost:-3,d:'Every miasma finds you. Infections double.'},
+ agora:{n:'Agoraphobic',e:'🌾',cost:-3,d:'Open sky presses down. Outside the palisade by day, reason bleeds.'},
+ claustro:{n:'Claustrophobic',e:'📦',cost:-2,d:'Walls lean in. Indoors, reason bleeds.'},
+ hemo:{n:'Hemophobic',e:'🩸',cost:-3,d:'Blood unmakes you. Heavy hits cost reason too.'},
+ sunday:{n:'Sunday Driver',e:'🐢',cost:-1,d:'Gentle with reins. Carts and canoes go 15% slower.'},
+ disorganized:{n:'Disorganized',e:'🧺',cost:-1,d:'Pockets like sieves. 5% worse prices both ways.'},
+ adrenaline:{n:'Adrenaline Humours',e:'⚡',cost:4,d:'Near death you shine: faster feet, harder hands under 30% health.'},
+ dextrous:{n:'Dextrous',e:'🤲',cost:2,d:'Quick fingers. Faster reloads, lighter lifts.'},
+ stout:{n:'Stout Frame',e:'🧱',cost:2,d:'Built like a barrel. +10 max health.'},
+ gaunt:{n:'Gaunt',e:'🎋',cost:-2,d:'All elbows. −10 max health, +5% speed.'},
 };
 function hasTrait(id){return (G.traits||[]).includes(id);}
 const T=hasTrait;
@@ -1241,7 +1297,7 @@ function updateAim(cx,cy){if(typeof camera==='undefined')return;_ndc.set(cx/inne
  const p=new THREE.Vector3();if(_ray.ray.intersectPlane(_plane,p)){aimX=p.x;aimZ=p.z;}}
 function shout(){if(shoutCd>0||!G.started||G.paused||G.dead)return;shoutCd=5;AudioSys.sfx('shot');
  subtitle('“HEY! OVER HERE, YOU HUNGRY LEDGERS!”');
- for(const f of foes){if(dist2(G.pos.x,G.pos.z,f.mesh.position.x,f.mesh.position.z)<34){f.tx=G.pos.x+rand(-2,2);f.tz=G.pos.z+rand(-2,2);f.wt=6;}}
+ for(const f of foes){if(dist2(G.pos.x,G.pos.z,f.mesh.position.x,f.mesh.position.z)<(T('hardhearing')?50:34)){f.tx=G.pos.x+rand(-2,2);f.tz=G.pos.z+rand(-2,2);f.wt=6;}}
  for(const c of critters){if(c.d.flying||c.d.hostile)continue;if(dist2(G.pos.x,G.pos.z,c.mesh.position.x,c.mesh.position.z)<20){c.tx=c.mesh.position.x*2-G.pos.x;c.tz=c.mesh.position.z*2-G.pos.z;c.wt=4;}}
  toast('📢 You shout. Everything hungry heard.','bad');}
 function shove(){if(shoveCd>0||G.dead||G.paused||!G.started||dlgOpen)return;shoveCd=0.8;
@@ -1259,7 +1315,7 @@ function shove(){if(shoveCd>0||G.dead||G.paused||!G.started||dlgOpen)return;shov
  if(hit)gainXp('brawl',1);}
 let atkCd=0;
 function playerAttack(){if(atkCd>0||G.dead||G.paused||!G.started)return;
- const w=ITEMS[G.weapon]||ITEMS.rapier;atkCd=w.ranged?Math.max(0.6,1.1-0.05*skillLvl('musket')):(G.weapon==='axe'?0.7:(G.weapon==='spear'?0.6:((G.weapon==='cudgel'||G.weapon==='fists')?0.32:0.42)));
+ const w=ITEMS[G.weapon]||ITEMS.rapier;atkCd=w.ranged?Math.max(0.6,1.1-0.05*skillLvl('musket')-(T('dextrous')?0.15:0)):(G.weapon==='axe'?0.7:(G.weapon==='spear'?0.6:((G.weapon==='cudgel'||G.weapon==='fists')?0.32:0.42)));
  AudioSys.sfx(w.ranged?'shot':'swing');
  if(playerMesh.userData.arm)playerMesh.userData.arm.rotation.x=-1.6;
  setTimeout(()=>{if(playerMesh.userData.arm)playerMesh.userData.arm.rotation.x=0;},180);
@@ -1271,16 +1327,16 @@ function playerAttack(){if(atkCd>0||G.dead||G.paused||!G.started)return;
    for(const f of [...foes]){if(dist2(G.pos.x,G.pos.z,f.mesh.position.x,f.mesh.position.z)<13){hurtFoe(f,bdmg,true);hit++;}}
    for(const c of [...critters]){if(!c.d.flying&&dist2(G.pos.x,G.pos.z,c.mesh.position.x,c.mesh.position.z)<13)hurtCritter(c,bdmg);}
    gainXp('musket',3);toast('📯 The trumpet speaks! '+hit+' horrors peppered.');return;}
-  let best=null,bd=28,bestC=null;
+  let best=null,bd=T('shortsighted')?20:28,bestC=null;
   for(const f of foes){const d=dist2(G.pos.x,G.pos.z,f.mesh.position.x,f.mesh.position.z);if(d<bd){bd=d;best=f;bestC=null;}}
   for(const c of critters){if(c.d.flying)continue;const d=dist2(G.pos.x,G.pos.z,c.mesh.position.x,c.mesh.position.z);if(d<bd){bd=d;bestC=c;best=null;}}  if(best){hurtFoe(best,(w.dmg+rand(0,10))*(1+0.1*skillLvl('musket'))*(aiming?1.25:1),true);gainXp('musket',3);}else if(bestC)hurtCritter(bestC,(w.dmg+rand(0,10))*(1+0.1*skillLvl('musket')));return;}
  for(const f of foes){const d=dist2(G.pos.x,G.pos.z,f.mesh.position.x,f.mesh.position.z);
   if(d<3.0){const wt=G.weapon==='fists'?'brawl':(G.weapon==='axe'?'axe':(G.weapon==='spear'?'pike':((G.weapon==='cudgel'||G.weapon==='torch')?'blunt':'blade')));
-   let dmg=(w.dmg+rand(-2,4))*(1+0.08*skillLvl(wt))*(1+0.04*skillLvl('might'))*(T('smitharms')?1.15:1)*(aiming?1.25:1);
-   if(wt==='brawl')dmg+=2*skillLvl('brawl');
+   let dmg=(w.dmg+rand(-2,4))*(1+0.08*skillLvl(wt))*(1+0.04*skillLvl('might'))*(T('smitharms')?1.15:1)*(aiming?1.25:1)*(T('strong')?1.2:1);
+   if(wt==='brawl')dmg+=2*skillLvl('brawl')+(T('brawler')?4:0);
    if(G.weapon==='silver'&&f.type==='wolf')dmg*=3;
    if(G.inv.bible&&['ghost','vamp'].includes(f.type))dmg*=1.6;
-   hurtFoe(f,dmg,false);gainXp(wt,2);}}
+   if(T('clumsy')&&Math.random()<0.08){toast('🦶 Clumsy swing — air wins.','bad');}else{hurtFoe(f,dmg,false);gainXp(wt,2);}}}
  for(const c of [...critters]){if(c.d.flying)continue;const d=dist2(G.pos.x,G.pos.z,c.mesh.position.x,c.mesh.position.z);
   if(d<3.0){const wt2=G.weapon==='fists'?'brawl':(G.weapon==='axe'?'axe':(G.weapon==='spear'?'pike':((G.weapon==='cudgel'||G.weapon==='torch')?'blunt':'blade')));
    hurtCritter(c,(w.dmg+rand(-2,4))*(1+0.08*skillLvl(wt2))*(1+0.04*skillLvl('might')));gainXp(wt2,2);}}}
@@ -1304,6 +1360,8 @@ function killFoe(f){scene.remove(f.mesh);foes.splice(foes.indexOf(f),1);
 function dropLoot(f,item,n){addItem(item,n);toast(f.d.e+' dropped: '+ITEMS[item].n+' ×'+n);}
 function hurtPlayer(dmg,why){if(G.dead||!G.started||G.paused||dlgOpen)return;
  if(G.wardUntil&&performance.now()<G.wardUntil)dmg*=0.5;
+ if(T('thickskin'))dmg*=0.85;if(T('thinskin'))dmg*=1.15;
+ if(T('hemo')&&dmg>=5){G.sanity=Math.max(0,G.sanity-4);toast('🩸 Blood. Too much blood. (−4 🕯)','bad');}
  G.hp-=dmg;AudioSys.sfx('hurt');
  const df=$('damage-flash');df.style.opacity=0.9;setTimeout(()=>df.style.opacity=0,300);
  if(G.hp<=0){G.hp=0;die(why||'the bayou took its tithe');}refreshHUD();}
@@ -1316,7 +1374,7 @@ function foeUpdate(f,dt){const m=f.mesh;f.cd-=dt;
  if(f.type==='vamp'&&!isNight()){spd*=0.4;f.hp-=dt*2;if(f.hp<=0){killFoe(f);subtitle('Dawn unmakes the vain. The Sang-Mêlé is ash.');return;}}
  if(f.type==='ghost'&&sanctuary)spd*=0.5;
  if(f.type==='demon'){const bf=$('boss-fill');if(bf)bf.style.width=(100*f.hp/f.maxhp)+'%';}
- const aggroR=(G.sneaking?0.5:1)*Math.max(12,26-1.5*skillLvl('sneak'));
+ const aggroR=(G.sneaking?0.5:1)*Math.max(12,26-1.5*skillLvl('sneak'))*(T('inconspicuous')?0.8:1)*(T('conspicuous')?1.25:1)*(T('graceful')?0.85:1);
  if(d<aggroR||f.hp<f.maxhp){ // aggro
   const dx=(px-m.position.x)/d,dz=(pz-m.position.z)/d;
   let nx=m.position.x+dx*spd*dt,nz=m.position.z+dz*spd*dt;
@@ -1331,7 +1389,7 @@ function foeUpdate(f,dt){const m=f.mesh;f.cd-=dt;
    let dmg=f.d.dmg+rand(-3,4);if(f.type==='ghost')dmg=8+G.infected*2;
    if(Math.random()<0.02*skillLvl('foot')){toast('🌀 You slip the blow clean.','good');gainXp('foot',2);}
    else{hurtPlayer(dmg,f.d.n);
-   const fright={risen:3,wolf:5,ghost:8,vamp:6,demon:10,skeleton:5}[f.type]||3;
+   const fright=({risen:3,wolf:5,ghost:8,vamp:6,demon:10,skeleton:5}[f.type]||3)*(T('brave')?0.7:1)*(T('cowardly')?1.5:1)*(T('desens')?0.5:1);
    G.sanity=Math.max(0,G.sanity-fright);if(G.sanity<=10)subtitle('🕯 Your hands will not stop shaking.');
    toast(f.d.e+' '+f.d.n+' wounds you (−'+Math.round(dmg)+' HP, −'+fright+' 🕯)','bad');}}
  } else {f.wt-=dt;if(f.wt<=0){f.wt=rand(2,5);f.tx=m.position.x+rand(-14,14);f.tz=m.position.z+rand(-14,14);}
@@ -1352,7 +1410,7 @@ function npcUpdate(n,dt){if(n.dead)return;const m=n.mesh;
 function unlockQuests(){qdefAll().forEach(q=>{if(!G.quests[q.id])G.quests[q.id]={st:'lock',have:{}};const s=G.quests[q.id];if(s.st!=='lock')return;
  if(q.chain==='main'){const order=['q_bread','q_dead','q_ghost','q_tax','q_manor','q_level'];
   const i=order.indexOf(q.id);if(i===0||G.quests[order[i-1]].st==='done'){s.st='open';}}
- else s.st='open';});}
+ else{if(q.trait&&!hasTrait(q.trait))return;s.st='open';}});}
 function qdefAll(){return QUESTS;}
 function acceptQuest(id){const s=G.quests[id];if(s.st!=='open')return;s.st='active';G.qactive.push(id);
  AudioSys.sfx('quest');notify('📜','New directive: '+qdef(id).n,'The ledger remembers. The mud watches.',{tone:'lore',major:true,action:{label:'Ledger',fn:()=>togglePanel('panel-quests',renderQuests)}});renderQuests();checkQuestItem();}
@@ -1374,6 +1432,8 @@ function buryAt(){G.buried++;addKarma(4,'the dead rest easier');
 function completeQuest(id){const q=qdef(id),s=G.quests[id];if(s.st==='done')return;
  for(const o of q.obj){if(o.t==='collect'&&ITEMS[o.item]&&!ITEMS[o.item].quest)takeItem(o.item,o.n);}
  s.st='done';G.qactive=G.qactive.filter(x=>x!==id);
+ if(id==='q_t_coward'){G.traits=G.traits.filter(t=>t!=='cowardly');toast('🦁 The fear leaves you at the third pelt. You stand straighter.','good');}
+ if(id==='q_t_haunt'){G.traits=G.traits.filter(t=>t!=='haunted');toast('👻 Unaccompanied at last. The ship is finally behind you.','good');}
  if(q.rw){for(const k in q.rw){if(k==='karma')addKarma(q.rw[k],q.n);else if(k==='coin'){G.coins+=q.rw[k];}else if(q.rw[k]>0)addItem(k,q.rw[k]);}}
  if(id==='q_tax')G.taxPaid=true;
  AudioSys.sfx('quest');notify('✔','Decision resolved: '+q.n,'The ledger remembers. The commune nods.',{major:true,action:{label:'Ledger',fn:()=>togglePanel('panel-quests',renderQuests)}});
@@ -1387,17 +1447,20 @@ function checkEnding(){const l=G.quests['q_level'];if(l&&l.st==='done')return;
  if(G.day>=3&&(G.quests['q_manor'].st==='done')){if(l.st==='open'){acceptQuest('q_level');subtitle('The bell tolls thirteen. All debts come due at once.');AudioSys.bell();}}}
 /* ============ SURVIVAL + TIME ============ */
 function survival(dt){const night=isNight();
- G.hunger=Math.max(0,G.hunger-dt*(100/420)*(night?1.25:1)*(1-0.03*skillLvl('vigor'))*(T('consumption')?1.1:1)*(T('maroon')?0.9:1));
+ G.hunger=Math.max(0,G.hunger-dt*(100/420)*(night?1.25:1)*(1-0.03*skillLvl('vigor'))*(T('consumption')?1.1:1)*(T('maroon')?0.9:1)*(T('lighteater')?0.85:1)*(T('hearty')?1.2:1));
  G.mana=Math.min(G.maxmana,G.mana+dt*0.8);
  if(G.hunger<=0){G.hp-=dt*3;}
  if(G.infected>0){G.hp-=dt*1.6;G.infected-=dt/90;if(G.infected<=0){G.infected=0;toast('The fever breaks.','good');}}
- if(G.hunger>60&&G.hp<G.maxhp&&G.infected<=0)G.hp+=dt*0.8;
+ if(G.hunger>60&&G.hp<G.maxhp&&G.infected<=0)G.hp+=dt*0.8*(T('fastheal')?2:1);
  const dark=night&&!G.lantern;let nearFire=false;for(const f of fires){if(dist2(G.pos.x,G.pos.z,f.x,f.z)<6){nearFire=true;break;}}
  const chap=dist2(G.pos.x,G.pos.z,-34,-12)<13;
- if(dark&&!nearFire&&!chap)G.sanity-=dt*2.2*(T('nightblind')?1.3:1)*(T('malaria')?1.2:1);else if(nearFire||chap||G.lantern)G.sanity=Math.min(100,G.sanity+dt*3);
+ if(dark&&!nearFire&&!chap)G.sanity-=dt*2.2*(T('nightblind')?1.3:1)*(T('malaria')?1.2:1)*(T('nightowl')?0.6:1)*(T('nightvision')?0.5:1)*(T('cateyes')?0.7:1);else if(nearFire||chap||G.lantern)G.sanity=Math.min(100,G.sanity+dt*3);
  if(G.sanity<=0){G.hp-=dt*2;if(Math.random()<dt*0.2)subtitle('The faces in the mist wear your outstanding debts.');}
  if(G.sanity<(T('haunted')?45:30)&&Math.random()<dt*0.06)subtitle('🕯 '+choice(['“Pay us…” breathes the dark.','Something counts your debts aloud.','The mist wears a face you buried.','Thirteen bells. Twelve were real.','Your shadow arrives a moment late.']));
  if(G.hp<=0){G.hp=0;die('hunger, fever and the dark together');}
+ const INDOORS=[[36,28],[12,34],[-24,34],[34,-8],[0,-46]];
+ if(T('agora')&&Math.hypot(G.pos.x,G.pos.z)>58&&G.time>=6&&G.time<20)G.sanity=Math.max(0,G.sanity-dt*1.0);
+ if(T('claustro')&&INDOORS.some(([ix,iz])=>dist2(G.pos.x,G.pos.z,ix,iz)<4.5))G.sanity=Math.max(0,G.sanity-dt*1.2);
  if(G.deafT>0){G.deafT-=dt;if(AudioSys.master)AudioSys.master.gain.value=0;if(Math.random()<dt*0.1)subtitle('*muffled ringing*');}
  else if(AudioSys.master&&!AudioSys.muted)AudioSys.master.gain.value=0.7;
  // lantern drains nothing (pine is cheap); sprint drains stam
@@ -1414,9 +1477,10 @@ function sanityAura(dt){if(G.dead||!G.started||G.paused)return;
   else if(f.type==='ghost'){rate=3.5;r=14;if(chap)rate*=0.4;if(T('superstitious'))rate*=1.5;}
   else if(f.type==='vamp'){rate=2.5;r=12;}else if(f.type==='demon'){rate=4.0;r=24;}
   else if(f.type==='skeleton'){rate=1.4;r=9;}
-  if(rate>0&&d<r)G.sanity=Math.max(0,G.sanity-rate*ward*(1-d/(r*1.5))*dt*1.5);}}
+  if(rate>0&&d<r)G.sanity=Math.max(0,G.sanity-rate*ward*(1-d/(r*1.5))*dt*1.5*(T('desens')?0.7:1));}}
 function advanceTime(dt){const prev=G.time;G.time+=dt*(24/480);
  if(G.time>=24){G.time-=24;G.day++;AudioSys.bell();toast('☀ Day '+G.day+' — the bell counts what the Seigneur cannot.','good');
+  if(T('smoker')&&!hasItem('tobacco',1)){G.sanity=clamp(G.sanity-10,0,100);toast('🚬 Dawn and no leaf. The hands shake till noon. (−10 🕯)','bad');}
   if(G.day===3){subtitle('The air tastes of iron. Tonight the bell will toll thirteen.');AudioSys.setMode('night');}
   unlockQuests();}
  // weather drift
@@ -1525,8 +1589,8 @@ function refreshHotbar(){const h=$('hotbar');h.innerHTML='';HOT.forEach((id,i)=>
  d.className='slot'+(G.weapon===id?' active':'');d.setAttribute('data-tip','hot:'+id);d.innerHTML='<span class="key">'+(i+1)+'</span><span class="em">'+it.e+'</span><span class="nm">'+it.n.split(' ')[0]+'</span><span class="ct">'+(G.inv[id]||'')+'</span>';
  d.title=it.n+' — '+it.d;d.onclick=()=>useItem(id);h.appendChild(d);});}
 function useItem(id){const it=ITEMS[id];if(!it)return;if(!hasItem(id,1)){toast('None left: '+it.n,'bad');return;}
- if(it.use==='eat'){takeItem(id,1);G.hunger=clamp(G.hunger+it.hunger*(1+0.05*skillLvl('cook')),0,100);if(it.hp)G.hp=clamp(G.hp+it.hp,0,G.maxhp);if(id==='yaupon'){G.sanity=clamp(G.sanity+12,0,100);toast('🍃 Cassina clarity. (+12 🕯)','good');}AudioSys.sfx('eat');toast(it.e+' You eat: '+it.n+' (+'+it.hunger+' 🍖)');}
- else if(it.use==='heal'){takeItem(id,1);const amt=Math.round(it.hp*(1+0.1*skillLvl('aid')));G.hp=clamp(G.hp+amt,0,G.maxhp);gainXp('aid',2);if(it.cure)G.infected=0;AudioSys.sfx('eat');toast(it.e+' '+it.n+' (+'+it.hp+' ❤)'+(it.cure?' · fever broken':''),'good');}
+ if(it.use==='eat'){takeItem(id,1);if(T('weakstomach')&&['rabbit','venison','pork','bearmeat','snakemeat','coon','possum','duck','turkey','squirrel','gator','turtle','froglegs','crawfish','catfish'].includes(id)&&Math.random()<0.2){G.hp=Math.max(1,G.hp-5);toast('🤢 Raw and wriggling. Cook it next time, cher.','bad');}G.hunger=clamp(G.hunger+it.hunger*(1+0.05*skillLvl('cook'))*(T('cook')?1.15:1)*(T('nutritionist')?1.05:1),0,100);if(it.hp)G.hp=clamp(G.hp+it.hp,0,G.maxhp);if(id==='yaupon'){G.sanity=clamp(G.sanity+12,0,100);toast('🍃 Cassina clarity. (+12 🕯)','good');}AudioSys.sfx('eat');toast(it.e+' You eat: '+it.n+' (+'+it.hunger+' 🍖)');}
+ else if(it.use==='heal'){takeItem(id,1);const amt=Math.round(it.hp*(1+0.1*skillLvl('aid'))*(T('faider')?1.2:1)*(T('tailor')?1.1:1));G.hp=clamp(G.hp+amt,0,G.maxhp);gainXp('aid',2);if(it.cure)G.infected=0;AudioSys.sfx('eat');toast(it.e+' '+it.n+' (+'+it.hp+' ❤)'+(it.cure?' · fever broken':''),'good');}
  else if(it.use==='equip'){G.weapon=id;if(id==='torch')G.lantern=true;AudioSys.sfx('pickup');toast(it.e+' Wielding: '+it.n);refreshHotbar();}
  else if(it.use==='bless'){toast('📖 The Geneva bible rides in your pocket. Apparitions & vampires fear its margins.','good');}
  else if(it.use==='drink'){takeItem(id,1);G.hunger=clamp(G.hunger+(it.hunger||0),0,100);G.sanity=clamp(G.sanity+(it.sanity||10),0,100);if(it.hp)G.hp=clamp(G.hp+it.hp,1,G.maxhp);AudioSys.sfx('eat');toast(it.e+' '+it.n+' (+'+(it.sanity||10)+' 🕯)'+(id==='tafia'?' — fire all the way down.':''),'good');}
@@ -1678,7 +1742,7 @@ function mainPage(n){const disp=G.dispo[n.id]||0;
   ch.push({label:'🕯 “A bunk — and company.” (12 livres, best rest)',fn:()=>rentSleep(true)});}
  if(n.id==='celestin')ch.push({label:'🎻 “Play us something, Célestin.”',fn:()=>fiddle()});
  if(n.id==='eustache')ch.push({label:'👂 “What’s the word?” (5 livres of truth)',fn:()=>rumor()});
- if(!n.dead&&n.id!=='taxman')ch.push({label:'🤏 Lift something ('+Math.round((0.5+0.07*skillLvl('pick')+0.03*skillLvl('sneak'))*100)+'% — pickpocket)',fn:()=>pickpocket(n)});
+ if(!n.dead&&n.id!=='taxman')ch.push({label:'🤏 Lift something ('+Math.round((0.5+0.07*skillLvl('pick')+0.03*skillLvl('sneak')+(T('dextrous')?0.05:0))*100)+'% — pickpocket)',fn:()=>pickpocket(n)});
  ch.push({label:'🎭 “Surely you can bend the truth, for a friend…” (deceive)',fn:()=>deceive(n)});
  if(n.id==='taxman')ch.push({label:'💰 Pay the tithe — 30 livres (save Seamus)',cls:'good',fn:()=>payTax(n)});
  if(n.id==='taxman')ch.push({label:'🗡 “The ledger ends here, leech.” (drive him off / fight)',cls:'danger',fn:()=>fightTax(n)});
@@ -1721,12 +1785,12 @@ function rentSleep(company){const cost=company?12:6;
   if(G.day===3)subtitle('The air tastes of iron. Tonight the bell will toll thirteen.');
   unlockQuests();}
  G.time=6.2;G.hunger=100;
- if(company){G.sanity=clamp(G.sanity+80,0,100);G.hp=clamp(G.hp+40,0,G.maxhp);
+ if(company){G.sanity=clamp(G.sanity+(T('restless')?40:80),0,100);G.hp=clamp(G.hp+(T('restless')?20:40),0,G.maxhp);
   if(Math.random()<0.2){G.coins=Math.max(0,G.coins-8);toast('🕯 Lamplight, laughter, forgetfulness… and lighter pockets (−8). Mostly worth it.','bad');}
   else toast('🕯 Company, supper, and a real mattress. (+80 🕯, +40 ❤)','good');
   subtitle('“Stay,” says the dark, “or go wealthy in sleep.” You choose sleep.');}
  else{if(Math.random()<0.1){G.sanity=clamp(G.sanity+20,0,100);subtitle('You dream of ledgers written in teeth. The bunk holds you anyway.');toast('Restless night. (+20 🕯 only)','bad');}
-  else{G.sanity=clamp(G.sanity+60,0,100);G.hp=clamp(G.hp+35,0,G.maxhp);toast('🛏 Rented bunk, hot supper. (+60 🕯, +35 ❤)','good');}}
+  else{G.sanity=clamp(G.sanity+(T('restless')?30:60),0,100);G.hp=clamp(G.hp+(T('restless')?17:35),0,G.maxhp);toast('🛏 Rented bunk, hot supper. (+'+(T('restless')?30:60)+' 🕯)','good');}}
  refreshHUD();checkEnding();}
 const RUMORS=['The taxman keeps a second ledger. Red cover. Manor study, loose brick.','Lucile’s cousin isn’t the only moon-changed soul in the cabins.','Pelle digs an extra grave every month. “For the future,” he says.','The Bête fears chapel bells the way the Seigneur fears arithmetic.','Nine-Fingers buys fangs, no questions — and sells the answers.','Babette Porcher was seen laughing at the Landing. Laughing.','The swamp stain pulses when the bell tolls. Count it sometime.','Manon’s tonic cures more than fever, or so the drinkers claim.'];
 function rumor(){if(G.coins<5){showDlgPage('“Five livres buys the hearing. Ears ain’t charity, cher.”',[{label:'Back',fn:()=>openDialogue(dlgOpen)}]);return;}
@@ -1741,7 +1805,7 @@ function deceive(n){if(Math.random()<0.55){const gain=randi(4,10);G.coins+=gain;
 function pickpocket(n){const now=performance.now();
  if(n.ppCd&&now<n.ppCd){showDlgPage('“...” '+n.n+' is watching their pockets — and you. Come back later.',[{label:'Back',fn:()=>openDialogue(n)}]);return;}
  n.ppCd=now+120000;
- const ch=0.5+0.07*skillLvl('pick')+0.03*skillLvl('sneak');
+ const ch=0.5+0.07*skillLvl('pick')+0.03*skillLvl('sneak')+(T('dextrous')?0.05:0);
  if(Math.random()<ch){const take=choice(['coin','coin','bread','tobacco','wine','herb','nail']);
   if(take==='coin'){const c=randi(4,10)+skillLvl('pick')*3;G.coins+=c;toast('🪙 Lifted '+c+' livres. Silent as rent day.','good');}
   else{addItem(take,1);toast(ITEMS[take].e+' Lifted: '+ITEMS[take].n+'.','good');}
@@ -1772,6 +1836,8 @@ function gainHaggle(){if(!G.haggle)G.haggle={xp:0,tier:0};G.haggle.xp++;const nt
 function priceOf(n,buying){const base=(ITEMS[n]||{price:5}).price||5;let p=base*(buying?1.3:0.6);
  if(G.karma>=35)p*=buying?0.8:1.2;else if(G.karma<=-12)p*=buying?1.3:0.8;
  const hg=(G.haggle&&G.haggle.tier)||0;p*=buying?(1-0.05*hg):(1+0.08*hg);
+ if(T('disorganized'))p*=buying?1.05:0.95;
+ if(T('organized'))p*=buying?1:1.1;
  return Math.max(1,Math.round(p));}
 function openTrade(n){tradeNPC=n;$('trade').classList.remove('hidden');$('trade-with').textContent='— '+n.n;renderTrade();}
 function renderTrade(){const n=tradeNPC;const T=$('trade-theirs'),Y=$('trade-yours');T.innerHTML='';Y.innerHTML='';
@@ -1866,7 +1932,7 @@ function lootCrate(it){const nm=it.name;
  refreshHUD();refreshHotbar();}
 /* bite infection patch */
 const _hurtPlayer=hurtPlayer;
-hurtPlayer=function(dmg,why){_hurtPlayer(dmg,why);if(/Risen/i.test(why||'')&&Math.random()<(0.18*(T('coffin')?0.5:1))&&G.infected<=0){G.infected=1;toast('🤢 The bite festers. Bite fever! Eat wormwood/tonic.','bad');}};
+hurtPlayer=function(dmg,why){_hurtPlayer(dmg,why);if(/Risen/i.test(why||'')&&Math.random()<(0.18*(T('coffin')?0.5:1)*(T('prone')?2:1))&&G.infected<=0){G.infected=1;toast('🤢 The bite festers. Bite fever! Eat wormwood/tonic.','bad');}};
 /* movable + resizable windows, Zomboid-style */
 const WIN_GEOM_KEY='bayou-requiem-windows';
 function loadWinGeom(){try{const g=JSON.parse(localStorage.getItem(WIN_GEOM_KEY)||'{}');
@@ -1961,7 +2027,7 @@ function wireButtons(){
  $('btn-traits-go').onclick=()=>{if(traitPoints()<0){toast('The manifest must balance (≥ 0).','bad');return;}
   AudioSys.init();$('traits').classList.add('hidden');
   if(T('indebted'))G.coins=0;if(T('pamphleteer'))G.karma=6;
-  if(T('consumption'))G.maxhp=80;if(T('haunted'))G.sanity=60;
+  if(T('consumption'))G.maxhp=80;if(T('stout'))G.maxhp+=10;if(T('gaunt'))G.maxhp-=10;if(T('haunted'))G.sanity=60;
   startGame(false);};
  $('btn-resume').onclick=togglePause;$('btn-save').onclick=save;
  $('btn-full').onclick=()=>{document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen();};
@@ -1995,8 +2061,11 @@ function animate(t){requestAnimationFrame(animate);const dt=Math.min(0.05,(t-las
  if(mount)sp=mount.kind==='cart'?(sprint?8:6):(sprint?11:8);
  if(G.hasteUntil&&performance.now()<G.hasteUntil)sp*=1.35;
  sp*=1+0.02*skillLvl('run');
+ if(G.hp<G.maxhp*0.3&&T('adrenaline'))sp*=1.2;
+ if(T('gaunt'))sp*=1.05;
  if(G.sneaking)sp*=0.55;if(aiming)sp*=0.6;
  if(mount&&mount.kind==='boat')sp=isWater(G.pos.x,G.pos.z)?(sprint?10:7)*(1+0.04*skillLvl('sail')):1.6;
+ if(mount&&(mount.kind==='cart'||mount.kind==='boat')&&T('sunday'))sp*=0.85;
  if(mount)rad=mount.kind==='cart'?1.5:1.0;
  if(mx||mz){const l=Math.hypot(mx,mz);mx/=l;mz/=l;
   const s=Math.sin(camYaw),c=Math.cos(camYaw);const wx=mx*c-mz*s,wz=mx*s+mz*c;
@@ -2007,7 +2076,7 @@ function animate(t){requestAnimationFrame(animate);const dt=Math.min(0.05,(t-las
    playerMesh.position.set(G.pos.x,0,G.pos.z);playerMesh.position.y=mount.kind==='cart'?1.35:(mount.kind==='boat'?1.0:2.0);playerMesh.rotation.y=Math.atan2(wx,wz);}
   else{playerMesh.position.set(G.pos.x,0,G.pos.z);playerMesh.rotation.y=Math.atan2(wx,wz);
    playerMesh.position.y=Math.abs(Math.sin(t/130))*(sprint?0.12:0.06);}
-  if(sprint){G.stam=Math.max(0,G.stam-dt*16);runAcc+=dt;if(runAcc>4){runAcc=0;gainXp('run',1);gainXp('vigor',1);if(mount&&mount.kind==='boat')gainXp('sail',2);}}else G.stam=Math.min(100,G.stam+dt*10*(T('maroon')?1.3:1)*(1+0.1*skillLvl('vigor')));
+  if(sprint){G.stam=Math.max(0,G.stam-dt*16*(T('packmule')?0.75:1)*(T('athletic')?0.8:1));runAcc+=dt;if(runAcc>4){runAcc=0;gainXp('run',1);gainXp('vigor',1);if(mount&&mount.kind==='boat')gainXp('sail',2);}}else G.stam=Math.min(100,G.stam+dt*10*(T('maroon')?1.3:1)*(1+0.1*skillLvl('vigor')));
   G.hunger=Math.max(0,G.hunger-dt*(sprint?0.5:0.2));}
  else G.stam=Math.min(100,G.stam+dt*14*(T('maroon')?1.3:1)*(1+0.1*skillLvl('vigor')));
  playerMesh.scale.y=G.sneaking?0.78:1;
