@@ -78,6 +78,8 @@ tick(){if(!this.ctx||this.muted||!this.modes||(typeof G!=='undefined'&&G.musicHo
  if(G.song&&(G.song.cfg||SONGS[G.song.id])){const S=G.song.cfg||SONGS[G.song.id];M=S;s=G.song.steps%8;bar=Math.floor(G.song.steps/8)%S.chords.length;ch=S.chords[bar];root=S.bass[bar%S.bass.length];G.song.steps++;if(--G.song.left<=0){G.song=null;if(G.autoplay&&!G.musicHold)G.songGap=8;}}
  else{s=this.step%8;bar=Math.floor(this.step/8)%M.chords.length;ch=M.chords[bar];root=M.bass[bar%M.bass.length];this.step++;
   if(!G.song&&G.autoplay&&!G.musicHold&&G.started){G.songGap-=stepDur;if(G.songGap<=0){G.songGap=8;autoNext();}}}
+ const semi=(typeof G!=='undefined'&&G.tone)||0,mul=semi?Math.pow(2,semi/12):1;
+ if(mul!==1){ch=ch.map(f=>f*mul);root=root*mul;}
  if(s===0||(M.drum==='train'&&s===4)||(M.drum==='war'&&s===6))this.bassN(root,1.6,0.20);
  if(M.drum==='dirge'&&s===0)this.bassN(root/2,3.2,0.22);
  if(M.banjo&&(s%2===0||M.drum==='war'))this.ks(ch[(this.step>>1)%ch.length]*(s%4===2?2:1),M.drum==='war'?0.5:0.9,3200,0.20);
@@ -346,6 +348,7 @@ const QUESTS=[
  {id:'q_t_coward',n:'Face the Bell',giver:'anselme',chain:'side',karma:8,trait:'cowardly',desc:'For the Cowardly only: Anselme prescribes terror as medicine. Slay 3 loups and the fear may leave you for good.',obj:[{t:'kill',foe:'wolf',n:3,label:'loups slain'}],rw:{karma:8}},
  {id:'q_t_haunt',n:'Lay Them Down',giver:'anselme',chain:'side',karma:10,trait:'haunted',desc:'For the Haunted only: what follows you can be faced. Banish 4 apparitions and sleep unaccompanied at last.',obj:[{t:'kill',foe:'ghost',n:4,label:'apparitions banished'}],rw:{karma:10}},
  {id:'q_risen',n:'The Night Shift',giver:'baptiste',chain:'side',karma:7,desc:'The Risen walk in force after dark. Put 6 back into the mud. The commune defends itself.',obj:[{t:'kill',foe:'risen',n:6,label:'risen laid to rest'}],rw:{ammo:6,coin:10,boots:1,karma:7}},
+ {id:'q_song11',n:'Song 11: Time Theft',giver:'celestin',chain:'side',karma:8,desc:'The parish songbook jumps from 10 to 12 — Song 11 was stolen, saith Célestin, by Eustache the Ear, who bottled it. Play the room at three tempos (slow ≤50%, parish 65–75%, double ≥150%), work 3 tavern shifts, and bring 2 wine to loosen tongues. For Journeymen of the tavern or crier, or Masters of any trade.',obj:[{t:'tempo',n:3,label:'tempos played'},{t:'work',job:'tavern',n:3,label:'tavern shifts'},{t:'collect',item:'wine',n:2,label:'wine'}],rw:{coin:14,karma:8}},
  {id:'q_seal',n:'Seal of the Drowned',giver:'jean',chain:'side',karma:9,desc:'A demon-stain festers in the swamp heart. Gather 2 consecrated ash from destroyed apparitions? No — from the chapel brazier after banishings. Then cleanse the stain (E) in the swamp.',obj:[{t:'collect',item:'ash',n:2,label:'consecrated ash'}],rw:{coin:16,karma:9}},
  {id:'q_manor',n:'What the Manor Owes',giver:'seamus',chain:'main',karma:14,desc:'Seamus found the manor’s debt-book: 60 souls bought for 12 livres the head. Steal it from the manor chest (glowing crate behind the manor) and bring it to the market cross.',obj:[{t:'collect',item:'deed',n:2,label:'pages of the debt-book'}],rw:{karma:14,coin:15}},
  {id:'q_fang',n:'Ivory Needles',giver:'doctor',chain:'side',karma:6,desc:'Fauche pays 15 livres a fang and asks no questions. Bring 2 vampire fangs. Science, he calls it.',obj:[{t:'collect',item:'fang',n:2,label:'vampire fangs'}],rw:{coin:30,karma:2}},
@@ -638,7 +641,7 @@ const G={started:false,paused:false,dead:false,ending:false,day:1,time:8.0,weath
  killsByFoe:{},taxPaid:false,debtBook:0,shoeFound:0,bellRung:false,endingShown:false,pos:{x:6,z:10}};
 QUESTS.forEach(q=>G.quests[q.id]={st:'lock',have:{}});
 G.work={};G.shifts=0;G.grave=null;G.mana=100;G.maxmana=100;G.haggle={xp:0,tier:0};G.traits=[];
-G.song=null;G.songGap=6;G.autoplay=true;G.musicHold=false;G.lastSong=null;G.sneaking=false;G.flash=0;G.worn={};G.craftSel=null;G.reloadT=0;G.dryT=0;G.playRate=0.7;
+G.song=null;G.songGap=6;G.autoplay=true;G.musicHold=false;G.lastSong=null;G.sneaking=false;G.flash=0;G.worn={};G.craftSel=null;G.reloadT=0;G.dryT=0;G.playRate=0.7;G.tone=0;
 function qdef(id){return QUESTS.find(q=>q.id===id);}
 function karmaTitle(k){if(k>=60)return 'Saint of the Bayou';if(k>=35)return 'Friend of the Commune';if(k>=12)return 'Trusted Neighbour';if(k>-12)return 'Wanderer of the Bayou';if(k>-35)return 'Suspect Soul';if(k>-60)return 'Hound of the Seigneur';return 'Butcher of the Mud';}
 function addKarma(n,why){G.karma=clamp(G.karma+n,-100,100);toast((n>0?'+':'')+n+' ⚖ '+(why||''),n>=0?'good':'bad');refreshHUD();}
@@ -874,7 +877,8 @@ function workProgress(job){for(const id of [...G.qactive]){const q=qdef(id);if(!
   if(o.t==='forage'&&(s.have.forage||0)<o.n)done=false;if(o.t==='hunt'&&(s.have.hunt||0)<o.n)done=false;
   if(o.t==='bury'&&(s.have.bury||0)<o.n)done=false;if(o.t==='visit'&&!s.have['v_'+o.zone])done=false;
   if(o.t==='tax'&&!G.taxPaid)done=false;if(o.t==='torch'&&(G.planted||0)<o.n)done=false;
-  if(o.t==='work'&&(s.have['w_'+o.job]||0)<o.n)done=false;if(o.t==='ritual'&&(s.have.ritual||0)<o.n)done=false;}
+  if(o.t==='work'&&(s.have['w_'+o.job]||0)<o.n)done=false;if(o.t==='ritual'&&(s.have.ritual||0)<o.n)done=false;
+  if(o.t==='tempo'&&(s.have.tempo||0)<o.n)done=false;}
  if(done)completeQuest(id);}refreshTracker();}
 function makeWorkMesh(job){const g=new THREE.Group();const J=JOBS[job];
  const top=new THREE.Mesh(new THREE.BoxGeometry(1.6,0.18,0.9),mat(0x6a4a26));top.position.y=0.85;g.add(top);
@@ -1188,20 +1192,38 @@ const SPELLS=[
  {id:'communion',n:'Graveyard Communion',e:'⚱',cost:35,key:'0',desc:'Sit with the dead a minute: +30 ❤, +15 🕯.'},
  {id:'rebuke',n:'Loa’s Rebuke',e:'🔥',cost:50,key:'-',desc:'Heaven’s backhand: heavy hurt to all near horrors.'},
 ];
+function dubSpirit(){const D=(typeof AudioSys!=='undefined'&&AudioSys.dub)||{};
+ const rate=(typeof G!=='undefined'&&G.playRate)||0.7,tone=(typeof G!=='undefined'&&G.tone)||0;
+ return {power:0.4+0.6*(D.trim==null?1:D.trim),drive:D.drive==null?2.4:D.drive,
+  dur:0.5+(D.echo==null?0.38:D.echo),rMana:0.65+(D.verb==null?0.35:D.verb),
+  regen:Math.min(2,Math.max(0.25,rate)),tone,hiss:D.hiss||0,
+  reso:Math.min(12,Math.max(0.5,D.reso==null?2.2:D.reso)),
+  lfoR:Math.min(8,Math.max(0.01,D.rate==null?0.15:D.rate))};}
+function spellCost(base,stable){const S=dubSpirit();
+ const wob=stable?1:1+0.15*Math.sin(performance.now()/1000*S.lfoR*6.28);
+ const disc=1-Math.max(0,Math.min(8,S.drive)-2.4)*0.03;
+ return Math.max(1,Math.round(base*(1-0.03*skillLvl('root'))*disc*wob));}
+function spellSwing(S){return 1+S.hiss*0.2*(Math.random()<0.5?-1:1);}
+function spellCrit(S){return Math.random()<(S.reso/12*0.25);}
+function spellFizzle(S){return S.hiss<-0.4&&Math.random()<0.12;}
 function castSpell(id){const s=SPELLS.find(s=>s.id===id);if(!s)return;
  if(!G.started||G.paused||G.dead||dlgOpen)return;
- const cost=Math.max(1,Math.round(s.cost*(1-0.03*skillLvl('root'))));
+ const S=dubSpirit(),cost=spellCost(s.cost);
  if(G.mana<cost){toast('Not enough spirit (need '+cost+' 🌀). Work the altars.','bad');return;}
  G.mana-=cost;gainXp('root',2);AudioSys.sfx('pray');
- if(id==='ward'){G.wardUntil=performance.now()+30000;toast('🛡 The ward settles on your shoulders. (30s)','good');}
+ if(S.drive>5&&Math.random()<0.15){G.sanity=clamp(G.sanity-5,0,100);toast('🔥 The dirt in the signal burns. The loa take their cut. (−5 🕯)','bad');}
+ const holy=S.tone>0?1+S.tone*0.04:1,dark=S.tone<0?1-S.tone*0.05:1;
+ if(id==='ward'){const sec=Math.round(30*S.dur);G.wardUntil=performance.now()+sec*1000;toast('🛡 The ward settles on your shoulders. ('+sec+'s)','good');}
  else if(id==='lantern'){let hit=0;for(const f of [...foes]){if(!['ghost','vamp','risen'].includes(f.type))continue;
-   if(dist2(G.pos.x,G.pos.z,f.mesh.position.x,f.mesh.position.z)<12){hurtFoe(f,f.type==='ghost'?45:30,false);hit++;}}
+   if(dist2(G.pos.x,G.pos.z,f.mesh.position.x,f.mesh.position.z)<12){let dg=(f.type==='ghost'?45:30)*S.power*holy*spellSwing(S);if(spellCrit(S)){dg*=2;toast('✨ Peak light! Critical burn.','good');}hurtFoe(f,dg,false);hit++;}}
   for(let i=0;i<16;i++)spawnP(G.pos.x+rand(-2,2),rand(1,3),G.pos.z+rand(-2,2),rand(-2,2),rand(1,3),rand(-2,2),1,0xffe9a0);
+  if(spellFizzle(S))toast('🕯 The veil dulls it — muffled.','bad');
   toast(hit?'🕯 '+hit+' unquiet burned in holy light.':'🕯 Light answers. Nothing near.',hit?'good':'');}
- else if(id==='haste'){G.hasteUntil=performance.now()+20000;toast('💨 Crossroads in your feet. (20s)','good');}
- else if(id==='communion'){G.hp=clamp(G.hp+30,0,G.maxhp);G.sanity=clamp(G.sanity+15,0,100);toast('⚱ Graveyard communion. (+30 ❤, +15 🕯)','good');}
- else if(id==='rebuke'){let hit=0;for(const f of [...foes]){if(dist2(G.pos.x,G.pos.z,f.mesh.position.x,f.mesh.position.z)<10){hurtFoe(f,f.boss?100:60,false);hit++;}}
+ else if(id==='haste'){const sec=Math.round(20*S.dur);G.hasteUntil=performance.now()+sec*1000;toast('💨 Crossroads in your feet. ('+sec+'s)','good');}
+ else if(id==='communion'){const heal=Math.round(30*S.power*holy);G.hp=clamp(G.hp+heal,0,G.maxhp);G.sanity=clamp(G.sanity+15,0,100);toast('⚱ Graveyard communion. (+'+heal+' ❤, +15 🕯)','good');}
+ else if(id==='rebuke'){let hit=0;for(const f of [...foes]){if(dist2(G.pos.x,G.pos.z,f.mesh.position.x,f.mesh.position.z)<10){let dg=(f.boss?100:60)*S.power*dark*spellSwing(S);if(spellCrit(S))dg*=2;hurtFoe(f,dg,false);hit++;}}
   for(let i=0;i<24;i++)spawnP(G.pos.x+rand(-4,4),rand(0.5,3),G.pos.z+rand(-4,4),rand(-3,3),rand(1,4),rand(-3,3),1.2,0xff5a3a);
+  if(spellFizzle(S))toast('🔇 Muffled thunder.','bad');
   toast('🔥 LOA’S REBUKE! '+hit+' horrors struck.',hit?'good':'bad');}
  refreshHUD();}
 const RITUALS=[
@@ -1221,7 +1243,8 @@ function placeAltars(){[['cross',10,48],['ancestor',-70,14],['water',-46,52],['c
 function doRitual(it){const R=RITUALS.find(r=>r.site===it.site);if(!R)return;
  for(const k in R.need){if(!hasItem(k,R.need[k])){toast('The rite wants: '+Object.entries(R.need).map(([a,b])=>b+' '+(ITEMS[a]?ITEMS[a].n:a)).join(', ')+'.','bad');return;}}
  for(const k in R.need)takeItem(k,R.need[k]);
- G.mana=Math.min(G.maxmana,G.mana+Math.round(R.mana*(1+0.05*skillLvl('root'))));G.sanity=clamp(G.sanity+R.sanity,0,100);gainXp('root',3);
+ const RS=dubSpirit();
+ G.mana=Math.min(G.maxmana,G.mana+Math.round(R.mana*(1+0.05*skillLvl('root'))*RS.rMana));G.sanity=clamp(G.sanity+R.sanity,0,100);gainXp('root',3);
  if(R.karma)addKarma(R.karma,'the old ways');
  AudioSys.sfx('pray');toast(R.e+' '+R.txt,'good');
  ritualProgress();refreshHUD();refreshHotbar();}
@@ -1625,6 +1648,18 @@ function unlockQuests(){qdefAll().forEach(q=>{if(!G.quests[q.id])G.quests[q.id]=
 function qdefAll(){return QUESTS;}
 function acceptQuest(id){const s=G.quests[id];if(s.st!=='open')return;s.st='active';G.qactive.push(id);
  AudioSys.sfx('quest');notify('📜','New directive: '+qdef(id).n,'The ledger remembers. The mud watches.',{tone:'lore',major:true,action:{label:'Ledger',fn:()=>togglePanel('panel-quests',renderQuests)}});renderQuests();checkQuestItem();}
+function song11Ready(){if(!G.work)return false;
+ if((G.work.tavern&&G.work.tavern.tier>=2)||(G.work.crier&&G.work.crier.tier>=2))return true;
+ for(const k in G.work)if(G.work[k]&&G.work[k].tier>=3)return true;return false;}
+function progressTempo(v){const q=G.quests['q_song11'];if(!q||q.st!=='active')return;const s=q;
+ if(v<=0.5&&!s.have.tSlow){s.have.tSlow=1;s.have.tempo=(s.have.tempo||0)+1;toast('🕰 Played it slow. The room leans in.','good');}
+ if(v>=0.65&&v<=0.75&&!s.have.tNorm){s.have.tNorm=1;s.have.tempo=(s.have.tempo||0)+1;toast('🕰 Parish standard. Célestin nods.','good');}
+ if(v>=1.5&&!s.have.tFast){s.have.tFast=1;s.have.tempo=(s.have.tempo||0)+1;toast('🕰 Double-time! The candles lean.','good');}
+ let done=true;for(const o of qdef('q_song11').obj){if(o.t==='tempo'&&(s.have.tempo||0)<o.n)done=false;
+  if(o.t==='work'&&(s.have['w_'+o.job]||0)<o.n)done=false;
+  if(o.t==='collect'){const h=o.item==='coin'?G.coins:(G.inv[o.item]||0);if(h<o.n)done=false;}}
+ if(done)completeQuest('q_song11');
+ refreshTracker();}
 function checkQuestItem(){for(const id of [...G.qactive]){const q=qdef(id),s=G.quests[id];let done=true;
  for(const o of q.obj){if(o.t==='collect'){const have=o.item==='coin'?G.coins:(G.inv[o.item]||0);s.have[o.item]=Math.min(have,o.n);if(have<o.n)done=false;}else done=false;}
  if(done)completeQuest(id);}refreshTracker();}
@@ -1647,6 +1682,7 @@ function completeQuest(id){const q=qdef(id),s=G.quests[id];if(s.st==='done')retu
  if(id==='q_t_haunt'){G.traits=G.traits.filter(t=>t!=='haunted');toast('👻 Unaccompanied at last. The ship is finally behind you.','good');}
  if(q.rw){for(const k in q.rw){if(k==='karma')addKarma(q.rw[k],q.n);else if(k==='coin'){G.coins+=q.rw[k];}else if(q.rw[k]>0)addItem(k,q.rw[k]);}}
  if(id==='q_tax')G.taxPaid=true;
+ if(id==='q_song11'&&!SONGS.timeheft){SONGS.timeheft={n:'Song 11: Time Theft',note:'recovered from Eustache’s bottle — the parish sings it whole',bpm:100,drum:'train',banjo:true,reed:true,bass:[49,43.65,55,41.2],chords:[[196,246.94,293.66],[174.61,220,261.63],[220,261.63,329.63],[164.81,207.65,246.94]]};toast('🎵 Song 11 joins the songbook (N) — sing it loud.','good');}
  AudioSys.sfx('quest');notify('✔','Decision resolved: '+q.n,'The ledger remembers. The commune nods.',{major:true,action:{label:'Ledger',fn:()=>togglePanel('panel-quests',renderQuests)}});
  subtitle('“'+choice(['The commune nods.','The mud approves.','Even the bell sounds pleased.','Debts burned, page by page.'])+'”');
  unlockQuests();renderQuests();refreshHUD();checkEnding();}
@@ -1659,7 +1695,7 @@ function checkEnding(){const l=G.quests['q_level'];if(l&&l.st==='done')return;
 /* ============ SURVIVAL + TIME ============ */
 function survival(dt){const night=isNight();
  G.hunger=Math.max(0,G.hunger-dt*(100/420)*(night?1.25:1)*(1-0.03*skillLvl('vigor'))*(T('consumption')?1.1:1)*(T('maroon')?0.9:1)*(T('lighteater')?0.85:1)*(T('hearty')?1.2:1));
- G.mana=Math.min(G.maxmana,G.mana+dt*0.8);
+ G.mana=Math.min(G.maxmana,G.mana+dt*0.8*dubSpirit().regen);
  if(G.hunger<=0){G.hp-=dt*3;}
  if(G.infected>0){G.hp-=dt*1.6;G.infected-=dt/90;if(G.infected<=0){G.infected=0;toast('The fever breaks.','good');}}
  if(G.hunger>60&&G.hp<G.maxhp&&G.infected<=0)G.hp+=dt*0.8*(T('fastheal')?2:1);
@@ -1789,7 +1825,7 @@ function tipFor(key){const pc=(v,m)=>'<span class="tpct">'+Math.max(0,Math.round
  if(key.startsWith('work:')){const J=JOBS[key.slice(5)];if(!J)return null;const w=(G.work&&G.work[key.slice(5)])||{xp:0,tier:0};
   return '<b>'+J.e+' '+J.n+' — '+TIER_NAMES[w.tier]+'</b><br>'+pc(w.xp,w.tier<4?TIER_XP[w.tier+1]:w.xp)+'<br><small>~'+Math.round(J.pay*(1+0.3*w.tier))+' 🪙 · +'+(J.sanity+Math.min(6,w.tier*2))+' 🕯 · '+J.site+'</small>';}
  if(key.startsWith('spell:')){const s=SPELLS.find(s=>s.id===key.slice(6));if(!s)return null;
-  return '<b>'+s.e+' '+s.n+'</b> <span class="tpct">'+s.cost+' 🌀</span><br><small>'+s.desc+'</small>';}
+  return '<b>'+s.e+' '+s.n+'</b> <span class="tpct">'+spellCost(s.cost,true)+' 🌀</span><br><small>'+s.desc+'</small><br><small>Attuned to the dub deck — gain, dirt, tone and hiss all move it.</small>';}
  return null;}
 function bootTips(){const tip=document.getElementById('tooltip');if(!tip)return;
  document.addEventListener('mouseover',e=>{const t=e.target&&e.target.closest?e.target.closest('[data-tip]'):null;
@@ -1865,6 +1901,7 @@ function refreshTracker(){const t=$('quest-tracker');t.innerHTML='';
    if(o.t==='hunt')return (s.have.hunt||0)+'/'+o.n+' '+o.label;
    if(o.t==='torch')return (G.planted||0)+'/'+o.n+' '+o.label;
    if(o.t==='work')return (s.have['w_'+o.job]||0)+'/'+o.n+' '+o.label;
+   if(o.t==='tempo')return (s.have.tempo||0)+'/'+o.n+' '+o.label;
    if(o.t==='ritual')return (s.have.ritual||0)+'/'+o.n+' '+o.label;
    if(o.t==='wife')return o.label;
    if(o.t==='tax')return G.taxPaid?'✔ settled':'○ unsettled';
@@ -1949,8 +1986,8 @@ function renderWork(){const l=$('work-list');l.innerHTML='<p style="font-size:13
   l.appendChild(d);}
  const t=document.createElement('div');t.style.cssText='font-size:13px;color:#c9a227;margin-top:8px;';t.textContent='Shifts worked in total: '+(G.shifts||0);l.appendChild(t);}
 function renderSpells(){const l=$('spell-list');l.innerHTML='<p style="font-size:13px;color:#a89a76">Spirit (🌀) trickles back slowly; rituals at altars (✝ crossroads, cemetery, bayou, chapel) restore it in floods. Carry a gris-gris for +20 max.</p>';
- SPELLS.forEach(s=>{const can=G.mana>=s.cost;const d=document.createElement('div');d.className='craft-row';d.setAttribute('data-tip','spell:'+s.id);
-  d.innerHTML='<span>'+s.e+' <b>'+s.n+'</b> <small>[key '+s.key+']</small><br><small>'+s.desc+' — <b>'+s.cost+' 🌀</b> (you: '+Math.floor(G.mana)+')</small></span>';
+ SPELLS.forEach(s=>{const ec=spellCost(s.cost,true),can=G.mana>=ec;const d=document.createElement('div');d.className='craft-row';d.setAttribute('data-tip','spell:'+s.id);
+  d.innerHTML='<span>'+s.e+' <b>'+s.n+'</b> <small>[key '+s.key+']</small><br><small>'+s.desc+' — <b>'+ec+' 🌀</b> (you: '+Math.floor(G.mana)+')</small></span>';
   const b=document.createElement('button');b.className='btn';b.textContent=can?'Cast':'—';b.disabled=!can;
   b.onclick=()=>{castSpell(s.id);renderSpells();};d.appendChild(b);l.appendChild(d);});}
 /* ---- maps ---- */
@@ -1998,7 +2035,7 @@ function mainPage(n){const disp=G.dispo[n.id]||0;
  const ch=[];
  questsHere.forEach(q=>{const s=G.quests[q.id];
   if(s.st==='open')ch.push({label:'📜 “'+q.n+'” — hear the need',cls:'good',fn:()=>{acceptQuest(q.id);showDlgPage('“'+q.desc+'”<br><br><i>Quest taken. The ledger remembers.</i>',[{label:'“Done. I’ll go.” (leave)',fn:closeDialogue}]);}});
-  else{let prog=q.obj.map(o=>{if(o.t==='collect'){const h=o.item==='coin'?G.coins:(G.inv[o.item]||0);return Math.min(h,o.n)+'/'+o.n+' '+o.label;}if(o.t==='kill')return (s.have['k_'+o.foe]||0)+'/'+o.n+' '+o.label;if(o.t==='bury')return (s.have.bury||0)+'/'+o.n;if(o.t==='forage')return (s.have.forage||0)+'/'+o.n+' '+o.label;if(o.t==='hunt')return (s.have.hunt||0)+'/'+o.n+' '+o.label;if(o.t==='work')return (s.have['w_'+o.job]||0)+'/'+o.n+' '+o.label;if(o.t==='ritual')return (s.have.ritual||0)+'/'+o.n+' '+o.label;if(o.t==='wife')return o.label;return o.label;}).join(' · ');
+  else{let prog=q.obj.map(o=>{if(o.t==='collect'){const h=o.item==='coin'?G.coins:(G.inv[o.item]||0);return Math.min(h,o.n)+'/'+o.n+' '+o.label;}if(o.t==='kill')return (s.have['k_'+o.foe]||0)+'/'+o.n+' '+o.label;if(o.t==='bury')return (s.have.bury||0)+'/'+o.n;if(o.t==='forage')return (s.have.forage||0)+'/'+o.n+' '+o.label;if(o.t==='hunt')return (s.have.hunt||0)+'/'+o.n+' '+o.label;if(o.t==='work')return (s.have['w_'+o.job]||0)+'/'+o.n+' '+o.label;if(o.t==='tempo')return (s.have.tempo||0)+'/'+o.n+' '+o.label;if(o.t==='ritual')return (s.have.ritual||0)+'/'+o.n+' '+o.label;if(o.t==='wife')return o.label;return o.label;}).join(' · ');
    ch.push({label:'📜 “'+q.n+'” — progress: '+prog,fn:()=>showDlgPage('“'+q.desc+'”<br><br><i>'+prog+'</i>',[{label:'Back',fn:()=>openDialogue(n)}])});}});
  ch.push({label:'💬 “Talk — what is this place, truly?”',fn:()=>lorePage(n)});
  if(['baptiste','manon','doctor','odette','seraphine','jeanluc','mama','nine'].includes(n.id))ch.push({label:'⚖ “Trade.”',fn:()=>openTrade(n)});
@@ -2529,6 +2566,7 @@ function wireButtons(){
  knob($('knob-lfo'),{min:1,max:800,val:15,on:v=>{const d=DD();if(!d)return;d.rate=v/100;applyDub();}});
  knob($('knob-reso'),{min:5,max:120,val:22,on:v=>{const d=DD();if(!d)return;d.reso=v/10;applyDub();}});
  knob($('knob-dirt'),{min:10,max:80,val:24,on:v=>{const d=DD();if(!d)return;d.drive=v/10;applyDub();}});
+ knob($('knob-tone'),{min:-7,max:7,val:0,on:v=>{if(typeof G!=='undefined')G.tone=Math.round(v);}});
  document.querySelectorAll('.mus-mode').forEach(b=>b.onclick=()=>{AudioSys.init();if(!AudioSys.dub)return;AudioSys.dub.mode=+b.dataset.m;applyDub();
   document.querySelectorAll('.mus-mode').forEach(x=>x.classList.toggle('on',x===b));});
  const msp=$('mus-speed'),msv=$('mus-speed-v');
@@ -2536,7 +2574,11 @@ function wireButtons(){
   if(msv)msv.textContent=msp.value+'%';
   msp.oninput=e=>{const v=clamp(e.target.value/100,0.25,2);if(typeof G!=='undefined')G.playRate=v;
    if(typeof recordEl!=='undefined'&&recordEl&&!recordEl.paused){try{recordEl.playbackRate=v;}catch(_){}}
-   if(msv)msv.textContent=e.target.value+'%';try{localStorage.setItem('bayou-requiem-speed',String(v));}catch(_){}};}
+   if(msv)msv.textContent=e.target.value+'%';try{localStorage.setItem('bayou-requiem-speed',String(v));}catch(_){}
+   if(typeof G!=='undefined'&&G.started){const sq=G.quests['q_song11'];
+    if(sq&&sq.st==='active')progressTempo(v);
+    else if(sq&&sq.st==='open'&&!G.song11Hint){if(song11Ready()){acceptQuest('q_song11');subtitle('Célestin gasps: “That tempo… the lost Song 11 stirs!”');}
+     else{G.song11Hint=true;toast('🎻 Célestin watches your hand: “Journeyman of the tavern or crier — or Master of any trade — and I’ll tell you of Song 11.”','lore');}}}};}
  try{const sv=parseFloat(localStorage.getItem('bayou-requiem-speed'));if(!isNaN(sv)&&typeof G!=='undefined')G.playRate=clamp(sv,0.25,2);}catch(_){}
  $('mus-next').onclick=()=>{AudioSys.init();skipSong();};
  $('mus-prev').onclick=()=>{AudioSys.init();if(G.song){G.song.steps=0;G.song.left=32;toast('♪ again, from the top.','lore');}};
