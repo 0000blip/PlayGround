@@ -641,7 +641,7 @@ const G={started:false,paused:false,dead:false,ending:false,day:1,time:8.0,weath
  killsByFoe:{},taxPaid:false,debtBook:0,shoeFound:0,bellRung:false,endingShown:false,pos:{x:6,z:10}};
 QUESTS.forEach(q=>G.quests[q.id]={st:'lock',have:{}});
 G.work={};G.shifts=0;G.grave=null;G.mana=100;G.maxmana=100;G.haggle={xp:0,tier:0};G.traits=[];
-G.song=null;G.songGap=6;G.autoplay=true;G.musicHold=false;G.lastSong=null;G.sneaking=false;G.flash=0;G.worn={};G.craftSel=null;G.reloadT=0;G.dryT=0;G.playRate=0.7;G.tone=0;
+G.song=null;G.songGap=6;G.autoplay=false;G.musicHold=false;G.lastSong=null;G.sneaking=false;G.flash=0;G.worn={};G.craftSel=null;G.reloadT=0;G.dryT=0;G.playRate=0.7;G.tone=0;
 function qdef(id){return QUESTS.find(q=>q.id===id);}
 function karmaTitle(k){if(k>=60)return 'Saint of the Bayou';if(k>=35)return 'Friend of the Commune';if(k>=12)return 'Trusted Neighbour';if(k>-12)return 'Wanderer of the Bayou';if(k>-35)return 'Suspect Soul';if(k>-60)return 'Hound of the Seigneur';return 'Butcher of the Mud';}
 function addKarma(n,why){G.karma=clamp(G.karma+n,-100,100);toast((n>0?'+':'')+n+' ⚖ '+(why||''),n>=0?'good':'bad');refreshHUD();}
@@ -1167,7 +1167,7 @@ function recordVol(){return (AudioSys.muted||G.deafT>0)?0:(AudioSys.vol||0.6);}
 function playRecord(id){const r=RECORDS.find(r=>r.id===id);if(!r)return;
  AudioSys.init();stopRecord(true);G.song=null;G.musicHold=true;G.lastSong='rec:'+id;
  if(!recordEl){recordEl=new Audio();recordEl.preload='auto';
-  recordEl.onended=()=>{if(!G.started){const i=RECORDS.findIndex(x=>x.id===(G.lastSong||'').slice(4));playRecord(RECORDS[(i+1)%RECORDS.length].id);return;}
+  recordEl.onended=()=>{if(!G.started){if(G.autoplay){const i=RECORDS.findIndex(x=>x.id===(G.lastSong||'').slice(4));playRecord(RECORDS[(i+1)%RECORDS.length].id);}else{G.musicHold=false;const mt=$('mus-title');if(mt)mt.textContent='♪ Bayou Requiem (silent)';}return;}
    G.musicHold=false;if(G.autoplay)G.songGap=4;const mt=$('mus-title');if(mt)mt.textContent='♪ Bayou Requiem';};
   recordEl.onerror=()=>{G.musicHold=false;toast('🎙 The recording crackles out. Back to the procedural parish.','bad');autoNext();};}
  recordEl.src=r.file;recordEl.volume=1;recordEl.playbackRate=(typeof G!=='undefined'&&G.playRate)||0.7;ensureRecordFX();setRecordLevel();
@@ -1191,6 +1191,9 @@ const SPELLS=[
  {id:'haste',n:'Crossroads Haste',e:'💨',cost:15,key:'9',desc:'Roads open under you: +35% speed, 20s.'},
  {id:'communion',n:'Graveyard Communion',e:'⚱',cost:35,key:'0',desc:'Sit with the dead a minute: +30 ❤, +15 🕯.'},
  {id:'rebuke',n:'Loa’s Rebuke',e:'🔥',cost:50,key:'-',desc:'Heaven’s backhand: heavy hurt to all near horrors.'},
+ {id:'omen',n:'Entrail Omen',e:'🫀',cost:15,key:'',gonzo:true,desc:'Grandmother’s song: the guts point at the nearest horror — it feels seen (staggered).'},
+ {id:'nightmare',n:'Nightmare Weave',e:'🌙',cost:30,key:'',gonzo:true,desc:'Grandmother’s song: the nearest horrors dream of teeth (laid down, 6s).'},
+ {id:'bloodhat',n:'Red Cap’s Tithe',e:'🎩',cost:0,key:'',gonzo:true,desc:'Grandmother’s song: pay 10 blood for +40% melee (20s).'},
 ];
 function dubSpirit(){const D=(typeof AudioSys!=='undefined'&&AudioSys.dub)||{};
  const rate=(typeof G!=='undefined'&&G.playRate)||0.7,tone=(typeof G!=='undefined'&&G.tone)||0;
@@ -1208,9 +1211,16 @@ function spellCrit(S){return Math.random()<(S.reso/12*0.25);}
 function spellFizzle(S){return S.hiss<-0.4&&Math.random()<0.12;}
 function castSpell(id){const s=SPELLS.find(s=>s.id===id);if(!s)return;
  if(!G.started||G.paused||G.dead||dlgOpen)return;
+ if(s.gonzo&&!G.gonzo){toast('Grandmè hasn’t taught you this song. Find her in the swamp.','bad');return;}
  const S=dubSpirit(),cost=spellCost(s.cost);
  if(G.mana<cost){toast('Not enough spirit (need '+cost+' 🌀). Work the altars.','bad');return;}
  G.mana-=cost;gainXp('root',2);AudioSys.sfx('pray');
+ if(Math.random()<0.05+Math.max(0,S.hiss)*0.1){const r=Math.random();
+  if(r<0.3){G.sanity=clamp(G.sanity-8,0,100);toast('🌀 Sung wrong! The song bites back. (−8 🕯)','bad');}
+  else if(r<0.55){G.mana=0;toast('🌀 Sung wrong! Your spirit spills everywhere.','bad');}
+  else if(r<0.8){G.hp=clamp(G.hp-10,1,G.maxhp);toast('🌀 Sung wrong! Blood answers instead. (−10 ❤)','bad');}
+  else{spawnFoe('risen',G.pos.x+rand(-6,6),G.pos.z+rand(-6,6));toast('🌀 Sung wrong! Something answers.','bad');}
+  refreshHUD();return;}
  if(S.drive>5&&Math.random()<0.15){G.sanity=clamp(G.sanity-5,0,100);toast('🔥 The dirt in the signal burns. The loa take their cut. (−5 🕯)','bad');}
  const holy=S.tone>0?1+S.tone*0.04:1,dark=S.tone<0?1-S.tone*0.05:1;
  if(id==='ward'){const sec=Math.round(30*S.dur);G.wardUntil=performance.now()+sec*1000;toast('🛡 The ward settles on your shoulders. ('+sec+'s)','good');}
@@ -1225,6 +1235,16 @@ function castSpell(id){const s=SPELLS.find(s=>s.id===id);if(!s)return;
   for(let i=0;i<24;i++)spawnP(G.pos.x+rand(-4,4),rand(0.5,3),G.pos.z+rand(-4,4),rand(-3,3),rand(1,4),rand(-3,3),1.2,0xff5a3a);
   if(spellFizzle(S))toast('🔇 Muffled thunder.','bad');
   toast('🔥 LOA’S REBUKE! '+hit+' horrors struck.',hit?'good':'bad');}
+ else if(id==='omen'){let best=null,bd=1e9;for(const f of foes){const d=dist2(G.pos.x,G.pos.z,f.mesh.position.x,f.mesh.position.z);if(d<bd){bd=d;best=f;}}
+  if(!best){toast('🫀 The guts point nowhere. Tonight, nowhere points back.','');}
+  else{const dx=best.mesh.position.x-G.pos.x,dz=best.mesh.position.z-G.pos.z;
+   const dir=Math.abs(dx)>Math.abs(dz)?(dx>0?'east':'west'):(dz>0?'south':'north');
+   best.cd=Math.max(best.cd,2);toast('🫀 The entrails point '+dir+' — '+Math.round(bd)+' paces. It feels seen (staggered).','good');}}
+ else if(id==='nightmare'){let n=0;for(const f of [...foes].sort((a,b)=>dist2(G.pos.x,G.pos.z,a.mesh.position.x,a.mesh.position.z)-dist2(G.pos.x,G.pos.z,b.mesh.position.x,b.mesh.position.z)).slice(0,3)){
+   if(dist2(G.pos.x,G.pos.z,f.mesh.position.x,f.mesh.position.z)<14){f.down=6;n++;}}
+  toast(n?'🌙 '+n+' horror(s) dream of teeth (down 6s).':'🌙 No sleepers near. The night stays awake.',n?'good':'');}
+ else if(id==='bloodhat'){if(G.hp<=15){toast('🎩 The Red Cap wants blood you haven’t got.','bad');}
+  else{G.hp=clamp(G.hp-10,1,G.maxhp);G.titheUntil=performance.now()+20000;toast('🎩 Ten blood for the hat. Hit +40% (20s).','good');}}
  refreshHUD();}
 const RITUALS=[
  {site:'cross',n:'Crossroads Offering',e:'✝',need:{coin:3,candle:1},mana:35,sanity:6,karma:1,txt:'Coin and candle where the roads cross. Legba counts every one. (+35 🌀)'},
@@ -1244,7 +1264,12 @@ function doRitual(it){const R=RITUALS.find(r=>r.site===it.site);if(!R)return;
  for(const k in R.need){if(!hasItem(k,R.need[k])){toast('The rite wants: '+Object.entries(R.need).map(([a,b])=>b+' '+(ITEMS[a]?ITEMS[a].n:a)).join(', ')+'.','bad');return;}}
  for(const k in R.need)takeItem(k,R.need[k]);
  const RS=dubSpirit();
- G.mana=Math.min(G.maxmana,G.mana+Math.round(R.mana*(1+0.05*skillLvl('root'))*RS.rMana));G.sanity=clamp(G.sanity+R.sanity,0,100);gainXp('root',3);
+ let rMana=Math.round(R.mana*(1+0.05*skillLvl('root'))*RS.rMana);
+ if(Math.random()<((typeof AudioSys!=='undefined'&&AudioSys.dub)||{}).echo*0.3){rMana*=2;toast('✨ The rite echoes — doubled.','good');}
+ if(Math.random()<RS.reso/12*0.25){rMana*=2;toast('✨ Peak rite! Doubled.','good');}
+ const holySite=(it.site==='chapel'||it.site==='cross'),darkSite=(it.site==='ancestor'||it.site==='water');
+ if((holySite&&RS.tone>0)||(darkSite&&RS.tone<0))rMana=Math.round(rMana*1.25);
+ G.mana=Math.min(G.maxmana,G.mana+rMana);G.sanity=clamp(G.sanity+R.sanity,0,100);gainXp('root',3);
  if(R.karma)addKarma(R.karma,'the old ways');
  AudioSys.sfx('pray');toast(R.e+' '+R.txt,'good');
  ritualProgress();refreshHUD();refreshHotbar();}
@@ -1521,7 +1546,7 @@ function inArc(x,z,range,arc){const d=dist2(G.pos.x,G.pos.z,x,z);if(d>range||d<0
  return Math.abs(dd)<(arc*Math.PI/180)/2?d:0;}
 function meleeAttack(w){const st=WEAPON_STATS[G.weapon]||WEAPON_STATS.rapier;
  const wt=G.weapon==='fists'?'brawl':(G.weapon==='axe'?'axe':(G.weapon==='spear'?'pike':((G.weapon==='cudgel'||G.weapon==='torch')?'blunt':'blade')));
- const base=(w.dmg+rand(-2,4))*(1+0.08*skillLvl(wt))*(1+0.04*skillLvl('might'))*(T('smitharms')?1.15:1)*(T('strong')?1.2:1)*(aiming?1.25:1)*(G.parts?(0.7+0.3*Math.min(G.parts.larm,G.parts.rarm)/100):1);
+ const base=(w.dmg+rand(-2,4))*(1+0.08*skillLvl(wt))*(1+0.04*skillLvl('might'))*(T('smitharms')?1.15:1)*(T('strong')?1.2:1)*(aiming?1.25:1)*(G.parts?(0.7+0.3*Math.min(G.parts.larm,G.parts.rarm)/100):1)*(G.titheUntil&&performance.now()<G.titheUntil?1.4:1);
  if(T('clumsy')&&Math.random()<0.08){toast('🦶 Clumsy swing — air wins.','bad');return;}
  let hits=0;
  const order=[...foes].map(f=>({f,d:inArc(f.mesh.position.x,f.mesh.position.z,st.range,st.arc)})).filter(o=>o.d>0).sort((a,b)=>a.d-b.d).slice(0,3);
@@ -1591,7 +1616,7 @@ function killFoe(f){scene.remove(f.mesh);foes.splice(foes.indexOf(f),1);
  AudioSys.sfx('hurt');checkQuestKill(f.type);}
 function dropLoot(f,item,n){addItem(item,n);toast(f.d.e+' dropped: '+ITEMS[item].n+' ×'+n);}
 function hurtPlayer(dmg,why){if(G.dead||!G.started||G.paused||dlgOpen)return;
- if(G.wardUntil&&performance.now()<G.wardUntil)dmg*=0.5;
+ if(G.wardUntil&&performance.now()<G.wardUntil)dmg*=Math.max(0.2,0.5-(((typeof AudioSys!=='undefined'&&AudioSys.dub)||{}).verb||0.35)*0.2);
  if(T('thickskin'))dmg*=0.85;if(T('thinskin'))dmg*=1.15;
  if(T('hemo')&&dmg>=5){G.sanity=Math.max(0,G.sanity-4);toast('🩸 Blood. Too much blood. (−4 🕯)','bad');}
  dmg*=woundPart(dmg);
@@ -2577,12 +2602,13 @@ function wireButtons(){
    if(msv)msv.textContent=e.target.value+'%';try{localStorage.setItem('bayou-requiem-speed',String(v));}catch(_){}
    if(typeof G!=='undefined'&&G.started){const sq=G.quests['q_song11'];
     if(sq&&sq.st==='active')progressTempo(v);
-    else if(sq&&sq.st==='open'&&!G.song11Hint){if(song11Ready()){acceptQuest('q_song11');subtitle('Célestin gasps: “That tempo… the lost Song 11 stirs!”');}
+    else if(sq&&sq.st==='open'&&!G.song11Hint){if(song11Ready()){acceptQuest('q_song11');progressTempo(v);subtitle('Célestin gasps: “That tempo… the lost Song 11 stirs!”');}
      else{G.song11Hint=true;toast('🎻 Célestin watches your hand: “Journeyman of the tavern or crier — or Master of any trade — and I’ll tell you of Song 11.”','lore');}}}};}
  try{const sv=parseFloat(localStorage.getItem('bayou-requiem-speed'));if(!isNaN(sv)&&typeof G!=='undefined')G.playRate=clamp(sv,0.25,2);}catch(_){}
  $('mus-next').onclick=()=>{AudioSys.init();skipSong();};
  $('mus-prev').onclick=()=>{AudioSys.init();if(G.song){G.song.steps=0;G.song.left=32;toast('♪ again, from the top.','lore');}};
  $('mus-play').onclick=()=>{AudioSys.init();if(G.musicHold)startMusic();else stopMusic();};
+ $('mus-stop').onclick=()=>{AudioSys.init();stopMusic();const mt=$('mus-title');if(mt)mt.textContent='♪ Bayou Requiem (silent)';toast('⏹ All playback stopped. The parish holds its breath.','lore');};
  $('mus-rec').onclick=()=>{AudioSys.init();const pool=RECORDS.filter(r=>'rec:'+r.id!==G.lastSong);playRecord((pool.length?choice(pool):choice(RECORDS)).id);};
  $('mus-auto').onchange=e=>{G.autoplay=e.target.checked;if(G.autoplay)G.songGap=Math.min(G.songGap,3);};
  document.querySelectorAll('.btn-back').forEach(b=>b.onclick=()=>{$(b.dataset.back).classList.add('hidden');$('menu').classList.remove('hidden');
@@ -2623,7 +2649,7 @@ function animate(t){requestAnimationFrame(animate);const dt=Math.min(0.05,(t-las
  let sp=sprint?6.4:3.8,rad=0.7;
  sp*=((1+0.02*skillLvl('run'))*(T('swampfoot')?1.04:1)*(T('clubfoot')?0.92:1));
  if(mount)sp=mount.kind==='cart'?(sprint?8:6):(sprint?11:8);
- if(G.hasteUntil&&performance.now()<G.hasteUntil)sp*=1.35;
+ if(G.hasteUntil&&performance.now()<G.hasteUntil)sp*=1.35*(0.8+((typeof G!=='undefined'&&G.playRate)||0.7)*0.4);
  sp*=1+0.02*skillLvl('run');
  if(usedCells()>invCap()){sp*=0.6;if(!G.encWarned){G.encWarned=true;toast('🎒 Overstuffed! No sprint, slow feet. Drop or stash.','bad');}}else G.encWarned=false;
  if(G.parts){sp*=0.7+0.3*Math.min(G.parts.lleg,G.parts.rleg)/100;}
@@ -2693,7 +2719,7 @@ function loadManifest(){try{fetch('lib/music/manifest.json').then(r=>{if(!r.ok)t
  if(added&&!$('panel-songs').classList.contains('hidden'))renderSongs();
 }).catch(()=>{});}catch(e){}}
 function boot(){initThree();buildWorld();initParticles();initMist();bootWindows();bootTips();makeTargetRing();buildPlayer();spawnNPCs();loadManifest();startTicker();
- const autoMus=()=>{try{if(!AudioSys.ctx)AudioSys.init();if(AudioSys.ctx&&AudioSys.ctx.state==='suspended')AudioSys.ctx.resume();if(!G.started&&!$('menu').classList.contains('hidden')&&(!recordEl||recordEl.paused)&&!AudioSys.muted&&typeof RECORDS!=='undefined'&&RECORDS.length)playRecord(choice(RECORDS).id);}catch(e){}};
+ const autoMus=()=>{try{if(!AudioSys.ctx)AudioSys.init();if(AudioSys.ctx&&AudioSys.ctx.state==='suspended')AudioSys.ctx.resume();if(G.autoplay&&!G.started&&!$('menu').classList.contains('hidden')&&(!recordEl||recordEl.paused)&&!AudioSys.muted&&typeof RECORDS!=='undefined'&&RECORDS.length)playRecord(choice(RECORDS).id);}catch(e){}};
  window.addEventListener('pointerdown',autoMus);window.addEventListener('keydown',autoMus);bindInput();wireButtons();
  spawnFoe('risen',40,10);spawnFoe('risen',-50,30);spawnFoe('ghost',-66,10);
  spawnCritter('rabbit',34,10);spawnCritter('rabbit',-44,30);spawnCritter('squirrel',50,-14);spawnCritter('deer',64,24);
