@@ -450,17 +450,62 @@ let camYaw=0.7,camDist=26,camH=20;
 const colliders=[],interactables=[],foes=[],npcs=[],fires=[],labels=[],torches=[],critters=[],horses=[],carts=[],barricades=[],boats=[],WATER=[];
 const WORLD=240;
 function mat(c){return new THREE.MeshLambertMaterial({color:c});}
+/* ---- procedural HD textures (canvas-baked, no downloads) ---- */
+function canvasTex(size,fn,rx,ry){const c=document.createElement('canvas');c.width=c.height=size;const x=c.getContext('2d');fn(x,size);
+ const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;if(rx)t.repeat.set(rx,ry||rx);
+ t.colorSpace=THREE.SRGBColorSpace;return t;}
+function grain(x,s,n,cols){for(let i=0;i<n;i++){x.fillStyle=cols[Math.floor(Math.random()*cols.length)];x.globalAlpha=rand(0.15,0.5);x.fillRect(rand(0,s),rand(0,s),rand(1,4),rand(1,4));}x.globalAlpha=1;}
+const TEX={
+ mud:canvasTex(256,(x,s)=>{x.fillStyle='#4a4234';x.fillRect(0,0,s,s);grain(x,s,900,['#3a3226','#5a5040','#2e2820','#6a5c44']);},24,24),
+ daub:canvasTex(256,(x,s)=>{x.fillStyle='#9a8a68';x.fillRect(0,0,s,s);grain(x,s,700,['#8a7a5a','#aa9a78','#7a6a4a']);x.strokeStyle='rgba(60,45,30,0.5)';x.lineWidth=3;for(let i=0;i<=4;i++){x.beginPath();x.moveTo(0,i*64);x.lineTo(s,i*64);x.stroke();x.beginPath();x.moveTo(i*64,0);x.lineTo(i*64,s);x.stroke();}},1,1),
+ thatch:canvasTex(256,(x,s)=>{x.fillStyle='#6a5a34';x.fillRect(0,0,s,s);x.lineWidth=2;for(let r=0;r<8;r++){x.strokeStyle=r%2?'#5a4a28':'#7a6a40';for(let i=0;i<40;i++){const y=r*32+rand(0,8);x.beginPath();x.moveTo(rand(-10,s),y);x.lineTo(rand(0,s+10),y+rand(-4,10));x.stroke();}}},2,2),
+ shingle:canvasTex(256,(x,s)=>{x.fillStyle='#3a3430';x.fillRect(0,0,s,s);for(let r=0;r<8;r++)for(let cix=0;cix<8;cix++){x.fillStyle=(r+cix)%2?'#443c34':'#322c28';x.fillRect(cix*32+(r%2?16:0)-16,r*32,30,30);}},2,2),
+ wood:canvasTex(256,(x,s)=>{x.fillStyle='#5a4630';x.fillRect(0,0,s,s);for(let i=0;i<46;i++){x.strokeStyle='rgba(30,20,12,'+rand(0.3,0.7)+')';x.lineWidth=rand(1,3);const y=rand(0,s);x.beginPath();x.moveTo(0,y);x.bezierCurveTo(s*0.3,y+rand(-6,6),s*0.7,y+rand(-6,6),s,y);x.stroke();}},1,1),
+ stone:canvasTex(256,(x,s)=>{x.fillStyle='#7a7a72';x.fillRect(0,0,s,s);grain(x,s,500,['#6a6a62','#8a8a80','#5a5a52']);x.strokeStyle='rgba(40,40,36,0.6)';x.lineWidth=2;for(let i=0;i<=3;i++){x.beginPath();x.moveTo(0,i*85);x.lineTo(s,i*85);x.stroke();}},1,1),
+ water:canvasTex(256,(x,s)=>{x.fillStyle='#16262c';x.fillRect(0,0,s,s);x.strokeStyle='rgba(90,140,140,0.35)';x.lineWidth=2;for(let i=0;i<26;i++){const y=rand(0,s);x.beginPath();x.moveTo(rand(0,s),y);x.lineTo(rand(0,s),y+rand(-3,3));x.stroke();}},3,3),
+ glow:canvasTex(128,(x,s)=>{const g=x.createRadialGradient(64,64,4,64,64,62);g.addColorStop(0,'rgba(255,200,120,1)');g.addColorStop(0.4,'rgba(255,150,60,0.5)');g.addColorStop(1,'rgba(255,120,30,0)');x.fillStyle=g;x.fillRect(0,0,s,s);}),
+ soft:canvasTex(128,(x,s)=>{const g=x.createRadialGradient(64,64,4,64,64,62);g.addColorStop(0,'rgba(200,210,220,0.55)');g.addColorStop(1,'rgba(200,210,220,0)');x.fillStyle=g;x.fillRect(0,0,s,s);}),
+};
+function texed(c,t){return new THREE.MeshLambertMaterial({color:c,map:t});}
+let waterTex=TEX.water;
+function glowAt(x,y,z,s,op){const m=new THREE.SpriteMaterial({map:TEX.glow,transparent:true,opacity:op||0.7,depthWrite:false,blending:THREE.AdditiveBlending});const sp=new THREE.Sprite(m);sp.position.set(x,y,z);sp.scale.set(s,s,1);scene.add(sp);return sp;}
+/* ---- particles: embers, rain, blood ---- */
+const PMAX=360;let pGeo=null,pPts=null;const pData=[];
+function initParticles(){pGeo=new THREE.BufferGeometry();
+ const pos=new Float32Array(PMAX*3),col=new Float32Array(PMAX*3);
+ pGeo.setAttribute('position',new THREE.BufferAttribute(pos,3));pGeo.setAttribute('color',new THREE.BufferAttribute(col,3));
+ const m=new THREE.PointsMaterial({size:0.4,map:TEX.glow,vertexColors:true,transparent:true,opacity:0.95,depthWrite:false,blending:THREE.AdditiveBlending});
+ pPts=new THREE.Points(pGeo,m);pPts.frustumCulled=false;scene.add(pPts);
+ for(let i=0;i<PMAX;i++)pData.push({life:0,max:1,x:0,y:-99,z:0,vx:0,vy:0,vz:0,r:1,g:1,b:1});}
+const _tmpC=new THREE.Color();
+function spawnP(x,y,z,vx,vy,vz,life,hex){for(const p of pData){if(p.life>0)continue;p.life=life;p.max=life;p.x=x;p.y=y;p.z=z;p.vx=vx;p.vy=vy;p.vz=vz;_tmpC.setHex(hex);p.r=_tmpC.r;p.g=_tmpC.g;p.b=_tmpC.b;return;}}
+function updateParticles(dt){if(!pGeo)return;const pos=pGeo.attributes.position.array,col=pGeo.attributes.color.array;
+ for(let i=0;i<PMAX;i++){const p=pData[i];
+  if(p.life>0){p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.z+=p.vz*dt;if(p.life<=0)p.y=-99;}
+  pos[i*3]=p.x;pos[i*3+1]=p.y;pos[i*3+2]=p.z;
+  const f=Math.max(0,p.life/p.max);col[i*3]=p.r*f;col[i*3+1]=p.g*f;col[i*3+2]=p.b*f;}
+ pGeo.attributes.position.needsUpdate=true;pGeo.attributes.color.needsUpdate=true;
+ if(G.started&&!G.paused){for(const f of fires){if(Math.random()<dt*10)spawnP(f.x+rand(-0.4,0.4),1.4,f.z+rand(-0.4,0.4),rand(-0.3,0.3),rand(1,2.4),rand(-0.3,0.3),rand(0.8,1.6),0xff9a3a);}
+  if(G.weather==='rain'){for(let i=0;i<3;i++)spawnP(G.pos.x+rand(-28,28),rand(8,16),G.pos.z+rand(-28,28),0,-26,0,1.1,0x4a6a9a);}}}
+const mists=[];
+function initMist(){for(let i=0;i<9;i++){const m=new THREE.SpriteMaterial({map:TEX.soft,transparent:true,opacity:0.1,depthWrite:false});const s=new THREE.Sprite(m);
+ const sw=i<5;s.position.set(sw?rand(-10,30):rand(-80,-50),2,sw?rand(60,95):rand(-5,20));s.scale.set(rand(10,18),rand(4,7),1);scene.add(s);mists.push(s);}}
 function initThree(){
  const cv=$('game-canvas');
  renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true});
  renderer.setPixelRatio(Math.min(2,window.devicePixelRatio||1));
  renderer.setSize(innerWidth,innerHeight);
- renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFShadowMap;
+ renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+ renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;
  scene=new THREE.Scene();scene.background=new THREE.Color(0x0a0d14);
  scene.fog=new THREE.FogExp2(0x0d1210,0.0055);
  camera=new THREE.PerspectiveCamera(50,innerWidth/innerHeight,0.1,600);
  hemi=new THREE.HemisphereLight(0x8a90b0,0x2a2418,0.7);scene.add(hemi);
+ const amb=new THREE.AmbientLight(0x2a3040,0.5);scene.add(amb);scene.userData.amb=amb;
+ const chapelGlow=new THREE.PointLight(0xffc46a,1.2,26);chapelGlow.position.set(-34,4,-12);scene.add(chapelGlow);
+ const marketGlow=new THREE.PointLight(0xffb45a,1.0,24);marketGlow.position.set(14,4,-6);scene.add(marketGlow);
  sun=new THREE.DirectionalLight(0xffe0b0,1.1);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);
+ sun.shadow.bias=-0.0004;sun.shadow.normalBias=0.6;
  sun.shadow.camera.left=-90;sun.shadow.camera.right=90;sun.shadow.camera.top=90;sun.shadow.camera.bottom=-90;scene.add(sun);scene.add(sun.target);
  moon=new THREE.DirectionalLight(0x6a7aff,0.0);scene.add(moon);scene.add(moon.target);
  torchLight=new THREE.PointLight(0xff9a3a,0,40);scene.add(torchLight);
@@ -474,8 +519,8 @@ function makeLabel(txt,scale){const c=document.createElement('canvas');c.width=5
  const s=new THREE.Sprite(m);s.scale.set(10*(scale||1),2.5*(scale||1),1);return s;}
 
 /* ============ WORLD ============ */
-function addBox(x,y,z,w,h,d,c,ry){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(c));m.position.set(x,y,z);if(ry)m.rotation.y=ry;m.castShadow=true;m.receiveShadow=true;scene.add(m);return m;}
-function addRoof(x,y,z,w,d,c){const g=new THREE.CylinderGeometry(0.01,Math.sqrt(w*w+d*d)/2,3.4,4,1);const m=new THREE.Mesh(g,mat(c));m.position.set(x,y,z);m.rotation.y=Math.PI/4;m.scale.set(w/Math.sqrt(w*w+d*d)*1.42,1,d/Math.sqrt(w*w+d*d)*1.42);m.castShadow=true;scene.add(m);return m;}
+function addBox(x,y,z,w,h,d,c,ry,mOverride){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mOverride||mat(c));m.position.set(x,y,z);if(ry)m.rotation.y=ry;m.castShadow=true;m.receiveShadow=true;scene.add(m);return m;}
+function addRoof(x,y,z,w,d,c,mOverride){const g=new THREE.CylinderGeometry(0.01,Math.sqrt(w*w+d*d)/2,3.4,4,1);const m=new THREE.Mesh(g,mOverride||mat(c));m.position.set(x,y,z);m.rotation.y=Math.PI/4;m.scale.set(w/Math.sqrt(w*w+d*d)*1.42,1,d/Math.sqrt(w*w+d*d)*1.42);m.castShadow=true;scene.add(m);return m;}
 function solid(x,z,w,d){colliders.push({x0:x-w/2,x1:x+w/2,z0:z-d/2,z1:z+d/2});}
 function buildWorld(){
  // ground: big plane + painted patches
@@ -489,9 +534,9 @@ function buildWorld(){
   const n=(Math.sin(px*0.7)*Math.cos(pz*0.6)+Math.sin(px*0.23+pz*0.31))*0.5;
   v.offsetHSL(0,0,n*0.03);cols.push(v.r,v.g,v.b);}
  gg.setAttribute('color',new THREE.Float32BufferAttribute(cols,3));
- const ground=new THREE.Mesh(gg,new THREE.MeshLambertMaterial({vertexColors:true}));ground.receiveShadow=true;scene.add(ground);
+ const ground=new THREE.Mesh(gg,new THREE.MeshLambertMaterial({vertexColors:true,map:TEX.mud}));ground.receiveShadow=true;scene.add(ground);
  // water ponds (swamp)
- const wmat=new THREE.MeshLambertMaterial({color:0x18242a,transparent:true,opacity:0.9});
+ const wmat=new THREE.MeshLambertMaterial({color:0x8899aa,map:TEX.water,transparent:true,opacity:0.92});
  [[10,80,26,20],[-40,60,12,9],[40,66,14,10]].forEach(([x,z,w,d])=>{WATER.push({x,z,rx:w,rz:d});const p=new THREE.Mesh(new THREE.CircleGeometry(1,24),wmat);p.rotation.x=-Math.PI/2;p.position.set(x,0.06,z);p.scale.set(w,d,1);scene.add(p);});
  // cypress + reeds + oaks
  for(let i=0;i<130;i++){const x=rand(-115,115),z=rand(-115,115);if(Math.abs(x)<62&&Math.abs(z)<62&&Math.random()<0.7)continue;
@@ -529,7 +574,7 @@ function buildWorld(){
   ['Trapper Cabin',56,24,6,5,0x6a5238,0x4a3a22,'Pelts stretched, traps oiled. The east woods pay in fur.'],
  ];
  B.forEach(([nm,x,z,w,d,wall,roof])=>{
-  addBox(x,1.7,z,w,3.4,d,wall);addRoof(x,5.1,z,w+1.4,d+1.4,roof);
+  addBox(x,1.7,z,w,3.4,d,wall,0,texed(wall,TEX.daub));addRoof(x,5.1,z,w+1.4,d+1.4,roof,texed(roof,((roof&0x303030)<0x202020)?TEX.shingle:TEX.thatch));
   // timber frame stripes
   addBox(x,1.7,z+d/2+0.06,w,3.2,0.12,0x2a2018);addBox(x-w/2-0.06,1.7,z,0.12,3.2,d,0x2a2018);
   // door glow
@@ -553,7 +598,7 @@ function buildWorld(){
  // campfires / braziers
  [[-30,-6],[24,24],[10,70],[-48,48],[0,-38]].forEach(([x,z])=>{
   const st=addBox(x,0.3,z,1.6,0.6,1.6,0x5a5a5a);const fl=new THREE.PointLight(0xff8a3a,1.4,18);fl.position.set(x,1.6,z);scene.add(fl);
-  const f=new THREE.Mesh(new THREE.ConeGeometry(0.5,1.2,7),new THREE.MeshBasicMaterial({color:0xff9a3a}));f.position.set(x,1.2,z);scene.add(f);fires.push({x,z,flame:f,light:fl});
+  const f=new THREE.Mesh(new THREE.ConeGeometry(0.5,1.2,7),new THREE.MeshBasicMaterial({color:0xff9a3a}));f.position.set(x,1.2,z);scene.add(f);fires.push({x,z,flame:f,light:fl});glowAt(x,1.8,z,6,0.5);
   interactables.push({kind:'fire',name:'Campfire',x,z,r:3,txt:'Rest by fire (heal/sanity)'});});
  // chapel bell + brazier of ash
  addBox(-34,2.5,-16,0.4,5,0.4,0x3a2a1a);const bellm=new THREE.Mesh(new THREE.ConeGeometry(0.7,1,8),new THREE.MeshLambertMaterial({color:0xc9a227}));bellm.position.set(-34,5.4,-16);scene.add(bellm);
@@ -568,7 +613,7 @@ function buildWorld(){
  [[6,4],[-28,-4],[20,-12],[-12,20],[48,40]].forEach(([x,z])=>{addBox(x,1.5,z,0.25,3,0.25,0x3a2a1a);
   const l=new THREE.PointLight(0xffa04a,1.0,20);l.position.set(x,3.4,z);scene.add(l);torches.push(l);
   const f=new THREE.Mesh(new THREE.SphereGeometry(0.25,8,6),new THREE.MeshBasicMaterial({color:0xffc46a}));f.position.set(x,3.3,z);scene.add(f);});
- plantForage();spawnHorses();placeCarts();placeBeds();placeWorks();buildGraveyard();buildMansion();
+ plantForage();spawnHorses();placeCarts();placeBeds();placeWorks();buildGraveyard();buildMansion();buildCottages();
  // corral rails by the cabins
  [[26,34,8,0.3],[26,40,8,0.3]].forEach(([x,z,w,d])=>{addBox(x,0.6,z,w,1.0,d,0x5a4630);});
 }
@@ -721,6 +766,39 @@ function recoverGrave(it){const gr=it.grave||G.grave;if(!gr){toast('Only mud.','
  if(gr.mesh)scene.remove(gr.mesh);it.gone=true;G.grave=null;
  AudioSys.sfx('quest');toast('🎒 Satchel recovered. The mud returns what it borrowed.','good');
  refreshHUD();refreshHotbar();refreshTracker();}
+/* ============ LIVEABLE HOUSES ============ */
+function claimHouse(it){const h=it.home;
+ if(G.homeId!==h.id){G.homeId=h.id;G.home={x:h.x,z:h.z};
+  notify('⌂','Safehouse claimed: '+h.nm,'You will wake here. Store goods inside. Bar the doorway with bundles.',{major:true});AudioSys.sfx('quest');}
+ else{G.sanity=clamp(G.sanity+3,0,100);subtitle('Home. The walls know your name. (+3 🕯)');}refreshHUD();}
+function buildCottage(x,z,nm,id){
+ const W=0x9a8a68,WM=texed(W,TEX.daub);
+ const fl=new THREE.Mesh(new THREE.PlaneGeometry(5,4),texed(0x6a5a40,TEX.wood));fl.rotation.x=-Math.PI/2;fl.position.set(x,0.06,z);fl.receiveShadow=true;scene.add(fl);
+ addBox(x-1.8,1.3,z+2,1.4,2.6,0.3,W,0,WM);addBox(x+1.8,1.3,z+2,1.4,2.6,0.3,W,0,WM);
+ addBox(x,2.4,z+2,1.4,0.4,0.3,W,0,WM);
+ solid(x-1.8,z+2,1.4,0.3);solid(x+1.8,z+2,1.4,0.3);
+ addBox(x,1.3,z-2,5,2.6,0.3,W,0,WM);solid(x,z-2,5,0.3);
+ addBox(x-2.5,1.3,z-1.1,0.3,2.6,1.8,W,0,WM);addBox(x-2.5,1.3,z+1.1,0.3,2.6,1.8,W,0,WM);
+ solid(x-2.5,z-1.1,0.3,1.8);solid(x-2.5,z+1.1,0.3,1.8);
+ addBox(x+2.5,1.3,z-1.1,0.3,2.6,1.8,W,0,WM);addBox(x+2.5,1.3,z+1.1,0.3,2.6,1.8,W,0,WM);
+ solid(x+2.5,z-1.1,0.3,1.8);solid(x+2.5,z+1.1,0.3,1.8);
+ addRoof(x,4.3,z,6.4,5.4,0x5a4a2a,texed(0x5a4a2a,TEX.thatch));
+ glowAt(x,3.0,z+2.4,3,0.4);
+ const lb=makeLabel('⌂ '+nm,0.6);lb.position.set(x,6.4,z);scene.add(lb);
+ interactables.push({kind:'hdoor',name:nm+' door',home:{id,x,z,nm},x:x,z:z+2.6,r:2.8,txt:'Claim cottage / rest (E)'});
+ // interior: bed, table, stash chest, shelf loot
+ const bed={kind:'bed',name:nm+' bed',x:x-1.4,z:z-1.0,r:2.4,txt:'Sleep (E)'};interactables.push(bed);
+ addBox(x-1.4,0.35,z-1.0,1.0,0.4,2.0,0x5a4630);addBox(x-1.4,0.6,z-1.0,0.9,0.2,1.8,0x9a8a6a);
+ solid(x-1.4,z-1.0,1.0,2.0);
+ addBox(x+1.2,0.5,z-1.0,1.2,0.8,0.8,0x6a4a26);
+ solid(x+1.2,z-1.0,1.2,0.8);
+ interactables.push({kind:'stash',name:nm+' chest',stash:{},x:x+1.2,z:z+0.2,r:2.4,txt:'Store goods (E)'});
+ addBox(x+1.2,1.05,z-1.0,1.2,0.15,0.8,0x4a3018);
+ const c=addBox(x+1.2,0.5,z+0.2,1.1,0.9,1.0,0x6a4a26);c.material.emissive=new THREE.Color(0x221800);
+ solid(x+1.2,z+0.2,1.1,1.0);
+ interactables.push({kind:'loot',name:nm+' shelf',x:x-1.4,z:z+1.0,r:2.4,txt:'Search shelf'});
+ addBox(x-1.4,0.5,z+1.0,1.0,0.9,0.6,0x6a4a26);}
+function buildCottages(){buildCottage(36,28,'Cottage of Thorns','cot1');buildCottage(12,34,'Cottage of Eels','cot2');buildCottage(-24,34,'Cottage of Nails','cot3');}
 /* ============ CANOES ============ */
 function isWater(x,z){for(const w of WATER){const dx=(x-w.x)/w.rx,dz=(z-w.z)/w.rz;if(dx*dx+dz*dz<1)return true;}return false;}
 function makeCanoeMesh(){const g=new THREE.Group();
@@ -954,13 +1032,21 @@ function advanceTime(dt){const prev=G.time;G.time+=dt*(24/480);
   else if(isNight())AudioSys.setMode('night');else AudioSys.setMode('day');}}
 function updateSky(){const t=G.time;let dayAmt=clamp(1-Math.abs(t-13)/8,0,1);
  const night=isNight();
+ const dawnAmt=clamp(1-Math.abs(t-6.5)/1.8,0,1),duskAmt=clamp(1-Math.abs(t-18.8)/1.8,0,1);
+ const lowSun=Math.max(dawnAmt,duskAmt);
  const sky=new THREE.Color().setHSL(0.58,0.32,night?0.035:0.24+dayAmt*0.32);
- if(G.weather==='rain')sky.multiplyScalar(0.75);
+ if(!night&&lowSun>0)sky.lerp(new THREE.Color(0xd86a2a),lowSun*0.55);
+ if(G.weather==='rain')sky.multiplyScalar(0.7);
  scene.background=sky;scene.fog.color.copy(sky).multiplyScalar(0.95);
- sun.intensity=night?0:0.75+dayAmt*1.0;moon.intensity=night?0.55:0;
- sun.position.set(G.pos.x+40*Math.cos((t/24)*Math.PI*2),60,G.pos.z+30);
+ sun.intensity=night?0:(0.5+dayAmt*1.2)*(G.weather==='rain'?0.55:1);
+ sun.color.setHex(lowSun>0.25?0xff9a5a:(dayAmt>0.5?0xfff2dd:0xffd9a0));
+ moon.intensity=night?(G.weather==='rain'?0.15:0.6):0;
+ const ang=(t/24)*Math.PI*2;
+ sun.position.set(G.pos.x+50*Math.cos(ang),Math.max(8,60*Math.sin(ang)+18),G.pos.z+30);
  moon.position.set(G.pos.x-30,50,G.pos.z-20);
- hemi.intensity=night?0.32:0.95;
+ hemi.intensity=night?0.34:0.95;
+ if(scene.userData.amb)scene.userData.amb.intensity=night?0.5:0.32;
+ renderer.toneMappingExposure=(night?1.25:1.1)*(G.weather==='rain'?0.9:1);
  const flick=1+Math.sin(performance.now()/90)*0.12;
  torchLight.intensity=G.lantern?2.2*flick:0;torchLight.position.set(G.pos.x,2.5,G.pos.z);
  lanternLight.intensity=night?0.6:0;lanternLight.position.set(G.pos.x,6,G.pos.z);
@@ -1098,6 +1184,7 @@ function drawMini(){const c=$('minimap'),x=c.getContext('2d');x.clearRect(0,0,16
  for(const it of interactables){if(it.kind!=='forage')continue;if(it.cd&&performance.now()<it.cd)continue;
   x.fillStyle='#5fd06f';x.fillRect(px(it.x)-1,px(it.z)-1,2,2);}
  barricades.forEach(b=>{x.fillStyle='#c98a3a';x.fillRect(px(b.x)-1.5,px(b.z)-1.5,3,3);});
+ if(G.home){x.fillStyle='#ffd76a';x.fillRect(px(G.home.x)-2.5,px(G.home.z)-2.5,5,5);}
  if(G.grave){x.fillStyle='#fff';x.fillRect(px(G.grave.x)-2,px(G.grave.z)-2,4,4);}
  npcs.forEach(n=>{if(n.dead)return;x.fillStyle='#c9a227';x.beginPath();x.arc(px(n.mesh.position.x),px(n.mesh.position.z),2.4,0,7);x.fill();});
  x.fillStyle='#fff';x.beginPath();x.arc(px(G.pos.x),px(G.pos.z),3.4,0,7);x.fill();}
@@ -1227,6 +1314,8 @@ function doInteract(it){if(!it)return;AudioSys.sfx('pickup');
  if(it.kind==='work'){workShift(it);return;}
  if(it.kind==='barr'&&it.ref){mendBarricade(it.ref);return;}
  if(it.kind==='grave2'){recoverGrave(it);return;}
+ if(it.kind==='stash'){openStash({name:it.name,stash:it.stash||(it.stash={})});return;}
+ if(it.kind==='hdoor'){claimHouse(it);return;}
  if(it.kind==='grave'){if(G.looted[it.id]){subtitle('A tended mound. Someone scratched: “PAID IN FULL.”');return;}
   G.looted[it.id]=1;buryAt();if(Math.random()<0.4){addItem('coin',2);toast('Among the roots: 2 forgotten livres.','good');}return;}
  if(it.kind==='fire'){G.hp=clamp(G.hp+8,0,G.maxhp);G.sanity=clamp(G.sanity+14,0,100);G.hunger=Math.max(0,G.hunger-4);
@@ -1308,12 +1397,12 @@ function togglePause(){G.paused=!G.paused;$('pause').classList.toggle('hidden',!
 function save(){try{const d={day:G.day,time:G.time,hp:G.hp,hunger:G.hunger,sanity:G.sanity,karma:G.karma,coins:G.coins,
  inv:G.inv,weapon:G.weapon,maxhp:G.maxhp,quests:Object.fromEntries(Object.entries(G.quests).map(([k,v])=>[k,v.st])),
  have:Object.fromEntries(Object.entries(G.quests).map(([k,v])=>[k,v.have])),qactive:G.qactive,buried:G.buried,kills:G.kills,
- looted:G.looted,work:G.work,shifts:G.shifts||0,haggle:G.haggle||{xp:0,tier:0},grave:G.grave?{x:G.grave.x,z:G.grave.z,inv:G.grave.inv,coins:G.grave.coins}:null,npc:npcs.map(n=>({id:n.id,dead:n.dead,follow:n.follow}))};
+ looted:G.looted,work:G.work,shifts:G.shifts||0,haggle:G.haggle||{xp:0,tier:0},homeId:G.homeId||null,home:G.home||null,grave:G.grave?{x:G.grave.x,z:G.grave.z,inv:G.grave.inv,coins:G.grave.coins}:null,npc:npcs.map(n=>({id:n.id,dead:n.dead,follow:n.follow}))};
  localStorage.setItem('bayou-requiem-save',JSON.stringify(d));toast('💾 Soul recorded in the parish register.','good');}catch(e){toast('Save failed: '+e,'bad');}}
 function load(){try{const raw=localStorage.getItem('bayou-requiem-save');if(!raw)return false;const d=JSON.parse(raw);
  Object.assign(G,{day:d.day,time:d.time,hp:d.hp,hunger:d.hunger,sanity:d.sanity,karma:d.karma,coins:d.coins,inv:d.inv,weapon:d.weapon,maxhp:d.maxhp,qactive:d.qactive||[],buried:d.buried||0,kills:d.kills||0,looted:d.looted||{}});
  for(const k in d.quests)if(G.quests[k])G.quests[k].st=d.quests[k];
- initWork();if(d.work)for(const k in d.work)if(G.work[k])G.work[k]=d.work[k];G.shifts=d.shifts||0;if(d.haggle)G.haggle=d.haggle;
+ initWork();if(d.work)for(const k in d.work)if(G.work[k])G.work[k]=d.work[k];G.shifts=d.shifts||0;if(d.haggle)G.haggle=d.haggle;G.homeId=d.homeId||null;G.home=d.home||null;
  if(d.grave){G.grave={x:d.grave.x,z:d.grave.z,inv:d.grave.inv||{},coins:d.grave.coins||0};G.grave.mesh=graveMarker(G.grave);linkGrave();}
  for(const k in d.have)if(G.quests[k])G.quests[k].have=d.have[k];
  (d.npc||[]).forEach(s=>{const n=npcs.find(n=>n.id===s.id);if(n){n.dead=s.dead;n.follow=s.follow;if(n.dead)scene.remove(n.mesh);if(s.follow)G.companions.push(n.id);}});
@@ -1337,8 +1426,8 @@ function wireButtons(){
  $('btn-full').onclick=()=>{document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen();};
  $('btn-quit').onclick=()=>{save();location.reload();};
  $('btn-respawn').onclick=()=>{G.dead=false;G.hp=G.maxhp*0.6;G.hunger=60;G.sanity=60;G.infected=0;G.coins=Math.floor(G.coins*0.7);
-  G.pos={x:-30,z:-6};playerMesh.position.set(-30,0,-6);$('death').classList.add('hidden');
-  subtitle('You wake on the chapel steps. Someone left bread. Someone left a pamphlet.');addItem('bread',1);
+  G.pos={x:(G.home?G.home.x:-30),z:(G.home?G.home.z:-6)};playerMesh.position.set(G.pos.x,0,G.pos.z);$('death').classList.add('hidden');
+  subtitle(G.home?'You wake in your own bed. The walls kept you.':'You wake on the chapel steps. Someone left bread. Someone left a pamphlet.');addItem('bread',1);
   if(G.grave)toast('⚰ Your satchel waits where you fell — find the ⚰ mark on the ring.','good');refreshHUD();};
  $('btn-dead-menu').onclick=()=>location.reload();
  $('btn-ending-menu').onclick=()=>{$('ending').classList.add('hidden');G.ending=false;};
