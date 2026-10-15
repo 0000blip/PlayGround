@@ -88,6 +88,7 @@ const ITEMS={
  coon:{n:'Raccoon',e:'🦝',d:'Night-bandit, greasy and sweet. +16 hunger.',use:'eat',hunger:16,price:3},
  possum:{n:'Opossum',e:'🐀',d:'Played dead; lost the argument. +14 hunger.',use:'eat',hunger:14,price:3},
  bone:{n:'Old bones',e:'☠',d:'Levy-issue, long discharged. Apothecaries and priests pay.',price:2},
+ locket:{n:'Silver locket',e:'💠',d:'Miniature portraits inside — Odette’s mother, unmistakably. Quest relic.',price:0,quest:true},
  wine:{n:'Claret',e:'🍷',d:'French wine, cellared through the crossing. +6 hunger, +12 reason.',use:'drink',hunger:6,sanity:12,price:6},
  tafia:{n:'Tafia',e:'🥃',d:'Raw cane spirit. Burns clean through grief. +2 hunger, +18 reason, −5 HP.',use:'drink',hunger:2,sanity:18,hp:-5,price:8},
  tobacco:{n:'Pipe tobacco',e:'🚬',d:'Virginia leaf. Smoke a bowl and watch the mist. +10 reason, −2 HP.',use:'smoke',sanity:10,hp:-2,price:3},
@@ -124,6 +125,7 @@ const NPC_DEFS=[
  {id:'doctor',n:'Chirurgien Fauche',role:'barber-surgeon',e:'🩸',x:12,z:-4,c:0x7a2a2a,d:'Bleeds patients and purses alike. Knows anatomy; learning mercy.'},
  {id:'lucile',n:'Lucile, child-runner',role:'messenger, 11 years old',e:'🧒',x:10,z:2,c:0xa08a3a,d:'Swift as rumour. Carries letters, warnings, and other people’s secrets.'},
  {id:'seraphine',n:'Dame Séraphine',role:'lady of the evening, licensed by hunger',e:'💋',x:17,z:-3,c:0x8a2a4a,d:'Powder, patch, and a patience the priests envy. Sells company, conversation, and the only honest forgetfulness in the parish.'},
+ {id:'pelle',n:'Pelle the Digger',role:'gravedigger, union-dead liaison',e:'⛏',x:-64,z:6,c:0x4a4a4a,d:'Digs by day, listens by night. “The quiet ones tip best: information. The cemetery is the parish archive — every plot a page, every stone a signature.”'},
 ];
 const FOE_DEFS={
  risen:{n:'The Risen',e:'🧟',hp:45,dmg:10,spd:2.2,xp:1,col:0x5a6a4a,txt:'Plague-dead in grave linen. They rise where wages were withheld.'},
@@ -163,6 +165,7 @@ const QUESTS=[
  {id:'q_w_tycoon',n:'Corner the Market',giver:'taxman',chain:'side',karma:3,desc:'“Accumulation,” says Poulain, “is a virtue with interest.” Work 2 tycoon shifts at the exchange corner (10-livre stake each) and prove the pamphlet wrong — or rich.',obj:[{t:'work',job:'tycoon',n:2,label:'speculations'}],rw:{coin:12,karma:3}},
  {id:'q_w_sewer',n:'The Miasma Theory',giver:'doctor',chain:'side',karma:7,desc:'Fauche blames the airs, and for once the airs agree. Work 3 sewer shifts at the drainage ditches. Danger money, gloves, no questions.',obj:[{t:'work',job:'sewer',n:3,label:'ditch shifts'}],rw:{coin:16,tonic:1,karma:7}},
  {id:'q_w_crier',n:'Lungs for the Commune',giver:'lucile',chain:'side',karma:6,desc:'Lucile runs messages; the parish needs a voice. Work 3 crier shifts at the market stone and cry the commune’s news true.',obj:[{t:'work',job:'crier',n:3,label:'crying shifts'}],rw:{coin:10,karma:6}},
+ {id:'q_heirloom',n:'The Widow’s Locket',giver:'odette',chain:'side',karma:7,desc:'Odette’s mother’s locket was flung from a Maison Lament window the night the factor vanished — so the story goes. The house is deep in the east woods and not empty. Bring it home.',obj:[{t:'collect',item:'locket',n:1,label:'silver locket'}],rw:{coin:16,karma:7}},
  {id:'q_risen',n:'The Night Shift',giver:'baptiste',chain:'side',karma:7,desc:'The Risen walk in force after dark. Put 6 back into the mud. The commune defends itself.',obj:[{t:'kill',foe:'risen',n:6,label:'risen laid to rest'}],rw:{ammo:6,coin:10,karma:7}},
  {id:'q_seal',n:'Seal of the Drowned',giver:'jean',chain:'side',karma:9,desc:'A demon-stain festers in the swamp heart. Gather 2 consecrated ash from destroyed apparitions? No — from the chapel brazier after banishings. Then cleanse the stain (E) in the swamp.',obj:[{t:'collect',item:'ash',n:2,label:'consecrated ash'}],rw:{coin:16,karma:9}},
  {id:'q_manor',n:'What the Manor Owes',giver:'seamus',chain:'main',karma:14,desc:'Seamus found the manor’s debt-book: 60 souls bought for 12 livres the head. Steal it from the manor chest (glowing crate behind the manor) and bring it to the market cross.',obj:[{t:'collect',item:'deed',n:2,label:'pages of the debt-book'}],rw:{karma:14,coin:15}},
@@ -561,7 +564,7 @@ function buildWorld(){
  [[6,4],[-28,-4],[20,-12],[-12,20],[48,40]].forEach(([x,z])=>{addBox(x,1.5,z,0.25,3,0.25,0x3a2a1a);
   const l=new THREE.PointLight(0xffa04a,1.0,20);l.position.set(x,3.4,z);scene.add(l);torches.push(l);
   const f=new THREE.Mesh(new THREE.SphereGeometry(0.25,8,6),new THREE.MeshBasicMaterial({color:0xffc46a}));f.position.set(x,3.3,z);scene.add(f);});
- plantForage();spawnHorses();placeCarts();placeBeds();placeWorks();
+ plantForage();spawnHorses();placeCarts();placeBeds();placeWorks();buildGraveyard();buildMansion();
  // corral rails by the cabins
  [[26,34,8,0.3],[26,40,8,0.3]].forEach(([x,z,w,d])=>{addBox(x,0.6,z,w,1.0,d,0x5a4630);});
 }
@@ -639,6 +642,37 @@ function makeWorkMesh(job){const g=new THREE.Group();const J=JOBS[job];
  else{const l=new THREE.Mesh(new THREE.BoxGeometry(1.1,0.25,0.25),mat(0x8a6a3a));l.position.set(0,1.1,0);g.add(l);}
  const lb=makeLabel(J.e+' '+J.n,0.45);lb.position.set(0,2.4,0);g.add(lb);
  return g;}
+function buildGraveyard(){
+ for(let x=-86;x<=-54;x+=3){for(const z of [-8,24])addBox(x,0.9,z,0.25,1.8,0.25,0x2a2a2e);}
+ for(let z=-8;z<=24;z+=3){addBox(-86,0.9,z,0.25,1.8,0.25,0x2a2a2e);if(z<6||z>10)addBox(-54,0.9,z,0.25,1.8,0.25,0x2a2a2e);}
+ addBox(-70,1.3,-8,32,0.12,0.12,0x2a2a2e);addBox(-70,1.3,24,32,0.12,0.12,0x2a2a2e);addBox(-86,1.3,8,0.12,0.12,32,0x2a2a2e);
+ [[-80,-2],[-80,16],[-60,-4]].forEach(([x,z],i)=>{addBox(x,1.2,z,4,2.4,3,0x8a8072);addBox(x,2.7,z,4.6,0.5,3.6,0x6a6a6a);solid(x,z,4.4,3.4);
+  if(i===0)interactables.push({kind:'loot',name:'Vault cache',x:x,z:z+2.6,r:2.6,txt:'Search Vault cache'});});
+ addBox(-66,1.7,20,6,3.4,5,0x7a7a72);addRoof(-66,5.1,20,7.4,6.4,0x2a2a2a);solid(-66,20,6.6,5.6);
+ const lb=makeLabel('Vault of the Unpaid',0.8);lb.position.set(-66,8,20);scene.add(lb);
+ for(let i=0;i<14;i++){const x=rand(-84,-56),z=rand(-6,22);addBox(x,0.7,z,0.18,1.4,0.18,0x8a8072);addBox(x,1,z,0.8,0.18,0.18,0x8a8072);}
+ const gl=makeLabel('☠ Graveyard of the Unpaid',1.1);gl.position.set(-70,9.5,8);scene.add(gl);}
+function buildMansion(){
+ const X=88,Z=-38;
+ addBox(X,2.5,Z,20,5,12,0x9a8a6a);addBox(X,6.2,Z,18,2.4,10,0x8a7a5a);
+ addRoof(X,9.0,Z,21.4,13.4,0x3a2018);
+ addBox(X-14,1.7,Z,8,3.4,9,0x8a7a5a);addRoof(X-14,4.8,Z,9.4,10.4,0x3a2018);
+ addBox(X+14,1.7,Z,8,3.4,9,0x8a7a5a);addRoof(X+14,4.8,Z,9.4,10.4,0x3a2018);
+ for(let i=-3;i<=3;i++)addBox(X+i*2.4,1.5,Z+7,0.5,3,0.5,0xd8d0b8);
+ addBox(X,3.4,Z+7,18,0.5,2,0x8a7a5a);
+ solid(X,Z,20.6,12.6);solid(X-14,Z,8.6,9.6);solid(X+14,Z,8.6,9.6);
+ for(const wx of [-5,5]){const w=addBox(X+wx,2.6,Z+6.1,1.4,1,0.15,0x9aff9a);w.material=new THREE.MeshBasicMaterial({color:0x9aff9a});}
+ const lb=makeLabel('Maison Lament — the Widow’s Folly',1.0);lb.position.set(X,12.5,Z);scene.add(lb);
+ interactables.push({kind:'door',name:'Maison Lament',x:X,z:Z+7.6,r:3,txt:'Enter Maison Lament'});
+ for(let x=X-16;x<=X+16;x+=4)addBox(x,0.9,Z+14,0.25,1.8,0.25,0x2a2a2e);
+ addBox(X,1.3,Z+14,32,0.12,0.12,0x2a2a2e);
+ [['Cellar hatch',76,-30],['Carriage trunk',100,-32],['Study cache',88,-28]].forEach(([nm,lx,lz])=>{
+  const c=addBox(lx,0.5,lz,1.2,1,1.2,0x4a2a1a);c.material.emissive=new THREE.Color(0x332200);
+  interactables.push({kind:'loot',name:nm,x:lx,z:lz,r:2.8,txt:'Search '+nm});});
+ for(let i=0;i<16;i++){const a=i/16*Math.PI*2,x=X+Math.cos(a)*rand(20,30),z=Z+Math.sin(a)*rand(20,30);
+  const t=new THREE.Mesh(new THREE.CylinderGeometry(0.4,0.65,6,6),mat(0x3a2c20));t.position.set(x,3,z);t.castShadow=true;scene.add(t);
+  const c=new THREE.Mesh(new THREE.SphereGeometry(rand(2.5,4),8,7),mat(0x1e3a22));c.position.set(x,7.5,z);scene.add(c);}
+ spawnFoe('vamp',80,-28);spawnFoe('ghost',96,-28);spawnFoe('ghost',88,-48);spawnFoe('skeleton',88,-24);}
 function placeWorks(){[['carpenter',22,34],['cook',12,-11],['pirate',-46,56],['fisherman',-44,58],['fisherman',4,74],['hunter',48,8],['sheriff',-3,-34],['soldier',10,44],['tavern',24,-6],['smith',31,-20],['farmer',28,34],['farmer',16,32],['banker',12,-44],['tycoon',10,0],['sewer',0,60],['sewer',-20,44],['crier',16,1]].forEach(([job,x,z])=>{
  const m=makeWorkMesh(job);m.position.set(x,0,z);scene.add(m);
  interactables.push({kind:'work',job,name:JOBS[job].n+' — '+JOBS[job].site,x,z,r:3,txt:'⚒ Work: '+JOBS[job].n+' (E)'});});}
@@ -721,7 +755,7 @@ function spawnSkelFarmers(){[['Brother Rattle',22,35],['Sister Clatter',24,33],[
  const hoe=new THREE.Mesh(new THREE.BoxGeometry(0.08,1.4,0.08),mat(0x5a4630));hoe.position.set(0.5,1.0,0.3);hoe.rotation.x=0.3;m.add(hoe);
  const lb=makeLabel('💀 '+nm,0.5);lb.position.set(0,2.9,0);m.add(lb);
  npcs.push({id:'skel_'+nm,n:nm,role:'freed farmer, deceased — the union dead',e:'💀',x,z,c:0xe6dcc0,d:'Freed by shovel and solidarity. “We died in the Seigneur’s furrows, so we kept the furrows. No wages, no rest? No — we voted. We keep the harvest and we keep the hours. The living work beside us, or the dead work without them.” (Recruitable. Killable. The commune will remember either.)',mesh:m,wx:x,wz:z,tx:x,tz:z,wt:0,dead:false,follow:false,skeleton:true});});}
-function spawnNPCs(){NPC_DEFS.forEach(d=>{const g=makeHumanoid(d.c,0xd9b48f,d.id==='taxman'?'wig':(d.id==='anselme'?'hood':((d.id==='odette'||d.id==='lucile'||d.id==='seraphine')?'coif':'tricorn')));
+function spawnNPCs(){NPC_DEFS.forEach(d=>{const g=makeHumanoid(d.c,0xd9b48f,d.id==='taxman'?'wig':((d.id==='anselme'||d.id==='pelle')?'hood':((d.id==='odette'||d.id==='lucile'||d.id==='seraphine')?'coif':'tricorn')));
   g.position.set(d.x,0,d.z);scene.add(g);
   const lb=makeLabel(d.e+' '+d.n,0.55);lb.position.set(0,2.9,0);g.add(lb);
   npcs.push({...d,mesh:g,wx:d.x,wz:d.z,tx:d.x,tz:d.z,wt:0,dead:false,follow:false});});}
@@ -1213,11 +1247,12 @@ function doInteract(it){if(!it)return;AudioSys.sfx('pickup');
   it.cd=performance.now()+3000;return;}
  if(it.kind==='door'){subtitle('“'+it.name+'” — '+doorLore(it.name));it.cd=performance.now()+4000;return;}
  if(it.kind==='loot'){lootCrate(it);return;}}
-function doorLore(nm){return{'Seigneur’s Manor':'candlelight, ledgers, and a locked chest behind (search it).','Chapel of St. Mud':'sanctuary. Apparitions weaken; reason returns.','Market Row':'bread has a price; gossip is free.','Smithy':'the forge is the commune’s argument.','Herbalist Hut':'knock twice; Manon hears the first.','Ruined Mission':'dusk parley ground. Bring spite and silver.'}[nm]||'timber, thatch, and other men’s labour.';}
+function doorLore(nm){return{'Seigneur’s Manor':'candlelight, ledgers, and a locked chest behind (search it).','Chapel of St. Mud':'sanctuary. Apparitions weaken; reason returns.','Market Row':'bread has a price; gossip is free.','Smithy':'the forge is the commune’s argument.','Herbalist Hut':'knock twice; Manon hears the first.','Ruined Mission':'dusk parley ground. Bring spite and silver.','Maison Lament':'sugar money built it; debt emptied it. The green windows watch.'}[nm]||'timber, thatch, and other men’s labour.';}
 function lootCrate(it){const nm=it.name;
  const once=k=>{if(G.looted[k])return false;G.looted[k]=1;return true;};
  if(nm==='Grave goods'&&once('q_rosary')){addItem('rosary',1);toast('📿 Bog-oak rosary, cold as a kept promise. Bring it to Odette.','good');checkQuestItem();it.cd=performance.now()+60000;return;}
  if(nm==='Manor chest'&&once('q_deed1')){addItem('deed',2);addItem('coin',12);toast('📜 The debt-book! 60 souls at 12 livres the head. To the market cross!','good');addKarma(4,'evidence liberated');checkQuestItem();it.cd=performance.now()+60000;return;}
+ if(nm==='Study cache'&&once('q_lock0')){addItem('locket',1);toast('💠 A silver locket, miniatures inside. Odette’s mother, unmistakably.','good');checkQuestItem();it.cd=performance.now()+60000;return;}
  if(nm==='Cabin chest'&&once('q_shoe')){addItem('deed',1);toast('🧦 A child’s shoe — and a scrap: “took the shortcut by the oak”. To Lucile, quickly!','good');checkQuestItem();it.cd=performance.now()+60000;return;}
  if(nm==='Mission cache'){if(once('q_fang0')){addItem('fang',1);toast('🦷 An ivory fang in a snuffbox. The Sang-Mêlé supped here.','good');}else genericLoot();}
  else genericLoot();it.cd=performance.now()+90000;
