@@ -652,6 +652,11 @@ let renderer,scene,camera,sun,moon,hemi,torchLight,playerMesh,lanternLight;
 let camYaw=0,camDist=26,camH=20; // fixed isometric, Zomboid-style: W walks screen-up (north)
 const colliders=[],interactables=[],foes=[],npcs=[],fires=[],labels=[],torches=[],critters=[],horses=[],carts=[],barricades=[],boats=[],kegs=[],traps=[],WATER=[],FOLIAGE=[];
 function regLeaf(m){FOLIAGE.push({m,base:m.material.color.clone()});}
+const CUTAWAYS=[];
+function regCut(m,r){CUTAWAYS.push({m,r,faded:false});}
+function updateCutaway(){for(const c of CUTAWAYS){const near=dist2(G.pos.x,G.pos.z,c.m.position.x,c.m.position.z)<c.r;
+ if(near===c.faded)continue;c.faded=near;const mt=c.m.material;
+ if(near){mt.transparent=true;mt.opacity=0.14;}else{mt.opacity=1;if(mt.map)mt.transparent=false;else mt.transparent=false;}}}
 const WORLD=240;
 function mat(c){return new THREE.MeshLambertMaterial({color:c});}
 /* ---- procedural HD textures (canvas-baked, no downloads) ---- */
@@ -726,7 +731,7 @@ function makeLabel(txt,scale){const c=document.createElement('canvas');c.width=1
 
 /* ============ WORLD ============ */
 function addBox(x,y,z,w,h,d,c,ry,mOverride){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mOverride||mat(c));m.position.set(x,y,z);if(ry)m.rotation.y=ry;m.castShadow=true;m.receiveShadow=true;scene.add(m);return m;}
-function addRoof(x,y,z,w,d,c,mOverride){const g=new THREE.CylinderGeometry(0.01,Math.sqrt(w*w+d*d)/2,3.4,4,1);const m=new THREE.Mesh(g,mOverride||mat(c));m.position.set(x,y,z);m.rotation.y=Math.PI/4;m.scale.set(w/Math.sqrt(w*w+d*d)*1.42,1,d/Math.sqrt(w*w+d*d)*1.42);m.castShadow=true;scene.add(m);return m;}
+function addRoof(x,y,z,w,d,c,mOverride){const g=new THREE.CylinderGeometry(0.01,Math.sqrt(w*w+d*d)/2,3.4,4,1);const m=new THREE.Mesh(g,mOverride||mat(c));m.position.set(x,y,z);m.rotation.y=Math.PI/4;m.scale.set(w/Math.sqrt(w*w+d*d)*1.42,1,d/Math.sqrt(w*w+d*d)*1.42);m.castShadow=true;scene.add(m);regCut(m,Math.max(w,d)*0.75);return m;}
 function solid(x,z,w,d){colliders.push({x0:x-w/2,x1:x+w/2,z0:z-d/2,z1:z+d/2});}
 function buildWorld(){
  // ground: big plane + painted patches
@@ -749,10 +754,10 @@ function buildWorld(){
   const swampy=dist2(x,z,10,80)<36;
   if(swampy&&Math.random()<0.5){ // cypress knee + trunk
    const t=new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.9,rand(7,11),7),mat(0x4a3a28));t.position.set(x,3.5,z);t.castShadow=true;scene.add(t);
-   const c=new THREE.Mesh(new THREE.ConeGeometry(rand(2.5,4),rand(4,7),8),mat(0x2e4a2e));c.position.set(x,9,z);scene.add(c);regLeaf(c);
+   const c=new THREE.Mesh(new THREE.ConeGeometry(rand(2.5,4),rand(4,7),8),mat(0x2e4a2e));c.position.set(x,9,z);scene.add(c);regLeaf(c);regCut(c,5);
    const m=new THREE.Mesh(new THREE.PlaneGeometry(2.4,1.4),new THREE.MeshLambertMaterial({color:0x6a7a5a,transparent:true,opacity:0.7}));m.position.set(x+1,7,z);scene.add(m);
   } else {const t=new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.6,rand(4,7),6),mat(0x4a3a28));t.position.set(x,2.5,z);t.castShadow=true;scene.add(t);
-   const c=new THREE.Mesh(new THREE.SphereGeometry(rand(2,3.4),8,7),mat(Math.random()<0.5?0x2e4a26:0x3a5a2e));c.position.set(x,6,z);scene.add(c);regLeaf(c);}
+   const c=new THREE.Mesh(new THREE.SphereGeometry(rand(2,3.4),8,7),mat(Math.random()<0.5?0x2e4a26:0x3a5a2e));c.position.set(x,6,z);scene.add(c);regLeaf(c);regCut(c,4);}
  }
  // palisade walls (circle of stakes)
  for(let a=0;a<Math.PI*2;a+=Math.PI/44){const x=Math.cos(a)*58,z=Math.sin(a)*58;
@@ -2692,7 +2697,7 @@ function animate(t){requestAnimationFrame(animate);const dt=Math.min(0.05,(t-las
  advanceTime(dt);survival(dt);sanityAura(dt);updateSky();nightSpawns(dt);
  foes.forEach(f=>foeUpdate(f,dt));npcs.forEach(n=>npcUpdate(n,dt));
  critters.forEach(c=>critterUpdate(c,dt));critterSpawns(dt);horses.forEach(h=>horseUpdate(h,dt));
- fires.forEach(f=>{f.flame.rotation.y+=dt*3;});forageUpdate();updateParticles(dt);updateTargetRing();
+ fires.forEach(f=>{f.flame.rotation.y+=dt*3;});forageUpdate();updateParticles(dt);updateTargetRing();updateCutaway();
  if(buildSel&&ghostMesh){let gx=aimX,gz=aimZ;const dd=dist2(G.pos.x,G.pos.z,gx,gz);
   if(dd>7){const a=Math.atan2(gx-G.pos.x,gz-G.pos.z);gx=G.pos.x+Math.sin(a)*7;gz=G.pos.z+Math.cos(a)*7;}
   ghostMesh.position.set(gx,(buildSel.flat?0.2:buildSel.h/2),gz);
