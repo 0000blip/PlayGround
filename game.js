@@ -294,6 +294,7 @@ const CODEX={
  Bestiary:{t:'The Five Plagues',b:`<h3>Field notes, Chirurgien Fauche</h3><p><b>🧟 Risen</b> — the plague-dead. Slow. Bite breeds fever (eat tonic/herb).<br><b>🐺 Loup-Garou</b> — by day a neighbour; by moon a wolf. Silver ×3, fire fears it.<br><b>👻 Apparition</b> — grief with a face. Wounds reason (sanity). Lantern-light + blessed steel.<br><b>🧛 Sang-Mêlé</b> — vampire gentry. Vain, parleyable at dusk, deadly always. Fangs worth coin.<br><b>😈 Bête de l’Abîme</b> — the swamp’s compound interest. Appears Night 3+ in the swamp. Bring friends, silver, and spite.</p>`},
  FloraFauna:{t:'Forage & game of the parish',b:`<h3>What the unenclosed woods give (October)</h3><p>Fall is the honest season. <b>🌰 Pecans & hickory</b> drop ripe in October; <b>🍇 muscadines</b> hang September–October; <b>🍑 persimmons</b> sweeten after frost; <b>🥭 pawpaws</b> and <b>🍈 maypops</b> finish; <b>🌰 acorns</b> mast (leach the bitterness, as the Houma do); <b>🥔 groundnuts</b> — Apios tubers the Choctaw dig in fall. Year-round: <b>🫚 sassafras</b> root-tea, <b>🍃 yaupon</b> cassina (the woods’ only caffeine — steadying to the nerves), <b>🧅 wild onion</b>, <b>🌾 cattail</b> root-flour, <b>🦞 crawfish</b> in the shallows.</p><p><b>Game:</b> cottontail 🐇, gray squirrel 🐿, fall-fat deer 🦌, turkey 🦃 in autumn flocks, mallards 🦆 on the water — and 🐊 the alligator, which hunts back. Feral hogs (Spanish stock) root the cane. Note the <i>absent</i>: no armadillos yet — they will not waddle in for another century.</p><p><b>Teeth:</b> 🐊 alligator (rolls), 🐍 cottonmouth (venom = bite-fever; suck the wound, chew herb), 🐢 snapping turtle (slow, shears), 🐗 feral hogs — Spanish stock gone wild by 1666 — charge, 🐱 bobcats hunt at a run, 🐻 the black bear, old man of the canebrake, is a siege engine. <b>Small neighbours:</b> 🦝 raccoon (steals shine), 🐀 opossum (plays dead — convincingly), 🐸 bullfrog (gig for legs), 🐦 great heron, 🐢 box turtle, 🦦 otter, and 🦅 the bald eagle circling over it all, untouchable as a tax farmer.</p><p>Take only hunger’s share. The commune remembers greed the way the Seigneur remembers debts.</p>`},
  Voodoo:{t:'Voodoo, hoodoo & rootwork',b:`<h3>The old ways</h3><p>Louisiana Voodoo braids West African religion with Catholic saints; hoodoo and rootwork are the practical magic of herbs, candles, dusts and deals. Here it runs on <b>🌀 spirit</b>: cast from the conjure-book (<b>R</b>, or keys 7–0,–), and restore it at four altars — ✝ crossroads, cemetery, bayou, chapel — with offerings of coin, candle, bread, tafia and herb. Carry a gris-gris for +20 max. Manon teaches; the mud provides.</p>`},
+ Seasons:{t:'The wheel of the year',b:`<h3>Five days a season, twenty a year</h3><p>Autumn 🍂 (mast season, fast regrowth), Winter ❄ (cold nights bite — fire is life, orchards picked over), Spring 🌸 (storms with lightning, mosquitoes), Summer ☀ (white heat drains runners at noon). The canopy turns with the wheel. Years tick over past 1666; the Seigneur charges rent on all of them.</p>`},
  Music:{t:'A gothic-Americana score',b:`<h3>Five songs for the parish (16-Horsepower weather)</h3><p>Menu brush-drums, day train-beat with banjo rolls, night dirge with reeds, combat war-drums at 132, chapel hymn at 60 — all in brooding minor keys. The strings are Karplus-Strong physical models through a tube-amp waveshaper into a dark analog echo; the accordion is detuned reeds with bellows swell; the drums are synthesized kick, snare, toms and steel ticks. No recordings — only mathematics, which in the bayou amounts to the same haunting.</p>`},
 };
 /* ============ WILD PARISH: forage, game, horses, carts ============ */
@@ -364,14 +365,16 @@ function plantForage(){FORAGE_NODES.forEach(([spId,x,z])=>{const sp=FORAGE_DEFS[
  interactables.push({kind:'forage',species:spId,name:sp.name,x,z,r:2.8,txt:'Gather '+sp.label+' (E)',node:m});});}
 function forageUpdate(){const now=performance.now();for(const it of interactables){if(it.kind!=='forage'||!it.node)continue;
  it.node.visible=!(it.cd&&now<it.cd);}}
-function gatherForage(it){const sp=FORAGE_DEFS[it.species];addItem(sp.item,1);
+function gatherForage(it){const sp=FORAGE_DEFS[it.species];
+ if(seasonFor(G.day).id==='winter'&&['pecan','persimmon','muscadine','pawpaw','maypop','hickory'].includes(it.species)&&Math.random()<0.5){toast(sp.e+' Picked over — the winter woods keep the rest.','bad');it.cd=performance.now()+rand(60000,120000);return;}
+ addItem(sp.item,1);
  if(Math.random()<0.1*skillLvl('forage')+(T('rootwise')?0.15:0)+(T('outdoorsman')?0.1:0)){addItem(sp.item,1);toast('🌿 A forager’s eye: double '+sp.label+'.','good');}
  if(sp.item==='herb'&&T('herbalist')&&Math.random()<0.5){addItem('herb',1);toast('🌿 Herbalist’s hands: twin sprigs.','good');}
  if(it.species==='crawfish'&&(skillLvl('fish')>=3||T('angler'))){addItem(sp.item,1);toast('🎣 Old water-hand: extra share.','good');}
  gainXp('forage',2);if(it.species==='crawfish')gainXp('fish',2);
  if(sp.item2&&Math.random()<0.35){addItem(sp.item2,1);toast(sp.e+' A bonus! '+ITEMS[sp.item2].n+'.','good');}
  else toast(sp.e+' Gathered '+sp.label+'.','good');
- AudioSys.sfx('pickup');it.cd=performance.now()+rand(120000,240000);wildProgress('forage');refreshHUD();refreshHotbar();}
+ AudioSys.sfx('pickup');it.cd=performance.now()+rand(120000,240000)*(seasonFor(G.day).id==='autumn'?0.7:(seasonFor(G.day).id==='winter'?1.6:1));wildProgress('forage');refreshHUD();refreshHotbar();}
 function makeCritterMesh(type){const g=new THREE.Group();
  if(type==='rabbit'){const b=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.4,0.35),mat(0x8a8072));b.position.y=0.3;g.add(b);
   const e1=new THREE.Mesh(new THREE.BoxGeometry(0.08,0.35,0.08),mat(0x8a8072));e1.position.set(-0.2,0.65,0);g.add(e1);const e2=e1.clone();e2.position.z=0.12;e2.position.x=-0.2;g.add(e2);}
@@ -570,7 +573,7 @@ const G={started:false,paused:false,dead:false,ending:false,day:1,time:8.0,weath
  killsByFoe:{},taxPaid:false,debtBook:0,shoeFound:0,bellRung:false,endingShown:false,pos:{x:6,z:10}};
 QUESTS.forEach(q=>G.quests[q.id]={st:'lock',have:{}});
 G.work={};G.shifts=0;G.grave=null;G.mana=100;G.maxmana=100;G.haggle={xp:0,tier:0};G.traits=[];
-G.song=null;G.songGap=6;G.autoplay=true;G.musicHold=false;G.lastSong=null;G.sneaking=false;
+G.song=null;G.songGap=6;G.autoplay=true;G.musicHold=false;G.lastSong=null;G.sneaking=false;G.flash=0;
 function qdef(id){return QUESTS.find(q=>q.id===id);}
 function karmaTitle(k){if(k>=60)return 'Saint of the Bayou';if(k>=35)return 'Friend of the Commune';if(k>=12)return 'Trusted Neighbour';if(k>-12)return 'Wanderer of the Bayou';if(k>-35)return 'Suspect Soul';if(k>-60)return 'Hound of the Seigneur';return 'Butcher of the Mud';}
 function addKarma(n,why){G.karma=clamp(G.karma+n,-100,100);toast((n>0?'+':'')+n+' ⚖ '+(why||''),n>=0?'good':'bad');refreshHUD();}
@@ -683,7 +686,7 @@ function buildWorld(){
    const c=new THREE.Mesh(new THREE.ConeGeometry(rand(2.5,4),rand(4,7),8),mat(0x2e4a2e));c.position.set(x,9,z);scene.add(c);regLeaf(c);
    const m=new THREE.Mesh(new THREE.PlaneGeometry(2.4,1.4),new THREE.MeshLambertMaterial({color:0x6a7a5a,transparent:true,opacity:0.7}));m.position.set(x+1,7,z);scene.add(m);
   } else {const t=new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.6,rand(4,7),6),mat(0x4a3a28));t.position.set(x,2.5,z);t.castShadow=true;scene.add(t);
-   const c=new THREE.Mesh(new THREE.SphereGeometry(rand(2,3.4),8,7),mat(Math.random()<0.5?0x2e4a26:0x3a5a2e));c.position.set(x,6,z);scene.add(c);}
+   const c=new THREE.Mesh(new THREE.SphereGeometry(rand(2,3.4),8,7),mat(Math.random()<0.5?0x2e4a26:0x3a5a2e));c.position.set(x,6,z);scene.add(c);regLeaf(c);}
  }
  // palisade walls (circle of stakes)
  for(let a=0;a<Math.PI*2;a+=Math.PI/44){const x=Math.cos(a)*58,z=Math.sin(a)*58;
@@ -1457,6 +1460,9 @@ function survival(dt){const night=isNight();
  if(dark&&!nearFire&&!chap)G.sanity-=dt*2.2*(T('nightblind')?1.3:1)*(T('malaria')?1.2:1)*(T('nightowl')?0.6:1)*(T('nightvision')?0.5:1)*(T('cateyes')?0.7:1);else if(nearFire||chap||G.lantern)G.sanity=Math.min(100,G.sanity+dt*3);
  if(G.sanity<=0){G.hp-=dt*2;if(Math.random()<dt*0.2)subtitle('The faces in the mist wear your outstanding debts.');}
  if(G.sanity<(T('haunted')?45:30)&&Math.random()<dt*0.06)subtitle('🕯 '+choice(['“Pay us…” breathes the dark.','Something counts your debts aloud.','The mist wears a face you buried.','Thirteen bells. Twelve were real.','Your shadow arrives a moment late.']));
+ const seasonNow=seasonFor(G.day).id;let warmNow=false;for(const f of fires){if(dist2(G.pos.x,G.pos.z,f.x,f.z)<6){warmNow=true;break;}}
+ if(seasonNow==='winter'&&isNight()&&!warmNow&&!G.lantern&&!T('outdoorsman')){G.hp-=dt*1.2;if(Math.random()<dt*0.05)subtitle('🥶 The cold finds every seam. Fire is life.');}
+ if(seasonNow==='summer'&&G.time>=11&&G.time<16)G.stam=Math.max(0,G.stam-dt*3);
  if(G.hp<=0){G.hp=0;die('hunger, fever and the dark together');}
  const INDOORS=[[36,28],[12,34],[-24,34],[34,-8],[0,-46]];
  if(T('agora')&&Math.hypot(G.pos.x,G.pos.z)>58&&G.time>=6&&G.time<20)G.sanity=Math.max(0,G.sanity-dt*1.0);
@@ -1478,13 +1484,31 @@ function sanityAura(dt){if(G.dead||!G.started||G.paused)return;
   else if(f.type==='vamp'){rate=2.5;r=12;}else if(f.type==='demon'){rate=4.0;r=24;}
   else if(f.type==='skeleton'){rate=1.4;r=9;}
   if(rate>0&&d<r)G.sanity=Math.max(0,G.sanity-rate*ward*(1-d/(r*1.5))*dt*1.5*(T('desens')?0.7:1));}}
+/* ============ SEASONS & WEATHER ============ */
+const SEASONS=[
+ {id:'autumn',n:'Autumn',e:'🍂',leaf:0xb06a2a,wx:['mist','mist','rain','clear','clear','dead-calm'],note:'Mast falls. The commons are generous.'},
+ {id:'winter',n:'Winter',e:'❄',leaf:0x5a6a5a,wx:['rain','rain','mist','clear','mist','rain','clear'],note:'Thin Gulf winter. Cold nights bite; fires are life.'},
+ {id:'spring',n:'Spring',e:'🌸',leaf:0x3a7a2e,wx:['rain','rain','storm','mist','clear','mosquitoes'],note:'Storms and mosquitoes. The water gives.'},
+ {id:'summer',n:'Summer',e:'☀',leaf:0x1e4a22,wx:['clear','clear','heat','mosquitoes','storm','dead-calm'],note:'White heat. Run at dawn; hide at noon.'},
+];
+function seasonFor(day){return SEASONS[Math.floor((day-1)/5)%4];}
+function yearFor(day){return 1666+Math.floor((day-1)/20);}
+function pickWeather(){const s=seasonFor(G.day);G.weather=choice(s.wx);}
+function updateSeasonVisual(){const s=seasonFor(G.day);const tint=new THREE.Color(s.leaf);
+ for(const f of FOLIAGE)f.m.material.color.copy(f.base).lerp(tint,0.55);}
+function thunder(){if(!AudioSys.ctx||AudioSys.muted)return;const c=AudioSys.ctx,t=c.currentTime;
+ const b=c.createBuffer(1,c.sampleRate*1.2,c.sampleRate),d=b.getChannelData(0);
+ for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2);
+ const src=c.createBufferSource();src.buffer=b;const f=c.createBiquadFilter();f.type='lowpass';f.frequency.value=220;
+ const g=c.createGain();g.gain.value=0.6;src.connect(f);f.connect(g);g.connect(AudioSys.master);src.start(t);}
 function advanceTime(dt){const prev=G.time;G.time+=dt*(24/480);
  if(G.time>=24){G.time-=24;G.day++;AudioSys.bell();toast('☀ Day '+G.day+' — the bell counts what the Seigneur cannot.','good');
   if(T('smoker')&&!hasItem('tobacco',1)){G.sanity=clamp(G.sanity-10,0,100);toast('🚬 Dawn and no leaf. The hands shake till noon. (−10 🕯)','bad');}
   if(G.day===3){subtitle('The air tastes of iron. Tonight the bell will toll thirteen.');AudioSys.setMode('night');}
+  if((G.day-1)%5===0&&G.day>1){const s=seasonFor(G.day);updateSeasonVisual();notify(s.e,'The wheel turns: '+s.n+' '+yearFor(G.day),s.note,{tone:'lore',major:true});}
   unlockQuests();}
- // weather drift
- if(Math.random()<dt*0.02)G.weather=choice(['mist','mist','rain','clear','mosquitoes','dead-calm']);
+ // weather drift, seasonal
+ if(Math.random()<dt*0.03)pickWeather();
  // music mode
  if(!G.dead){if(foes.some(f=>dist2(G.pos.x,G.pos.z,f.mesh.position.x,f.mesh.position.z)<14))AudioSys.setMode('combat');
   else if(dist2(G.pos.x,G.pos.z,-34,-12)<16)AudioSys.setMode('chapel');
@@ -1504,6 +1528,7 @@ function updateSky(){const t=G.time;let dayAmt=clamp(1-Math.abs(t-13)/8,0,1);
  sun.position.set(G.pos.x+50*Math.cos(ang),Math.max(8,60*Math.sin(ang)+18),G.pos.z+30);
  moon.position.set(G.pos.x-30,50,G.pos.z-20);
  hemi.intensity=night?0.34:0.95;
+ if(G.flash>0){hemi.intensity+=2.5;scene.background.setHex(0x8a90b0);}
  if(scene.userData.amb)scene.userData.amb.intensity=night?0.5:0.32;
  renderer.toneMappingExposure=(night?1.25:1.1)*(G.weather==='rain'?0.9:1);
  const flick=1+Math.sin(performance.now()/90)*0.12;
@@ -1579,10 +1604,10 @@ function refreshHUD(){$('bar-hp').style.width=clamp(100*G.hp/G.maxhp,0,100)+'%';
  $('bar-mana').style.width=clamp(100*G.mana/G.maxmana,0,100)+'%';$('txt-mana').textContent=Math.max(0,Math.floor(G.mana));
  $('bar-karma').style.width=((G.karma+100)/2)+'%';$('txt-karma').textContent=G.karma;
  $('karma-title').textContent='⚖ '+karmaTitle(G.karma);
- $('clock-day').textContent='Day '+G.day+' · 1666';
+ $('clock-day').textContent='Day '+G.day+' · '+seasonFor(G.day).e+' '+seasonFor(G.day).n+' '+yearFor(G.day);
  $('clock-time').textContent=(isNight()?'☾ ':'☀ ')+fmtT(G.time);
  $('clock-phase').textContent=G.time<5?'Witching hour':G.time<8?'Morning mists':G.time<12?'Labour bell':G.time<17?'Heavy heat':G.time<20?'Dusk parley':'The dead shift';
- $('weather-line').textContent={mist:'🌫 bayou mist',rain:'🌧 black rain',clear:'🌤 pale sun',mosquitoes:'🦟 mosquito psalm','dead-calm':'🕯 dead-calm air'}[G.weather]||'🌫 bayou mist';
+ $('weather-line').textContent={mist:'🌫 bayou mist',rain:'🌧 black rain',storm:'⛈ lightning storm',heat:'🔥 white heat',clear:'🌤 pale sun',mosquitoes:'🦟 mosquito psalm','dead-calm':'🕯 dead-calm air'}[G.weather]||'🌫 bayou mist';
  $('inv-count').textContent='· '+Object.values(G.inv).reduce((a,b)=>a+b,0)+' things · '+G.coins+' livres';}
 const HOT=['rapier','axe','musket','torch','bread','tonic'];
 function refreshHotbar(){const h=$('hotbar');h.innerHTML='';HOT.forEach((id,i)=>{const it=ITEMS[id];const d=document.createElement('div');
@@ -2090,6 +2115,8 @@ function animate(t){requestAnimationFrame(animate);const dt=Math.min(0.05,(t-las
  foes.forEach(f=>foeUpdate(f,dt));npcs.forEach(n=>npcUpdate(n,dt));
  critters.forEach(c=>critterUpdate(c,dt));critterSpawns(dt);horses.forEach(h=>horseUpdate(h,dt));
  fires.forEach(f=>{f.flame.rotation.y+=dt*3;});forageUpdate();updateParticles(dt);
+ if(G.flash>0)G.flash-=dt;
+ if(G.weather==='storm'&&Math.random()<dt*0.4){G.flash=0.18;thunder();toast('⛈ The sky cracks open.','bad');}
  for(const k of [...kegs]){if(k.fuse<0)continue;k.fuse-=dt;
   if(Math.random()<dt*8)spawnP(k.x,1,k.z,rand(-1,1),rand(1,3),rand(-1,1),0.4,0xffc46a);
   if(k.fuse<=0){kegs.splice(kegs.indexOf(k),1);scene.remove(k.mesh);if(k.inter)k.inter.gone=true;
@@ -2106,7 +2133,7 @@ function animate(t){requestAnimationFrame(animate);const dt=Math.min(0.05,(t-las
  if(keys['e']&&dlgOpen==null){/* camera handled above; interact on keydown event */}
  // quest visits + tracker throttle
  miniT-=dt;if(miniT<=0){miniT=1;checkQuestVisit();drawMini();refreshTracker();ck3alerts();
-  $('clock-day').textContent='Day '+G.day+' · 1666';$('clock-time').textContent=(isNight()?'☾ ':'☀ ')+fmtT(G.time);}
+  $('clock-day').textContent='Day '+G.day+' · '+seasonFor(G.day).e+' '+seasonFor(G.day).n+' '+yearFor(G.day);$('clock-time').textContent=(isNight()?'☾ ':'☀ ')+fmtT(G.time);}
  renderer.render(scene,camera);}
 function boot(){initThree();buildWorld();initParticles();initMist();bootWindows();bootTips();buildPlayer();spawnNPCs();
  const autoMus=()=>{try{if(!AudioSys.ctx)AudioSys.init();if(AudioSys.ctx&&AudioSys.ctx.state==='suspended')AudioSys.ctx.resume();}catch(e){}};
@@ -2120,7 +2147,7 @@ function boot(){initThree();buildWorld();initParticles();initMist();bootWindows(
  spawnCritter('heron',-40,56);spawnCritter('otter',14,80);
  spawnCritter('eagle',10,70);spawnCritter('eagle',-60,0);
  spawnSkelFarmers();spawnFoe('skeleton',-64,16);
- initWork();initSkills();
+ initWork();initSkills();updateSeasonVisual();pickWeather();
  unlockQuests();refreshHUD();refreshHotbar();
  $('loading').style.display='none';
  // expose for tests
