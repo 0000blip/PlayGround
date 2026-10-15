@@ -23,7 +23,7 @@ init(){if(this.ctx)return;try{this.ctx=new (window.AudioContext||window.webkitAu
  this.dly.connect(fb);fb.connect(dl);dl.connect(this.dly);
  const wet=this.ctx.createGain();wet.gain.value=0.5;this.dly.connect(wet);wet.connect(this.musicGain);
  this.loop();},
-toggle(){this.muted=!this.muted;if(this.master)this.master.gain.value=this.muted?0:.7;$('music-state').textContent=this.muted?'OFF':'ON';return !this.muted;},
+toggle(){this.muted=!this.muted;if(this.master)this.master.gain.value=this.muted?0:.7;if(typeof recordEl!=='undefined'&&recordEl)recordEl.volume=this.muted?0:(this.vol||0.6);$('music-state').textContent=this.muted?'OFF':'ON';return !this.muted;},
 scales:{menu:[110,130.8,164.8,196,246.9,293.7],day:[146.8,164.8,174.6,196,220,246.9,293.7],night:[82.4,87.3,110,123.5,138.6,164.8],combat:[98,103.8,138.6,146.8,196,207.6],chapel:[130.8,146.8,164.8,196,220,261.6]},
 loop(){if(this.timer)clearInterval(this.timer);const M=(this.modes&&this.modes[this.mode])||{bpm:72};this.timer=setInterval(()=>this.tick(),Math.max(60,Math.round(60000/M.bpm/2)));},
 setMode(m){if(this.mode===m||!this.modes)return;this.mode=m;this.loop();},
@@ -55,7 +55,7 @@ reedN(chord,dur,vol){const c=this.ctx,t=c.currentTime,g=c.createGain();
  lfo.start(t);lfo.stop(t+dur+0.05);
  const lp=c.createBiquadFilter();lp.type='lowpass';lp.frequency.value=2200;g.connect(lp);lp.connect(this.dly);lp.connect(this.dry);},
 fade(to,dur,done){const c=this.ctx;if(!c||!this.musicGain)return;try{const g=this.musicGain.gain,t=c.currentTime;g.cancelScheduledValues(t);g.setValueAtTime(Math.max(0.0001,g.value),t);g.linearRampToValueAtTime(Math.max(0.0001,to),t+dur);if(done)setTimeout(done,dur*1000+60);}catch(e){if(done)done();}},
-setVol(v){this.vol=v;const g=this.musicGain&&this.musicGain.gain,c=this.ctx;if(!g||!c)return;try{const t=c.currentTime;g.cancelScheduledValues(t);g.setValueAtTime(Math.max(0.0001,g.value),t);g.linearRampToValueAtTime(Math.max(0.0001,v*0.6),t+0.4);}catch(e){}},
+setVol(v){this.vol=v;if(typeof recordEl!=='undefined'&&recordEl)recordEl.volume=this.muted?0:v;const g=this.musicGain&&this.musicGain.gain,c=this.ctx;if(!g||!c)return;try{const t=c.currentTime;g.cancelScheduledValues(t);g.setValueAtTime(Math.max(0.0001,g.value),t);g.linearRampToValueAtTime(Math.max(0.0001,v*0.6),t+0.4);}catch(e){}},
 kick(v){const c=this.ctx,t=c.currentTime,o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.setValueAtTime(110,t);o.frequency.exponentialRampToValueAtTime(38,t+0.22);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.3);o.connect(g);g.connect(this.dry);o.start(t);o.stop(t+0.32);},
 snare(v){const c=this.ctx,t=c.currentTime,s=c.createBufferSource();s.buffer=this.noiseBuf();const f=c.createBiquadFilter();f.type='highpass';f.frequency.value=1600;const g=c.createGain();g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.18);s.connect(f);f.connect(g);g.connect(this.dry);s.start(t);s.stop(t+0.2);
  const o=c.createOscillator(),g2=c.createGain();o.type='triangle';o.frequency.value=190;g2.gain.setValueAtTime(v*0.6,t);g2.gain.exponentialRampToValueAtTime(0.001,t+0.1);o.connect(g2);g2.connect(this.dry);o.start(t);o.stop(t+0.12);},
@@ -209,7 +209,6 @@ const ITEMS={
  dice:{n:'Bone dice',e:'🎲',d:'Loaded, obviously. Sells to the hopeful.',price:4},
  medallion:{n:'Saint medallion',e:'🏅',d:'St. Expedite, patron of haste. Sells.',price:7},
  feather:{n:'Heron feather',e:'🪶',d:'For hats, lures, and love letters. Sells.',price:2},
- onesheet:{n:'One-sheet playbill',e:'🎟',d:'A pulp poster for your own life, printed before you lived it. RARE. Use to unroll it (+6 reason, once per bill).',use:'poster',price:40},
  wine:{n:'Claret',e:'🍷',d:'French wine, cellared through the crossing. +6 hunger, +12 reason.',use:'drink',hunger:6,sanity:12,price:6},
  tafia:{n:'Tafia',e:'🥃',d:'Raw cane spirit. Burns clean through grief. +2 hunger, +18 reason, −5 HP.',use:'drink',hunger:2,sanity:18,hp:-5,price:8},
  tobacco:{n:'Pipe tobacco',e:'🚬',d:'Virginia leaf. Smoke a bowl and watch the mist. +10 reason, −2 HP.',use:'smoke',sanity:10,hp:-2,price:3},
@@ -1004,7 +1003,7 @@ function buildCottage(x,z,nm,id){
  addBox(x-1.4,0.5,z+1.0,1.0,0.9,0.6,0x6a4a26);}
 function placeStrongboxes(){
  [['Manor strongbox',10,-42,{loot:[['ring',1]],coins:30,karma:0}],
-  ['Lament cashbox',84,-30,{loot:[['fang',1],['onesheet',1]],coins:25,karma:0}],
+  ['Lament cashbox',84,-30,{loot:[['fang',1]],coins:25,karma:0}],
   ['Poor box',-32,-2,{loot:[],coins:12,karma:-10}]].forEach(([nm,x,z,L])=>{
  const c=addBox(x,0.4,z,1.0,0.8,0.7,0x2a2018);c.material.emissive=new THREE.Color(0x220a00);
  const lb=makeLabel('🗝 '+nm,0.4);lb.position.set(x,2.2,z);scene.add(lb);
@@ -1063,6 +1062,7 @@ const SONGS={
  grisgris:{n:'Gris-gris Blues',note:'red flannel, blue note',bpm:88,drum:'train',banjo:true,bass:[41.2,55,61.74],chords:[[164.81,196,246.94],[220,261.63,329.63],[123.47,155.56,196]]},
 };
 function playSong(id,bars){const S=typeof id==='object'?id:SONGS[id];if(!S||!G.started)return;
+ stopRecord(true);
  G.song={id:typeof id==='object'?'gen':id,cfg:typeof id==='object'?id:null,steps:0,left:(bars||4)*8};
  if(typeof id!=='object')G.lastSong=id;
  const mt=$('mus-title');if(mt)mt.textContent='♪ '+S.n;
@@ -1075,16 +1075,42 @@ function genSong(){const A=['Muddy','Hollow','Black','Lantern','Gravel','Cypress
  const bpm=choice([66,72,84,88,96,100,112,120,128]);
  const drum=bpm>=116?'war':(bpm>=92?'train':(bpm>=78?'brush':'dirge'));
  return {n:choice(A)+' '+choice(B)+' No.'+(1+Math.floor(Math.random()*12)),note:'the bayou improvises',bpm,drum,banjo:Math.random()<0.7,reed:Math.random()<0.4,bass:[choice(roots),choice(roots),choice(roots)],chords};}
-function autoNext(){if(!G.started||G.musicHold)return;let id=null;
+function autoNext(){if(!G.started||G.musicHold)return;
+ if(RECORDS.length&&Math.random()<0.25){const pool=RECORDS.filter(r=>'rec:'+r.id!==G.lastSong);if(pool.length){playRecord(choice(pool).id);return;}}
+ let id=null;
  if(Math.random()<0.5){const pool=Object.keys(SONGS).filter(k=>k!==G.lastSong);id=choice(pool);}
  if(id)playSong(id,4);else playSong(genSong(),4);}
-function skipSong(){if(!AudioSys.ctx)return;AudioSys.fade(0.02,0.7,()=>{G.song=null;G.songGap=1;autoNext();AudioSys.fade((AudioSys.vol||0.6)*0.6,2);});}
-function stopMusic(){G.musicHold=true;G.song=null;G.autoplay=false;const a=$('mus-auto');if(a)a.checked=false;const p=$('mus-play');if(p)p.textContent='▶';if(AudioSys.ctx)AudioSys.fade(0.0001,1.5);}
+function skipSong(){if(!AudioSys.ctx)return;stopRecord();AudioSys.fade(0.02,0.7,()=>{G.song=null;G.songGap=1;autoNext();AudioSys.fade((AudioSys.vol||0.6)*0.6,2);});}
+function stopMusic(){stopRecord();G.musicHold=true;G.song=null;G.autoplay=false;const a=$('mus-auto');if(a)a.checked=false;const p=$('mus-play');if(p)p.textContent='▶';if(AudioSys.ctx)AudioSys.fade(0.0001,1.5);}
 function startMusic(){G.musicHold=false;G.autoplay=true;const a=$('mus-auto');if(a)a.checked=true;const p=$('mus-play');if(p)p.textContent='⏸';G.songGap=2;if(AudioSys.ctx)AudioSys.fade((AudioSys.vol||0.6)*0.6,2.5);}
+/* parish recordings: real audio files from lib/music, sung over the procedural score */
+const RECORDS=[
+ {id:'bassblues',file:'lib/music/Bass_Blues-A_Ricki.mp3',n:'Bass Blues — A. Ricki',note:'a parish recording, bass-first blues'},
+ {id:'guitarblues',file:'lib/music/Guitar-1_Blues-A_Ricki.mp3',n:'Guitar Blues — A. Ricki',note:'a parish recording, guitar-led blues'},
+ {id:'keysblues',file:'lib/music/Keys_Blues-A_Ricki.mp3',n:'Keys Blues — A. Ricki',note:'a parish recording, keys-led blues'},
+];
+let recordEl=null;
+function recordVol(){return (AudioSys.muted||G.deafT>0)?0:(AudioSys.vol||0.6);}
+function playRecord(id){const r=RECORDS.find(r=>r.id===id);if(!r)return;
+ AudioSys.init();stopRecord(true);G.song=null;G.musicHold=true;G.lastSong='rec:'+id;
+ if(!recordEl){recordEl=new Audio();recordEl.preload='auto';
+  recordEl.onended=()=>{if(!G.started){const i=RECORDS.findIndex(x=>x.id===(G.lastSong||'').slice(4));playRecord(RECORDS[(i+1)%RECORDS.length].id);return;}
+   G.musicHold=false;if(G.autoplay)G.songGap=4;const mt=$('mus-title');if(mt)mt.textContent='♪ Bayou Requiem';};
+  recordEl.onerror=()=>{G.musicHold=false;toast('🎙 The recording crackles out. Back to the procedural parish.','bad');autoNext();};}
+ recordEl.src=r.file;recordEl.volume=recordVol();
+ const mt=$('mus-title');if(mt)mt.textContent='♪ '+r.n;
+ toast('🎙 Now playing: <b>'+r.n+'</b> — <i>'+r.note+'</i>','lore');
+ const pr=recordEl.play();if(pr&&pr.catch)pr.catch(()=>{G.musicHold=false;if(G.started)autoNext();});}
+function stopRecord(quiet){if(recordEl&&!recordEl.paused){try{recordEl.pause();}catch(e){}}
+ if(!quiet){G.musicHold=false;}}
 function renderSongs(){const l=$('song-list');if(!l)return;l.innerHTML='<p style="font-size:13px;color:#a89a76">Ten songs the parish sings to itself. They also find you: burials, taverns, boats, battles, rituals, dawn.</p>';
  for(const id in SONGS){const s=SONGS[id];const d=document.createElement('div');d.className='craft-row';
   d.innerHTML='<span>♪ <b>'+s.n+'</b><br><small><i>'+s.note+'</i> · '+s.bpm+' bpm</small></span>';
-  const b=document.createElement('button');b.className='btn';b.textContent='Play';b.onclick=()=>{playSong(id,4);renderSongs();};d.appendChild(b);l.appendChild(d);}}
+  const b=document.createElement('button');b.className='btn';b.textContent='Play';b.onclick=()=>{playSong(id,4);renderSongs();};d.appendChild(b);l.appendChild(d);}
+ if(RECORDS.length){const h=document.createElement('h4');h.style.color='#c9a227';h.style.margin='10px 0 4px';h.textContent='🎙 Parish recordings';l.appendChild(h);}
+ for(const r of RECORDS){const d=document.createElement('div');d.className='craft-row';
+  d.innerHTML='<span>🎙 <b>'+r.n+'</b><br><small><i>'+r.note+'</i></small></span>';
+  const b=document.createElement('button');b.className='btn';b.textContent='Play';b.onclick=()=>{playRecord(r.id);renderSongs();};d.appendChild(b);l.appendChild(d);}}
 /* ============ VOODOO, HOODOO & ROOTWORK ============ */
 const SPELLS=[
  {id:'ward',n:'Gris-gris Ward',e:'🛡',cost:20,key:'7',desc:'Loa at your shoulder: half damage, 30s.'},
@@ -1469,7 +1495,7 @@ function killFoe(f){scene.remove(f.mesh);foes.splice(foes.indexOf(f),1);
  if(f.type==='risen'&&Math.random()<0.4)dropLoot(f,'bread',1);
  if(f.type==='risen'&&Math.random()<0.25)dropLoot(f,'ragged_shirt',1);
  if(f.type==='risen'&&Math.random()<0.15)dropLoot(f,'breeches',1);
- if(f.type==='demon'){dropLoot(f,'ash',2);dropLoot(f,'coin',20);dropLoot(f,'medallion',1);dropLoot(f,'onesheet',1);onBossDead();}
+ if(f.type==='demon'){dropLoot(f,'ash',2);dropLoot(f,'coin',20);dropLoot(f,'medallion',1);onBossDead();}
  AudioSys.sfx('hurt');checkQuestKill(f.type);}
 function dropLoot(f,item,n){addItem(item,n);toast(f.d.e+' dropped: '+ITEMS[item].n+' ×'+n);}
 function hurtPlayer(dmg,why){if(G.dead||!G.started||G.paused||dlgOpen)return;
@@ -1582,8 +1608,8 @@ function survival(dt){const night=isNight();
  const INDOORS=[[36,28],[12,34],[-24,34],[34,-8],[0,-46]];
  if(T('agora')&&Math.hypot(G.pos.x,G.pos.z)>58&&G.time>=6&&G.time<20)G.sanity=Math.max(0,G.sanity-dt*1.0);
  if(T('claustro')&&INDOORS.some(([ix,iz])=>dist2(G.pos.x,G.pos.z,ix,iz)<4.5))G.sanity=Math.max(0,G.sanity-dt*1.2);
- if(G.deafT>0){G.deafT-=dt;if(AudioSys.master)AudioSys.master.gain.value=0;if(Math.random()<dt*0.1)subtitle('*muffled ringing*');}
- else if(AudioSys.master&&!AudioSys.muted)AudioSys.master.gain.value=0.7;
+ if(G.deafT>0){G.deafT-=dt;if(AudioSys.master)AudioSys.master.gain.value=0;if(typeof recordEl!=='undefined'&&recordEl)recordEl.volume=0;if(Math.random()<dt*0.1)subtitle('*muffled ringing*');}
+ else if(AudioSys.master&&!AudioSys.muted){AudioSys.master.gain.value=0.7;if(typeof recordEl!=='undefined'&&recordEl&&!recordEl.paused)recordEl.volume=(AudioSys.vol||0.6);}
  // lantern drains nothing (pine is cheap); sprint drains stam
  refreshHUD();}
 function sanityDesc(s){return s>80?'Steadfast':s>55?'Steady':s>30?'Shaken':s>10?'Unraveling':'Gone to the mist';}
@@ -1760,7 +1786,6 @@ function useItem(id){const it=ITEMS[id];if(!it)return;if(!hasItem(id,1)){toast('
   const it2={kind:'trap',name:'Twine snare',x,z,r:2.6,txt:'Check snare (E)'};const tr={x,z,mesh:g,inter:it2,t:0,caught:null};it2.ref=tr;
   interactables.push(it2);traps.push(tr);AudioSys.sfx('craft');toast('🪤 Snare set. Check it in a while.','good');refreshHotbar();}
  else if(it.use==='charm'){if(G.charm){toast('🧿 The gris-gris already rides with you.','good');return;}G.charm=true;G.maxmana=120;G.mana=Math.min(120,G.mana+20);AudioSys.sfx('pray');toast('🧿 Gris-gris on. +20 max spirit. (+20 🌀 now)','good');}
- else if(it.use==='poster'){const v=$('poster-view');if(v){v.classList.remove('hidden');AudioSys.sfx('quest');}if(!G.posterSeen){G.posterSeen=true;G.sanity=clamp(G.sanity+6,0,100);toast('🎟 You unroll your own legend. (+6 🕯)','good');}refreshHUD();}
  else toast(it.d);refreshHUD();}
 function refreshTracker(){const t=$('quest-tracker');t.innerHTML='';
  G.qactive.slice(0,4).forEach(id=>{const q=qdef(id),s=G.quests[id];const d=document.createElement('div');d.className='qtask';
@@ -2097,7 +2122,7 @@ function lootCrate(it){const nm=it.name;
  if(nm==='Trap cache'&&once('q_knife0')){addItem('knife',1);addItem('snare',1);toast('🔪 A skinning knife and spare twine. The east woods provide.','good');checkQuestItem();it.cd=performance.now()+60000;return;}
  if(nm==='Sunken strongbox'&&once('q_tre0')){addItem('coin',40);addItem('ring',1);toast('💍 A drowned strongbox: Spanish coin and a gold band!','good');AudioSys.sfx('gold');checkQuestItem();it.cd=performance.now()+60000;return;}
  if(nm==='Brigand cache'&&once('q_tre1')){addItem('saber',1);addItem('ammo',4);addItem('tafia',1);toast('⚔ A brigand’s retirement fund: saber, shot, and spirit.','good');checkQuestItem();it.cd=performance.now()+60000;return;}
- if(nm==='Crypt niche'&&once('q_tre2')){addItem('crucifix',1);addItem('coin',10);addKarma(-5,'robbing the vault dead');toast('✝ A brass crucifix — and the weight of sacrilege. (−5 ⚖)','bad');if(Math.random()<0.5){addItem('onesheet',1);toast('🎟 Behind the bones: a playbill for your own life?! RARE.','good');}checkQuestItem();it.cd=performance.now()+60000;return;}
+ if(nm==='Crypt niche'&&once('q_tre2')){addItem('crucifix',1);addItem('coin',10);addKarma(-5,'robbing the vault dead');toast('✝ A brass crucifix — and the weight of sacrilege. (−5 ⚖)','bad');checkQuestItem();it.cd=performance.now()+60000;return;}
  if(nm==='Study cache'&&once('q_lock0')){addItem('locket',1);toast('💠 A silver locket, miniatures inside. Odette’s mother, unmistakably.','good');checkQuestItem();it.cd=performance.now()+60000;return;}
  if(nm==='Cabin chest'&&once('q_shoe')){addItem('deed',1);toast('🧦 A child’s shoe — and a scrap: “took the shortcut by the oak”. To Lucile, quickly!','good');checkQuestItem();it.cd=performance.now()+60000;return;}
  if(nm==='Mission cache'){if(once('q_fang0')){addItem('fang',1);toast('🦷 An ivory fang in a snuffbox. The Sang-Mêlé supped here.','good');}else genericLoot();}
@@ -2285,10 +2310,10 @@ function togglePause(){G.paused=!G.paused;$('pause').classList.toggle('hidden',!
 function save(){try{const d={day:G.day,time:G.time,hp:G.hp,hunger:G.hunger,sanity:G.sanity,karma:G.karma,coins:G.coins,
  inv:G.inv,weapon:G.weapon,maxhp:G.maxhp,quests:Object.fromEntries(Object.entries(G.quests).map(([k,v])=>[k,v.st])),
  have:Object.fromEntries(Object.entries(G.quests).map(([k,v])=>[k,v.have])),qactive:G.qactive,buried:G.buried,kills:G.kills,
- looted:G.looted,work:G.work,shifts:G.shifts||0,haggle:G.haggle||{xp:0,tier:0},skills:G.skills||{},worn:G.worn||{},parts:G.parts||null,bleed:G.bleed||{},traits:G.traits||[],homeId:G.homeId||null,home:G.home||null,mana:Math.floor(G.mana),maxmana:G.maxmana,posterSeen:!!G.posterSeen,charm:!!G.charm,grave:G.grave?{x:G.grave.x,z:G.grave.z,inv:G.grave.inv,coins:G.grave.coins}:null,npc:npcs.map(n=>({id:n.id,dead:n.dead,follow:n.follow}))};
+ looted:G.looted,work:G.work,shifts:G.shifts||0,haggle:G.haggle||{xp:0,tier:0},skills:G.skills||{},worn:G.worn||{},parts:G.parts||null,bleed:G.bleed||{},traits:G.traits||[],homeId:G.homeId||null,home:G.home||null,mana:Math.floor(G.mana),maxmana:G.maxmana,charm:!!G.charm,grave:G.grave?{x:G.grave.x,z:G.grave.z,inv:G.grave.inv,coins:G.grave.coins}:null,npc:npcs.map(n=>({id:n.id,dead:n.dead,follow:n.follow}))};
  localStorage.setItem('bayou-requiem-save',JSON.stringify(d));toast('💾 Soul recorded in the parish register.','good');}catch(e){toast('Save failed: '+e,'bad');}}
 function load(){try{const raw=localStorage.getItem('bayou-requiem-save');if(!raw)return false;const d=JSON.parse(raw);
- Object.assign(G,{day:d.day,time:d.time,hp:d.hp,hunger:d.hunger,sanity:d.sanity,karma:d.karma,coins:d.coins,inv:d.inv,weapon:d.weapon,maxhp:d.maxhp,qactive:d.qactive||[],buried:d.buried||0,kills:d.kills||0,looted:d.looted||{},posterSeen:!!d.posterSeen});
+ Object.assign(G,{day:d.day,time:d.time,hp:d.hp,hunger:d.hunger,sanity:d.sanity,karma:d.karma,coins:d.coins,inv:d.inv,weapon:d.weapon,maxhp:d.maxhp,qactive:d.qactive||[],buried:d.buried||0,kills:d.kills||0,looted:d.looted||{}});
  for(const k in d.quests)if(G.quests[k])G.quests[k].st=d.quests[k];
  initWork();if(d.work)for(const k in d.work)if(G.work[k])G.work[k]=d.work[k];G.shifts=d.shifts||0;if(d.haggle)G.haggle=d.haggle;if(d.traits)G.traits=d.traits;initSkills();if(d.parts)G.parts=d.parts;if(d.bleed)G.bleed=d.bleed;if(d.worn)G.worn=d.worn;if(d.skills)for(const k in d.skills)if(G.skills[k])G.skills[k]=d.skills[k];G.homeId=d.homeId||null;G.home=d.home||null;if(typeof d.mana==='number')G.mana=d.mana;if(d.maxmana)G.maxmana=d.maxmana;G.charm=!!d.charm;G.wardUntil=0;G.hasteUntil=0;
  if(d.grave){G.grave={x:d.grave.x,z:d.grave.z,inv:d.grave.inv||{},coins:d.grave.coins||0};G.grave.mesh=graveMarker(G.grave);linkGrave();}
@@ -2447,8 +2472,7 @@ function wireButtons(){
   if(G.grave)toast('⚰ Your satchel waits where you fell — find the ⚰ mark on the ring.','good');refreshHUD();};
  $('btn-dead-menu').onclick=()=>location.reload();
  $('btn-ending-menu').onclick=()=>{$('ending').classList.add('hidden');G.ending=false;};
- $('trade-x').onclick=()=>$('trade').classList.add('hidden');
- const px=$('poster-x');if(px)px.onclick=()=>$('poster-view').classList.add('hidden');}
+ $('trade-x').onclick=()=>$('trade').classList.add('hidden');}
 function startGame(continued){G.started=true;G.paused=false;
  $('hud').classList.remove('hidden');$('loading').style.display='none';
  if(!continued){unlockQuests();acceptQuest('q_bread');
@@ -2528,7 +2552,7 @@ function animate(t){requestAnimationFrame(animate);const dt=Math.min(0.05,(t-las
   $('clock-day').textContent='Day '+G.day+' · '+seasonFor(G.day).e+' '+seasonFor(G.day).n+' '+yearFor(G.day);$('clock-time').textContent=(isNight()?'☾ ':'☀ ')+fmtT(G.time);}
  renderer.render(scene,camera);}
 function boot(){initThree();buildWorld();initParticles();initMist();bootWindows();bootTips();makeTargetRing();buildPlayer();spawnNPCs();
- const autoMus=()=>{try{if(!AudioSys.ctx)AudioSys.init();if(AudioSys.ctx&&AudioSys.ctx.state==='suspended')AudioSys.ctx.resume();}catch(e){}};
+ const autoMus=()=>{try{if(!AudioSys.ctx)AudioSys.init();if(AudioSys.ctx&&AudioSys.ctx.state==='suspended')AudioSys.ctx.resume();if(!G.started&&!$('menu').classList.contains('hidden')&&(!recordEl||recordEl.paused)&&!AudioSys.muted)playRecord('guitarblues');}catch(e){}};
  window.addEventListener('pointerdown',autoMus);window.addEventListener('keydown',autoMus);bindInput();wireButtons();
  spawnFoe('risen',40,10);spawnFoe('risen',-50,30);spawnFoe('ghost',-66,10);
  spawnCritter('rabbit',34,10);spawnCritter('rabbit',-44,30);spawnCritter('squirrel',50,-14);spawnCritter('deer',64,24);
