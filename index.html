@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BAYOU REQUIEM — A Gothic Marxist Survival · Nouvelle-Orléans 1666</title>
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚜</text></svg>">
+<script type="importmap">
+{ "imports": { "three": "./lib/three.module.js" } }
+</script>
+</head>
+<body>
+<div id="app">
+  <canvas id="game-canvas"></canvas>
+  <canvas id="minimap" width="168" height="168"></canvas>
+
+  <div id="vignette"></div>
+  <div id="damage-flash"></div>
+  <div id="letterbox-top" class="letterbox"></div>
+  <div id="letterbox-bot" class="letterbox"></div>
+
+  <!-- HUD -->
+  <div id="hud" class="hidden">
+    <div id="stats-panel">
+      <div class="stat"><span class="ico">❤</span><div class="bar"><div id="bar-hp"></div></div><span id="txt-hp" class="val">100</span></div>
+      <div class="stat"><span class="ico">🍖</span><div class="bar"><div id="bar-hunger"></div></div><span id="txt-hunger" class="val">100</span></div>
+      <div class="stat"><span class="ico">⚡</span><div class="bar"><div id="bar-stam"></div></div><span id="txt-stam" class="val">100</span></div>
+      <div class="stat"><span class="ico">🕯</span><div class="bar"><div id="bar-sanity"></div></div><span id="txt-sanity" class="val">100</span></div>
+      <div class="stat karma-row"><span class="ico">⚖</span><div class="bar karma-bar"><div id="bar-karma"></div></div><span id="txt-karma" class="val">0</span></div>
+      <div id="karma-title">Wanderer of the Bayou</div>
+    </div>
+    <div id="clock-panel">
+      <div id="clock-day">Day 1 · 1666</div>
+      <div id="clock-time">☀ 08:00</div>
+      <div id="clock-phase">Morning mists</div>
+      <div id="weather-line">🌫 bayou mist</div>
+    </div>
+    <div id="hotbar"></div>
+    <div id="compass"><div id="compass-needle">N</div><div id="compass-label">— Bayou Requiem —</div></div>
+    <div id="quest-tracker"></div>
+    <div id="killfeed"></div>
+    <div id="interact-prompt" class="hidden">[E] <span id="interact-text">Talk</span></div>
+    <div id="controls-hint">WASD move · Mouse-drag/Q/E camera · LMB/Space attack · E talk/loot/mount · V cart stash · Tab bag · J quests · C craft · K character · M map · F lantern · 1-6 wield · Esc pause</div>
+    <div id="boss-bar" class="hidden"><div id="boss-name">BÊTE DE L'ABÎME</div><div class="bar big"><div id="boss-fill"></div></div></div>
+  </div>
+
+  <!-- Toasts -->
+  <div id="toasts"></div>
+  <div id="subtitle" class="hidden"></div>
+
+  <!-- Main menu -->
+  <div id="menu" class="screen">
+    <div class="menu-bg-orn">❧ ⚜ ❧</div>
+    <h1 class="game-title">BAYOU REQUIEM</h1>
+    <div class="game-sub">A Gothic-Marxist Survival · Nouvelle-Orléans, Anno 1666</div>
+    <div class="game-tag">the dead work the night shift · the living work all the rest</div>
+    <div class="menu-buttons">
+      <button id="btn-new" class="btn big">⚔ Begin the Requiem</button>
+      <button id="btn-continue" class="btn">📜 Continue (save found)</button>
+      <button id="btn-codex" class="btn">🕮 Lore Codex</button>
+      <button id="btn-help" class="btn">❓ How to Survive</button>
+      <button id="btn-music" class="btn">♫ Music: <span id="music-state">ON</span></button>
+    </div>
+    <div class="menu-lore">
+      <p><i>Forty leagues from any king's mercy, the mud remembers. French seigneurs drain the swamp with other men's backs.
+      The Church counts souls as tithes. And when the bell tolls thirteen, the bayou gives back what was buried in it —
+      the Risen, the Loup-Garou, the Apparitions, the Sang-Mêlé, the Bête itself.</i></p>
+      <p class="controls-mini">Desktop · Keyboard + Mouse · Best in fullscreen · Click to lock pointer for musket aim</p>
+    </div>
+    <div class="menu-foot">⚜ Southern Gothic Horror · historical 1660s dress & timber-work · procedural dark score ⚜</div>
+  </div>
+
+  <!-- Intro -->
+  <div id="intro" class="screen hidden">
+    <div class="paper">
+      <h2>Prologue — The Mud Remembers</h2>
+      <div class="prologue-text">
+      <p><i>New Orleans does not yet exist on any map the King will sign. In 1666 there is only a wound in the canebrake:
+      a private seigneurie staked by the <b>Compagnie des Marais</b>, palisades around a chapel that was never consecrated,
+      a manor built of stolen cypress, and sixty souls in debt for the price of their crossing.</i></p>
+      <p>You are <b>Élodie / Étienne Marchand</b>, indentured, coffin-ship survivor, reader of forbidden pamphlets —
+      a believer that no man owns another, neither by deed, nor by debt, nor by God. The pamphlet called it
+      <i>the commune of the dead and the living</i>. The bayou is about to test the thesis.</p>
+      <p>The priest says the dead walk because of sin. The Seigneur says they walk because the workers are lazy.
+      Old Manon of the bayou says they walk <i>because they were never paid</i>.</p>
+      <p><b>Survive. Eat. Barricade. Choose.</b> Every loaf shared or stolen, every throat cut or spared, is weighed
+      on the scales of the Requiem. The swamp keeps ledgers better than any taxman.</p>
+      </div>
+      <div class="row"><button id="btn-start" class="btn big">☩ Enter the Palisade</button></div>
+    </div>
+  </div>
+
+  <!-- Codex -->
+  <div id="codex" class="screen hidden">
+    <div class="paper wide">
+      <h2>🕮 Codex of the Bayou — Lore & Field Notes</h2>
+      <div id="codex-tabs" class="tabs"></div>
+      <div id="codex-body" class="codex-body"></div>
+      <div class="row"><button class="btn btn-back" data-back="codex">← Back</button></div>
+    </div>
+  </div>
+
+  <!-- Help -->
+  <div id="help" class="screen hidden">
+    <div class="paper wide">
+      <h2>❓ How to Survive the Requiem</h2>
+      <div class="help-grid">
+        <div><h3>🎮 Controls (Desktop)</h3><p>WASD / arrows — walk · Shift — sprint (stamina) · Mouse drag or Q/E — orbit camera · Wheel — zoom · <b>Left-click / Space</b> — attack · <b>E</b> — talk / loot / harvest · <b>F</b> — lantern · <b>Tab / I</b> — satchel · <b>C</b> — craft · <b>J</b> — quests · <b>K</b> — soul & karma · <b>M</b> — map · <b>1–6</b> — wield · <b>Esc / P</b> — pause.</p></div>
+        <div><h3>🩸 Project-Zomboid rules</h3><p>Eat before hunger empties or HP bleeds. Sleep? There is no sleep here — only the bell. Barricade doors with planks (C). Boiled herbs cure bites. <b>Forage</b> the October woods (E at green growth: pecans, muscadines, persimmons, groundnuts…), <b>hunt</b> rabbit, turkey and deer, beware alligators — yaupon leaves steady the nerves. <b>Horses</b> can be mounted (E); <b>carts</b> driven (E) and used as a shared stash (V). Night is death: lantern, fire and chapel ground save you. Death drops your satchel where you fell.</p></div>
+        <div><h3>⚖ Karma</h3><p>Share bread +3 · bury the dead +4 · free quests +5…+10 · murder −25 · theft −8 · lying −4 · eating the Seigneur's store in front of the poor +2. Saints get discounts, allies and chapel sanctuary. Butchers are hunted — and the Bête learns their name.</p></div>
+        <div><h3>🐺 The Five Plagues</h3><p><b>Risen</b> — slow, bite infects. <b>Loup-Garou</b> — fleet by moon, silver & fire. <b>Apparitions</b> — drain reason (sanity); blessed steel & lantern hurt them. <b>Sang-Mêlé (vampires)</b> — proud, parley at dusk, burn at dawn. <b>Bête de l'Abîme</b> — the demon of the drained swamp. Boss of the Leveling Night.</p></div>
+      </div>
+      <div class="row"><button class="btn btn-back" data-back="help">← Back</button></div>
+    </div>
+  </div>
+
+  <!-- Pause -->
+  <div id="pause" class="screen hidden">
+    <div class="paper">
+      <h2>❦ Paused — The Bell Holds Its Breath</h2>
+      <div class="row col">
+        <button id="btn-resume" class="btn big">Resume</button>
+        <button id="btn-save" class="btn">💾 Save the soul (local)</button>
+        <button id="btn-full" class="btn">⛶ Fullscreen</button>
+        <button id="btn-quit" class="btn">✝ Abandon to menu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panels -->
+  <div id="panel-inventory" class="panel hidden">
+    <h3>🎒 Satchel <span id="inv-count"></span><span class="panel-hint">Tab closes · click = use/equip · right-click = drop</span></h3>
+    <div id="inv-grid"></div>
+    <div id="inv-detail">Select a thing of this world.</div>
+  </div>
+  <div id="panel-craft" class="panel hidden">
+    <h3>🔨 Craft — labour makes holy <span class="panel-hint">C closes</span></h3>
+    <div id="craft-list"></div>
+  </div>
+  <div id="panel-quests" class="panel hidden">
+    <h3>📜 Quests — the ledger of the living <span class="panel-hint">J closes</span></h3>
+    <div id="quest-list"></div>
+  </div>
+  <div id="panel-char" class="panel hidden">
+    <h3>☩ Soul & Standing <span class="panel-hint">K closes</span></h3>
+    <div id="char-body"></div>
+  </div>
+  <div id="panel-map" class="panel hidden">
+    <h3>🗺 Chart of the Seigneurie, 1666 <span class="panel-hint">M closes</span></h3>
+    <canvas id="bigmap" width="520" height="520"></canvas>
+    <div class="map-legend">⚜ manor · ☩ chapel · ⚒ smith · 🌿 herbalist · ▤ cabins · ☠ cemetery · 🐊 swamp · ❖ you</div>
+  </div>
+
+  <!-- Dialogue -->
+  <div id="dialogue" class="hidden">
+    <div id="dlg-head"><div id="dlg-portrait">☩</div><div><div id="dlg-name">Père Anselme</div><div id="dlg-role">priest of the unconsecrated chapel</div></div><div id="dlg-karma">⚖ 0</div></div>
+    <div id="dlg-text"></div>
+    <div id="dlg-choices"></div>
+  </div>
+
+  <!-- Trade -->
+  <div id="trade" class="hidden">
+    <h3>⚖ Trade <span id="trade-with"></span> <span id="trade-x" title="close">✕</span></h3>
+    <div class="trade-cols"><div><h4>Their wares</h4><div id="trade-theirs"></div></div><div><h4>Your satchel</h4><div id="trade-yours"></div></div></div>
+    <div id="trade-info"></div>
+  </div>
+
+  <!-- Death / Ending -->
+  <div id="death" class="screen hidden"><div class="paper dark">
+    <h2 id="death-title">☠ You Died of the Bayou</h2><p id="death-text"></p>
+    <div id="death-stats"></div>
+    <div class="row"><button id="btn-respawn" class="btn big">🕯 Wake at the Chapel (keep soul, lose satchel)</button><button id="btn-dead-menu" class="btn">Menu</button></div>
+  </div></div>
+  <div id="ending" class="screen hidden"><div class="paper dark">
+    <h2 id="ending-title">❦ The Leveling Night</h2><p id="ending-text"></p><div id="ending-stats"></div>
+    <div class="row"><button id="btn-ending-menu" class="btn big">Return to the Mud (free roam)</button></div>
+  </div></div>
+
+  <div id="loading"><div class="spin">⚜</div><div>Raising the palisade… consecrating the mud…</div></div>
+  <div id="crosshair" class="hidden">＋</div>
+</div>
+<script type="module" src="game.js"></script>
+</body>
+</html>
