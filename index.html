@@ -28,7 +28,7 @@
       <div class="stat" data-tip="hunger"><span class="ico">🍖</span><div class="bar"><div id="bar-hunger"></div></div><span id="txt-hunger" class="val">100</span></div>
       <div class="stat" data-tip="stam"><span class="ico">⚡</span><div class="bar"><div id="bar-stam"></div></div><span id="txt-stam" class="val">100</span></div>
       <div class="stat" data-tip="sanity"><span class="ico">🕯</span><div class="bar"><div id="bar-sanity"></div></div><span id="txt-sanity" class="val">100</span></div>
-      <div class="stat" data-tip="mana"><span class="ico">🌀</span><div class="bar"><div id="bar-mana" style="background:linear-gradient(90deg,#3a2a6e,#e0a0ff)"></div></div><span id="txt-mana" class="val">100</span></div>
+      <div class="stat" data-tip="mana"><span class="ico">🌀</span><div class="bar"><div id="bar-mana" style="background:linear-gradient(90deg,#1e5a54,#66f2db)"></div></div><span id="txt-mana" class="val">100</span></div>
       <div class="stat karma-row" data-tip="karma"><span class="ico">⚖</span><div class="bar karma-bar"><div id="bar-karma"></div></div><span id="txt-karma" class="val">0</span></div>
       <div id="karma-title" data-tip="karma">Wanderer of the Bayou</div>
     </div>
@@ -55,7 +55,7 @@
   <!-- Main menu -->
   <div id="menu" class="screen">
     <div class="menu-bg-orn">❧ ⚜ ❧</div>
-    <h1 class="game-title">BAYOU REQUIEM</h1>
+    <h1 class="game-title" data-text="BAYOU REQUIEM">BAYOU REQUIEM</h1>
     <div class="game-sub">A Gothic-Marxist Survival · Nouvelle-Orléans, Anno 1666</div>
     <div class="iron-rule">⚜ ❦ ⚜</div>
     <div class="game-tag">the dead work the night shift · the living work all the rest</div>
@@ -64,6 +64,7 @@
       <button id="btn-continue" class="btn">📜 Continue (save found)</button>
       <button id="btn-codex" class="btn">🕮 Lore Codex</button>
       <button id="btn-help" class="btn">❓ How to Survive</button>
+      <button id="btn-atelier" class="btn">🖋 Text Atelier</button>
       <button id="btn-music" class="btn">♫ Music: <span id="music-state">ON</span></button>
     </div>
     <div class="menu-lore">
@@ -197,6 +198,18 @@
   <div id="panel-build" class="panel hidden">
     <h3>🧱 Raise the parish <span class="panel-hint">U closes</span></h3>
     <div id="build-list"></div>
+  </div>
+  <div id="atelier" class="screen hidden">
+    <div class="paper wide">
+      <h2>🖋 Text Atelier — rewrite the parish</h2>
+      <p style="font-style:italic;color:#a89a76">Every quest word, NPC line, codex page and item name is editable. Saved in this browser; applied on every boot. Write treason carefully.</p>
+      <div class="row" style="justify-content:flex-start">
+        <select id="atelier-sec" class="tab"></select>
+        <select id="atelier-entry" class="tab"></select>
+      </div>
+      <div id="atelier-fields"></div>
+      <div class="row"><button id="btn-atelier-save" class="btn big">💾 Ink it into the parish</button><button id="btn-atelier-reset" class="btn">Burn this page</button><button id="btn-atelier-back" class="btn">← Back</button></div>
+    </div>
   </div>
 
   <!-- Dialogue -->

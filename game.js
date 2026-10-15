@@ -258,6 +258,10 @@ const ZONES=[
  {id:'forestmanor',n:'Maison Lament',x:88,z:-38,r:20},
  {id:'pigstye',n:'Jean-Luc’s Pigstye',x:-38,z:-40,r:12},
  {id:'tavern',n:'L’Ancre Noyée',x:34,z:-8,r:12},
+ {id:'maroon',n:'Maroon Camp',x:-76,z:60,r:16},
+ {id:'sunchapel',n:'Sunken Chapel',x:34,z:96,r:16},
+ {id:'indigo',n:'Indigo Works',x:-20,z:-70,r:16},
+ {id:'hangtree',n:'Hanging Tree',x:0,z:-78,r:12},
 ];
 const NPC_DEFS=[
  {id:'anselme',n:'Père Anselme',role:'priest of the unconsecrated chapel',e:'☩',x:-30,z:-10,c:0x1a1a1a,d:'A Jesuit who lost his breviary and found a ledger. Buries the poor for free; dreads the Seigneur’s pew.'},
@@ -276,6 +280,8 @@ const NPC_DEFS=[
  {id:'nine',n:'Nine-Fingers',role:'trader in unasked questions',e:'🤫',x:37,z:-5,c:0x3a3a3a,d:'Counts to nine and stops, smiling. Sells powder, shot, and things that fell off a cart. No receipts, no memories.'},
  {id:'celestin',n:'Fiddler Célestin',role:'musician, mostly sober',e:'🎻',x:32,z:-6,c:0x5a3a5a,d:'His fiddle survived three shipwrecks and one marriage. Tips in coin or tafia; pays in songs.'},
  {id:'eustache',n:'Eustache the Ear',role:'hearer of things',e:'👂',x:35,z:-9,c:0x4a4a4a,d:'Knows who buried what, where, and how deep. Sells it by the sentence. The Seigneur’s men pay him too — everybody’s ear, nobody’s friend.'},
+ {id:'brigitte',n:'Maman Brigitte',role:'keeper of the free fires',e:'🔥',x:-77,z:59,c:0x8a4a2a,d:'Ran twenty years back and never looked, except to aim. Trades with any soul the Seigneur hasn’t priced. “My fire’s free. The stories cost stew.”'},
+ {id:'gedeon',n:'Gédéon Long-Rifle',role:'watch of the maroon camp',e:'🎖',x:-75,z:61,c:0x3a4a3a,d:'Deserter from three armies, loyal to one camp. Recruits strong backs for the free woods — and buries taxmen as a hobby.'},
 ];
 const FOE_DEFS={
  risen:{n:'The Risen',e:'🧟',hp:45,dmg:10,spd:2.2,xp:1,col:0x5a6a4a,txt:'Plague-dead in grave linen. They rise where wages were withheld.'},
@@ -759,6 +765,8 @@ function buildWorld(){
   ['Smoke Hut',-14,94,5,5,0x5a4a38,0x3a3a3a,'Crabs and fish smoke here. The mosquitoes respect it.'],
   ['Hunting Cabin',34,92,7,6,0x6a5238,0x4a3a22,'Antler pegs, drying racks, and quiet. Mind the bear sign.'],
   ['Trapper Cabin',56,24,6,5,0x6a5238,0x4a3a22,'Pelts stretched, traps oiled. The east woods pay in fur.'],
+  ['Maroon Cabin',-80,58,6,5,0x5a4a38,0x3a4a2a,'Free-built, debt-free. Smoke cures meat and sorrow.'],
+  ['Maroon Cabin',-72,62,6,5,0x5a4a38,0x3a4a2a,'Free-built, debt-free. Drums after dark, work before dawn.'],
  ];
  B.forEach(([nm,x,z,w,d,wall,roof])=>{
   addBox(x,1.7,z,w,3.4,d,wall,0,texed(wall,TEX.daub));addRoof(x,5.1,z,w+1.4,d+1.4,roof,texed(roof,((roof&0x303030)<0x202020)?TEX.shingle:TEX.thatch));
@@ -779,11 +787,11 @@ function buildWorld(){
  for(let i=0;i<22;i++){const x=rand(-84,-56),z=rand(-6,22);addBox(x,0.7,z,0.18,1.4,0.18,0x8a8072);addBox(x,1,z,0.8,0.18,0.18,0x8a8072);
   if(i<6)interactables.push({kind:'grave',name:'Shallow grave '+(i+1),x,z,r:2.6,txt:'Bury / mourn (E)',id:'grave'+i});}
  // market stalls + crates (loot)
- const lootSpots=[[12,-2,'Market crate'],[26,-16,'Smith crate'],[-14,24,'Herb bundle'],[4,-44,'Manor chest'],[76,18,'Mission cache'],[10,72,'Swamp cache'],[-50,50,'Landing cache'],[-32,-8,'Chapel box'],[22,26,'Cabin chest'],[-70,10,'Grave goods'],[-57,45,'Tackle box'],[54,22,'Trap cache'],[-44,60,'Sunken strongbox'],[64,-14,'Brigand cache'],[-72,16,'Crypt niche']];
+ const lootSpots=[[12,-2,'Market crate'],[26,-16,'Smith crate'],[-14,24,'Herb bundle'],[4,-44,'Manor chest'],[76,18,'Mission cache'],[10,72,'Swamp cache'],[-50,50,'Landing cache'],[-32,-8,'Chapel box'],[22,26,'Cabin chest'],[-70,10,'Grave goods'],[-57,45,'Tackle box'],[54,22,'Trap cache'],[-44,60,'Sunken strongbox'],[64,-14,'Brigand cache'],[-72,16,'Crypt niche'],[-78,63,'Maroon cache'],[-18,-68,'Indigo store']];
  lootSpots.forEach(([x,z,nm])=>{const c=addBox(x,0.5,z,1.2,1,1.2,0x6a4a26);c.material.emissive=new THREE.Color(0x332200);
   interactables.push({kind:'loot',name:nm,x,z,r:2.8,txt:'Search '+nm});});
  // campfires / braziers
- [[-30,-6],[24,24],[10,70],[-48,48],[0,-38]].forEach(([x,z])=>{
+ [[-30,-6],[24,24],[10,70],[-48,48],[0,-38],[-76,60]].forEach(([x,z])=>{
   const st=addBox(x,0.3,z,1.6,0.6,1.6,0x5a5a5a);const fl=new THREE.PointLight(0xff8a3a,1.4,18);fl.position.set(x,1.6,z);scene.add(fl);
   const f=new THREE.Mesh(new THREE.ConeGeometry(0.5,1.2,7),new THREE.MeshBasicMaterial({color:0xff9a3a}));f.position.set(x,1.2,z);scene.add(f);fires.push({x,z,flame:f,light:fl});glowAt(x,1.8,z,6,0.5);
   interactables.push({kind:'fire',name:'Campfire',x,z,r:3,txt:'Rest by fire (heal/sanity)'});});
@@ -2250,6 +2258,7 @@ function bindInput(){window.addEventListener('keydown',e=>{const k=e.key.toLower
  if(k==='u')togglePanel('panel-build',renderBuild);
  if(k==='h')togglePanel('panel-health',renderHealth);
  if(k==='n')togglePanel('panel-songs',renderSongs);
+ if(k==='t'){const a=$('atelier');if(!a)return;a.classList.toggle('hidden');if(!a.classList.contains('hidden'))renderAtelier();AudioSys.sfx('pickup');}
  if(k==='r')togglePanel('panel-spells',renderSpells);
  if(k==='7')castSpell('ward');if(k==='8')castSpell('lantern');if(k==='9')castSpell('haste');if(k==='0')castSpell('communion');if(k==='-')castSpell('rebuke');
  if(k===' '){shove();}
@@ -2282,6 +2291,49 @@ function load(){try{const raw=localStorage.getItem('bayou-requiem-save');if(!raw
  (d.npc||[]).forEach(s=>{const n=npcs.find(n=>n.id===s.id);if(n){n.dead=s.dead;n.follow=s.follow;if(n.dead)scene.remove(n.mesh);if(s.follow)G.companions.push(n.id);}});
  return true;}catch(e){return false;}}
 /* ============ CODEX ============ */
+/* ============ TEXT ATELIER ============ */
+const ATELIER_KEY='bayou-requiem-text';
+function atelierSections(){return {quests:'📜 Quests',npcs:'🗣 Townsfolk',codex:'🕮 Codex',items:'🎒 Items'};}
+function atelierEntries(sec){if(sec==='quests')return QUESTS.map(q=>({id:q.id,label:q.n}));
+ if(sec==='npcs')return NPC_DEFS.map(n=>({id:n.id,label:n.n}));
+ if(sec==='codex')return Object.keys(CODEX).map(k=>({id:k,label:CODEX[k].t}));
+ return Object.keys(ITEMS).map(k=>({id:k,label:ITEMS[k].n}));}
+function atelierFields(sec,id){const F=[];
+ if(sec==='quests'){const q=qdef(id);if(q){F.push(['n','Title',q.n]);F.push(['desc','Tale',q.desc]);}}
+ else if(sec==='npcs'){const n=NPC_DEFS.find(n=>n.id===id);if(n){F.push(['d','Saying',n.d]);F.push(['role','Station',n.role]);}}
+ else if(sec==='codex'){if(CODEX[id])F.push(['b','Page (HTML allowed)',CODEX[id].b]);}
+ else if(ITEMS[id]){F.push(['n','Name',ITEMS[id].n]);F.push(['d','Description',ITEMS[id].d]);}
+ return F;}
+function renderAtelier(){const ss=atelierSections();const sec=$('atelier-sec'),ent=$('atelier-entry');
+ if(!sec.options.length)for(const k in ss){const o=document.createElement('option');o.value=k;o.textContent=ss[k];sec.appendChild(o);}
+ const cur=sec.value||'quests';
+ ent.innerHTML='';for(const e of atelierEntries(cur)){const o=document.createElement('option');o.value=e.id;o.textContent=e.label;ent.appendChild(o);}
+ renderAtelierFields();}
+function renderAtelierFields(){const sec=$('atelier-sec').value,id=$('atelier-entry').value,box=$('atelier-fields');
+ box.innerHTML='';for(const [k,label,val] of atelierFields(sec,id)){
+  const h=document.createElement('h4');h.style.color='#c9a227';h.style.margin='10px 0 4px';h.textContent=label;box.appendChild(h);
+  const t=document.createElement('textarea');t.id='atelier-f-'+k;t.value=val||'';
+  t.style.cssText='width:100%;min-height:90px;background:#0a0806;color:#e8dcc0;border:1px solid #4a3a22;border-radius:6px;padding:10px;font-family:inherit;font-size:14px;';
+  box.appendChild(t);}}
+function saveAtelier(){const sec=$('atelier-sec').value,id=$('atelier-entry').value;
+ let all={};try{all=JSON.parse(localStorage.getItem(ATELIER_KEY)||'{}');}catch(e){}
+ all[sec]=all[sec]||{};all[sec][id]=all[sec][id]||{};
+ for(const [k] of atelierFields(sec,id)){const t=$('atelier-f-'+k);if(t)all[sec][id][k]=t.value;}
+ try{localStorage.setItem(ATELIER_KEY,JSON.stringify(all));}catch(e){}
+ applyTextOverrides();renderAtelier();toast('💾 Inked. The parish now says it your way.','good');}
+function resetAtelier(){const sec=$('atelier-sec').value,id=$('atelier-entry').value;
+ let all={};try{all=JSON.parse(localStorage.getItem(ATELIER_KEY)||'{}');}catch(e){}
+ if(all[sec])delete all[sec][id];
+ try{localStorage.setItem(ATELIER_KEY,JSON.stringify(all));}catch(e){}
+ location.reload();}
+function applyTextOverrides(){let all={};try{all=JSON.parse(localStorage.getItem(ATELIER_KEY)||'{}');}catch(e){return;}
+ for(const id in (all.quests||{})){const q=qdef(id);if(!q)continue;const o=all.quests[id];
+  if(typeof o.n==='string'&&o.n)q.n=o.n;if(typeof o.desc==='string'&&o.desc)q.desc=o.desc;}
+ for(const id in (all.npcs||{})){const n=NPC_DEFS.find(n=>n.id===id);if(!n)continue;const o=all.npcs[id];
+  if(typeof o.d==='string'&&o.d)n.d=o.d;if(typeof o.role==='string'&&o.role)n.role=o.role;}
+ for(const k in (all.codex||{})){if(CODEX[k]&&typeof all.codex[k].b==='string'&&all.codex[k].b)CODEX[k].b=all.codex[k].b;}
+ for(const id in (all.items||{})){if(!ITEMS[id])continue;const o=all.items[id];
+  if(typeof o.n==='string'&&o.n)ITEMS[id].n=o.n;if(typeof o.d==='string'&&o.d)ITEMS[id].d=o.d;}}
 function renderCodex(key){const tabs=$('codex-tabs');tabs.innerHTML='';const body=$('codex-body');
  Object.keys(CODEX).forEach(k=>{const b=document.createElement('button');b.className='tab'+(k===key?' active':'');b.textContent=CODEX[k].t;b.onclick=()=>renderCodex(k);tabs.appendChild(b);});
  body.innerHTML='<h3>'+CODEX[key].t+'</h3>'+CODEX[key].b;}
@@ -2292,6 +2344,11 @@ function wireButtons(){
  $('btn-continue').onclick=()=>{AudioSys.init();if(load()){startGame(true);}else toast('No soul in the register.','bad');};
  $('btn-codex').onclick=()=>{$('menu').classList.add('hidden');$('codex').classList.remove('hidden');renderCodex('History');};
  $('btn-help').onclick=()=>{$('menu').classList.add('hidden');$('help').classList.remove('hidden');};
+ $('btn-atelier').onclick=()=>{AudioSys.init();$('menu').classList.add('hidden');$('atelier').classList.remove('hidden');renderAtelier();};
+ $('atelier-sec').onchange=renderAtelier;$('atelier-entry').onchange=renderAtelierFields;
+ $('btn-atelier-save').onclick=saveAtelier;$('btn-atelier-reset').onclick=resetAtelier;
+ $('btn-atelier-back').onclick=()=>{$('atelier').classList.add('hidden');if(G.started){}else $('menu').classList.remove('hidden');};
+ document.querySelector('.menu-buttons').addEventListener('mouseover',e=>{if(e.target.closest('.btn')&&AudioSys.ctx&&!AudioSys.muted)AudioSys.sfx('pickup');});
  $('btn-music').onclick=()=>{AudioSys.init();AudioSys.toggle();};
  AudioSys.vol=0.6;
  $('mus-vol').oninput=e=>{AudioSys.init();AudioSys.setVol(e.target.value/100);};
@@ -2407,7 +2464,7 @@ function boot(){initThree();buildWorld();initParticles();initMist();bootWindows(
  spawnCritter('heron',-40,56);spawnCritter('otter',14,80);
  spawnCritter('eagle',10,70);spawnCritter('eagle',-60,0);
  spawnSkelFarmers();spawnFoe('skeleton',-64,16);
- initWork();initSkills();updateSeasonVisual();pickWeather();
+ initWork();initSkills();updateSeasonVisual();pickWeather();applyTextOverrides();
  unlockQuests();refreshHUD();refreshHotbar();
  $('loading').style.display='none';
  // expose for tests
