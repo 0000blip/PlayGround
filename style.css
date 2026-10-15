@@ -127,3 +127,11 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 .nact{background:#2a2114;border:1px solid var(--gold);color:var(--ink);border-radius:5px;padding:4px 10px;cursor:pointer;font-family:inherit;font-size:12px;white-space:nowrap}
 .nact:hover{background:#3a2d18}
 .nx{cursor:pointer;color:#8a6a4a;font-size:13px;padding:0 2px}.nx:hover{color:#ff8888}
+/* music control window */
+#music-win{position:absolute;left:14px;bottom:52px;z-index:26;background:var(--panel);border:1px solid #4a3a22;border-radius:8px;padding:8px 10px;width:210px;pointer-events:auto}
+#mus-title{font-size:12px;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:6px}
+.mus-row{display:flex;gap:6px;align-items:center}
+.mus-row button{background:#221a10;border:1px solid #4a3a22;color:var(--ink);border-radius:5px;padding:3px 9px;cursor:pointer;font-size:13px}
+.mus-row button:hover{border-color:var(--gold)}
+#mus-vol{flex:1;accent-color:#c9a227;cursor:pointer}
+.mus-auto{font-size:11px;color:var(--dim);display:flex;gap:5px;align-items:center;margin-top:5px;cursor:pointer}

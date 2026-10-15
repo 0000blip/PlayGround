@@ -27,6 +27,7 @@
       <div class="stat"><span class="ico">🍖</span><div class="bar"><div id="bar-hunger"></div></div><span id="txt-hunger" class="val">100</span></div>
       <div class="stat"><span class="ico">⚡</span><div class="bar"><div id="bar-stam"></div></div><span id="txt-stam" class="val">100</span></div>
       <div class="stat"><span class="ico">🕯</span><div class="bar"><div id="bar-sanity"></div></div><span id="txt-sanity" class="val">100</span></div>
+      <div class="stat"><span class="ico">🌀</span><div class="bar"><div id="bar-mana" style="background:linear-gradient(90deg,#3a2a6e,#e0a0ff)"></div></div><span id="txt-mana" class="val">100</span></div>
       <div class="stat karma-row"><span class="ico">⚖</span><div class="bar karma-bar"><div id="bar-karma"></div></div><span id="txt-karma" class="val">0</span></div>
       <div id="karma-title">Wanderer of the Bayou</div>
     </div>
@@ -42,7 +43,7 @@
     <div id="killfeed"></div>
     <div id="ck3-feed"></div>
     <div id="interact-prompt" class="hidden">[E] <span id="interact-text">Talk</span></div>
-    <div id="controls-hint">WASD move · Mouse-drag/Q/E camera · LMB/Space attack · E talk/loot/mount · V cart stash · Tab bag · J quests · C craft · K character · B labours · M map · F lantern · 1-6 wield · Esc pause</div>
+    <div id="controls-hint">WASD move · Mouse-drag/Q/E camera · LMB/Space attack · E talk/loot/mount · V cart stash · Tab bag · J quests · C craft · K character · B labours · R conjure · M map · F lantern · 1-6 wield · 7-0,- spells · Esc pause</div>
     <div id="boss-bar" class="hidden"><div id="boss-name">BÊTE DE L'ABÎME</div><div class="bar big"><div id="boss-fill"></div></div></div>
   </div>
 
@@ -112,6 +113,7 @@
         <div><h3>⚖ Karma</h3><p>Share bread +3 · bury the dead +4 · free quests +5…+10 · murder −25 · theft −8 · lying −4 · eating the Seigneur's store in front of the poor +2. Saints get discounts, allies and chapel sanctuary. Butchers are hunted — and the Bête learns their name.</p></div>
         <div><h3>🕯 Reason (sanity)</h3><p>Every horror gnaws: Risen, Loups, Apparitions, Sang-Mêlé, the Bête itself — worse at night, worse wounded. Lanterns, fires and chapel ground halve the gnawing. Recover by <b>sleeping</b> in bunks/pews/hammocks (E, dusk to dawn), <b>drinking</b> wine & tafia, <b>smoking</b> pipe tobacco, <b>confessing</b> to Père Anselme, or <b>company</b> with Dame Séraphine. Below 30, the dark starts talking back; at 0 it starts collecting.</p></div>
         <div><h3>⚒ Work & professions</h3><p>Fourteen honest (and-ish) trades: carpenter, cook, pirate, fisherman, hunter, sheriff, soldier, tavern keeper, smith, farmer, banker, tycoon, sewer cleaner, town cryer. Find their stations by floating signs, press <b>E</b> to work a shift: coin, trade goods, <b>+🕯 sanity</b>, and XP toward <b>Apprentice → Grandmaster</b> (better pay, deeper peace). Smiths need planks; tycoons need a stake; sewers risk the miasma. Press <b>B</b> for the ledger. Every trade has a quest.</p></div>
+        <div><h3>✨ Conjure (voodoo)</h3><p>Spirit (🌀) trickles back slowly; <b>rituals at 4 altars</b> (crossroads, cemetery, bayou, chapel — bring offerings) restore floods. Cast from the conjure-book (<b>R</b>) or keys <b>7, 8, 9, 0, –</b>: ward, holy light, haste, communion, rebuke. Craft a <b>gris-gris</b> (C) for +20 max. Manon teaches the work.</p></div>
         <div><h3>🐺 The Five Plagues</h3><p><b>Risen</b> — slow, bite infects. <b>Loup-Garou</b> — fleet by moon, silver & fire. <b>Apparitions</b> — drain reason (sanity); blessed steel & lantern hurt them. <b>Sang-Mêlé (vampires)</b> — proud, parley at dusk, burn at dawn. <b>Bête de l'Abîme</b> — the demon of the drained swamp. Boss of the Leveling Night.</p></div>
       </div>
       <div class="row"><button class="btn btn-back" data-back="help">← Back</button></div>
@@ -158,6 +160,10 @@
     <h3>⚒ Labours & Trades <span class="panel-hint">B closes</span></h3>
     <div id="work-list"></div>
   </div>
+  <div id="panel-spells" class="panel hidden">
+    <h3>✨ Conjure — the old ways <span class="panel-hint">R closes · keys 7-0,- cast</span></h3>
+    <div id="spell-list"></div>
+  </div>
 
   <!-- Dialogue -->
   <div id="dialogue" class="hidden">
@@ -185,6 +191,11 @@
   </div></div>
 
   <div id="loading"><div class="spin">⚜</div><div>Raising the palisade… consecrating the mud…</div></div>
+  <div id="music-win">
+    <div id="mus-title">♪ Bayou Requiem</div>
+    <div class="mus-row"><button id="mus-prev" title="replay">⏮</button><button id="mus-play" title="stop/play">⏸</button><button id="mus-next" title="next song">⏭</button><input id="mus-vol" type="range" min="0" max="100" value="60" title="volume"></div>
+    <label class="mus-auto"><input type="checkbox" id="mus-auto" checked> songs flow on</label>
+  </div>
   <div id="crosshair" class="hidden">＋</div>
 </div>
 <script type="module" src="game.js"></script>
