@@ -883,7 +883,12 @@ function placeBarricade(){const ry=playerMesh?playerMesh.rotation.y:0;
 function breakBarricade(b){scene.remove(b.mesh);if(b.coll)b.coll.dead=true;if(b.parts)for(const p of b.parts)p.dead=true;if(b.inter)b.inter.gone=true;
  barricades.splice(barricades.indexOf(b),1);AudioSys.sfx('hit');
  toast('🪵 A barricade gives way! The line is breached.','bad');}
-function mendBarricade(b){if(b.hp>=b.maxhp){
+function toggleShutter(b){if(b.open){const c={x0:b.x-1.2,x1:b.x+1.2,z0:b.z-0.15,z1:b.z+0.15};colliders.push(c);b.coll=c;b.open=false;
+  if(b.inter)b.inter.txt='Shutters barred (E: open)';toast('🪟 Shutters barred.','good');}
+ else{if(b.coll)b.coll.dead=true;b.open=true;
+  if(b.inter)b.inter.txt='Shutters open (E: bar)';toast('🪟 Shutters open. Mind the draught — and the teeth.','bad');}
+ AudioSys.sfx('pickup');}
+function mendBarricade(b){if(b.shutter&&b.hp>=b.maxhp){toggleShutter(b);return;}if(b.hp>=b.maxhp){
   // tear down, refund
   scene.remove(b.mesh);if(b.coll)b.coll.dead=true;if(b.parts)for(const p of b.parts)p.dead=true;if(b.inter)b.inter.gone=true;barricades.splice(barricades.indexOf(b),1);
   addItem('plank',2);toast('🪵 Torn down. 2 planks reclaimed.','good');return;}
@@ -2034,12 +2039,22 @@ function renderBuild(){const l=$('build-list');if(!l)return;const cl=skillLvl('c
   const d=document.createElement('div');d.className='craft-row';
   d.innerHTML='<span>'+b.e+' <b>'+b.n+'</b><br><small>'+b.txt+'</small></span>';
   const btn=document.createElement('button');btn.className='btn';btn.textContent=cl<b.carp?('Carp '+b.carp+'+'):(ok?'Raise':'—');btn.disabled=!ok;
-  btn.onclick=()=>{closePanels();startBuild(b.id);};d.appendChild(btn);l.appendChild(d);});}
+  btn.onclick=()=>{closePanels();startBuild(b.id);};d.appendChild(btn);l.appendChild(d);});
+ const td=document.createElement('div');td.className='craft-row';
+ td.innerHTML='<span>🚫 <b>Tear-down mode</b><br><small>Click your own walls & barricades to remove them (+1 plank back)</small></span>';
+ const tb=document.createElement('button');tb.className='btn';tb.textContent=G.tearMode?'On':'Off';
+ tb.onclick=()=>{G.tearMode=!G.tearMode;cancelBuild();closePanels();toast(G.tearMode?'🚫 Tear-down: click your structures. RMB/Esc stops.':'Put down the crowbar.');};
+ td.appendChild(tb);l.appendChild(td);}
 let buildSel=null,ghostMesh=null;
-function startBuild(id){cancelBuild();buildSel=BUILDABLES.find(b=>b.id===id);if(!buildSel)return;
+function startBuild(id){cancelBuild();G.tearMode=false;buildSel=BUILDABLES.find(b=>b.id===id);if(!buildSel)return;
  ghostMesh=new THREE.Mesh(new THREE.BoxGeometry(buildSel.w,Math.max(0.3,buildSel.h),buildSel.d),
   new THREE.MeshBasicMaterial({color:0x5fd06f,transparent:true,opacity:0.4,depthWrite:false}));
  scene.add(ghostMesh);toast('🧱 Ghost lifted: '+buildSel.n+'. Click earth to raise, RMB/Esc to set down.');}
+function tearAt(x,z){let best=null,bd=3.5;for(const b of barricades){const d=dist2(x,z,b.x,b.z);if(d<bd){bd=d;best=b;}}
+ if(!best){toast('No Commune work there to unmake.','bad');return;}
+ scene.remove(best.mesh);if(best.coll)best.coll.dead=true;if(best.parts)for(const p of best.parts)p.dead=true;
+ if(best.inter)best.inter.gone=true;barricades.splice(barricades.indexOf(best),1);
+ addItem('plank',1);AudioSys.sfx('craft');toast('🚫 Unmade. +1 plank back to the commons.');refreshHUD();refreshHotbar();}
 function cancelBuild(){buildSel=null;if(ghostMesh){scene.remove(ghostMesh);ghostMesh=null;}}
 function ghostValid(x,z){const b=buildSel;if(!b)return false;
  if(dist2(G.pos.x,G.pos.z,x,z)>7)return false;
@@ -2079,7 +2094,7 @@ function placeBuild(x,z){const b=buildSel;if(!b)return;
   else colliders.push(coll);
   const maxhp=(b.hp||60)+skillLvl('carp')*10+(T('handy')?20:0);
   const it={kind:'barr',name:b.n,x,z,r:2.6,txt:'Mend / tear down (E)'};
-  const bb={x,z,hp:maxhp,maxhp,mesh:g,coll:null,inter:it,parts:parts};
+  const bb={x,z,hp:maxhp,maxhp,mesh:g,coll:(b.gap?null:coll),inter:it,parts:parts,shutter:!!b.low,open:false};
   it.ref=bb;interactables.push(it);barricades.push(bb);}
  gainXp('carp',4);AudioSys.sfx('craft');
  toast('🧱 Raised: '+b.n+'. The commune builds.','good');refreshHUD();refreshHotbar();cancelBuild();}
@@ -2088,7 +2103,7 @@ const keys={};let dragging=false,lastMX=0,movedPx=0;
 function bindInput(){window.addEventListener('keydown',e=>{const k=e.key.toLowerCase();
  if([' ','tab'].includes(k))e.preventDefault();keys[k]=true;
  if(!G.started||$('menu').offsetParent)return;
- if(k==='escape'||k==='p'){if(buildSel){cancelBuild();return;}if(dlgOpen){closeDialogue();return;}if(!$('trade').classList.contains('hidden')){$('trade').classList.add('hidden');return;}
+ if(k==='escape'||k==='p'){if(buildSel||G.tearMode){cancelBuild();G.tearMode=false;return;}if(dlgOpen){closeDialogue();return;}if(!$('trade').classList.contains('hidden')){$('trade').classList.add('hidden');return;}
   const anyPanel=['panel-inventory','panel-craft','panel-quests','panel-char','panel-map','panel-work','panel-spells','panel-skills','panel-songs','panel-health','panel-build'].some(p=>{const el=$(p);return el&&!el.classList.contains('hidden');});
   if(anyPanel){closePanels();return;}togglePause();return;}
  if(G.paused||G.dead)return;
@@ -2116,7 +2131,8 @@ function bindInput(){window.addEventListener('keydown',e=>{const k=e.key.toLower
  const cv=$('game-canvas');
  cv.addEventListener('mousedown',e=>{if(e.button===2){aiming=true;document.getElementById('crosshair').classList.remove('hidden');updateAim(e.clientX,e.clientY);return;}dragging=true;lastMX=e.clientX;movedPx=0;});
  window.addEventListener('mousemove',e=>{updateAim(e.clientX,e.clientY);if(!dragging)return;movedPx+=Math.abs(e.clientX-lastMX);lastMX=e.clientX;});
- window.addEventListener('mouseup',e=>{if(e.button===2){aiming=false;document.getElementById('crosshair').classList.add('hidden');if(buildSel){cancelBuild();toast('Set down.');}return;}
+ window.addEventListener('mouseup',e=>{if(e.button===2){aiming=false;document.getElementById('crosshair').classList.add('hidden');if(buildSel||G.tearMode){cancelBuild();G.tearMode=false;toast('Set down.');}return;}
+  if(G.tearMode&&dragging&&movedPx<6&&G.started&&!G.paused&&!dlgOpen){tearAt(aimX,aimZ);dragging=false;return;}
   if(buildSel&&dragging&&movedPx<6&&G.started&&!G.paused&&!dlgOpen){let gx=aimX,gz=aimZ;const dd=dist2(G.pos.x,G.pos.z,gx,gz);
    if(dd>7){const a=Math.atan2(gx-G.pos.x,gz-G.pos.z);gx=G.pos.x+Math.sin(a)*7;gz=G.pos.z+Math.cos(a)*7;}
    if(ghostValid(gx,gz))placeBuild(gx,gz);else toast('The mud refuses. Find sound ground closer in.','bad');dragging=false;return;}
