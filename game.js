@@ -620,7 +620,7 @@ const G={started:false,paused:false,dead:false,ending:false,day:1,time:8.0,weath
  killsByFoe:{},taxPaid:false,debtBook:0,shoeFound:0,bellRung:false,endingShown:false,pos:{x:6,z:10}};
 QUESTS.forEach(q=>G.quests[q.id]={st:'lock',have:{}});
 G.work={};G.shifts=0;G.grave=null;G.mana=100;G.maxmana=100;G.haggle={xp:0,tier:0};G.traits=[];
-G.song=null;G.songGap=6;G.autoplay=true;G.musicHold=false;G.lastSong=null;G.sneaking=false;G.flash=0;G.worn={};G.craftSel=null;
+G.song=null;G.songGap=6;G.autoplay=true;G.musicHold=false;G.lastSong=null;G.sneaking=false;G.flash=0;G.worn={};G.craftSel=null;G.reloadT=0;G.dryT=0;
 function qdef(id){return QUESTS.find(q=>q.id===id);}
 function karmaTitle(k){if(k>=60)return 'Saint of the Bayou';if(k>=35)return 'Friend of the Commune';if(k>=12)return 'Trusted Neighbour';if(k>-12)return 'Wanderer of the Bayou';if(k>-35)return 'Suspect Soul';if(k>-60)return 'Hound of the Seigneur';return 'Butcher of the Mud';}
 function addKarma(n,why){G.karma=clamp(G.karma+n,-100,100);toast((n>0?'+':'')+n+' ⚖ '+(why||''),n>=0?'good':'bad');refreshHUD();}
@@ -1386,14 +1386,52 @@ function shove(){if(shoveCd>0||G.dead||G.paused||!G.started||dlgOpen)return;shov
   hurtCritter(c,3+2*skillLvl('brawl'));hit=true;}}
  if(playerMesh.userData.arm){playerMesh.userData.arm.rotation.x=-1.2;setTimeout(()=>{if(playerMesh.userData.arm)playerMesh.userData.arm.rotation.x=0;},150);}
  if(hit)gainXp('brawl',1);}
+const WEAPON_STATS={fists:{range:1.8,arc:100,knock:1.0,crit:0.05},cudgel:{range:2.2,arc:110,knock:1.6,crit:0.08},rapier:{range:2.6,arc:70,knock:0.8,crit:0.15},axe:{range:2.5,arc:100,knock:2.0,crit:0.12},spear:{range:3.4,arc:55,knock:1.2,crit:0.12},silver:{range:2.4,arc:70,knock:0.8,crit:0.2},torch:{range:2.2,arc:100,knock:1.0,crit:0.05}};
+let targetRing=null;
+function facingAngle(){return (typeof aiming!=='undefined'&&aiming)?Math.atan2(aimX-G.pos.x,aimZ-G.pos.z):(playerMesh?playerMesh.rotation.y:0);}
+function inArc(x,z,range,arc){const d=dist2(G.pos.x,G.pos.z,x,z);if(d>range||d<0.05)return 0;
+ const a=Math.atan2(x-G.pos.x,z-G.pos.z);let dd=a-facingAngle();while(dd>Math.PI)dd-=Math.PI*2;while(dd<-Math.PI)dd+=Math.PI*2;
+ return Math.abs(dd)<(arc*Math.PI/180)/2?d:0;}
+function meleeAttack(w){const st=WEAPON_STATS[G.weapon]||WEAPON_STATS.rapier;
+ const wt=G.weapon==='fists'?'brawl':(G.weapon==='axe'?'axe':(G.weapon==='spear'?'pike':((G.weapon==='cudgel'||G.weapon==='torch')?'blunt':'blade')));
+ const base=(w.dmg+rand(-2,4))*(1+0.08*skillLvl(wt))*(1+0.04*skillLvl('might'))*(T('smitharms')?1.15:1)*(T('strong')?1.2:1)*(aiming?1.25:1)*(G.parts?(0.7+0.3*Math.min(G.parts.larm,G.parts.rarm)/100):1);
+ if(T('clumsy')&&Math.random()<0.08){toast('🦶 Clumsy swing — air wins.','bad');return;}
+ let hits=0;
+ const order=[...foes].map(f=>({f,d:inArc(f.mesh.position.x,f.mesh.position.z,st.range,st.arc)})).filter(o=>o.d>0).sort((a,b)=>a.d-b.d).slice(0,3);
+ for(const o of order){const f=o.f;let dmg=base;
+  if(G.weapon==='silver'&&f.type==='wolf')dmg*=3;
+  if(G.inv.bible&&['ghost','vamp'].includes(f.type))dmg*=1.6;
+  const unaware=f.hp>=f.maxhp;
+  const crit=Math.random()<(st.crit+(unaware?0.35:0)+(G.sneaking?0.1:0));
+  if(crit){dmg*=2;if(unaware)subtitle('🗡 Ambushed from the '+(G.sneaking?'shadows':'blind side')+'! (critical)');}
+  if(dmg>25||crit)f.down=2.5;
+  const dx=f.mesh.position.x-G.pos.x,dz=f.mesh.position.z-G.pos.z,dd=Math.hypot(dx,dz)||1;
+  const cc=collide(clamp(f.mesh.position.x+dx/dd*st.knock,-112,112),clamp(f.mesh.position.z+dz/dd*st.knock,-112,112),0.6);
+  f.mesh.position.x=cc.x;f.mesh.position.z=cc.z;
+  hurtFoe(f,dmg,false);hits++;}
+ for(const c of [...critters]){if(c.d.flying)continue;
+  if(inArc(c.mesh.position.x,c.mesh.position.z,st.range,st.arc))hurtCritter(c,base);}
+ if(hits>0)gainXp(wt,2);}
+function makeTargetRing(){if(targetRing)return;targetRing=new THREE.Mesh(new THREE.RingGeometry(0.7,0.95,24),new THREE.MeshBasicMaterial({color:0xff3333,transparent:true,opacity:0.8,side:THREE.DoubleSide}));targetRing.rotation.x=-Math.PI/2;targetRing.visible=false;scene.add(targetRing);}
+function updateTargetRing(){if(!targetRing){return;}if(G.dead||!G.started){targetRing.visible=false;return;}
+ const w=ITEMS[G.weapon];let bd=0,st=null;
+ if(w&&w.ranged){bd=aiming?(G.weapon==='blunderbuss'?13:(T('shortsighted')?20:28)):0;}
+ else{st=WEAPON_STATS[G.weapon]||WEAPON_STATS.rapier;bd=st.range;}
+ let best=null;
+ if(bd>0){for(const f of foes){const d=w.ranged?dist2(G.pos.x,G.pos.z,f.mesh.position.x,f.mesh.position.z):inArc(f.mesh.position.x,f.mesh.position.z,st.range,st.arc);if(d>0&&d<bd){bd=d;best=f;}}}
+ if(best){targetRing.visible=true;targetRing.position.set(best.mesh.position.x,0.12,best.mesh.position.z);const s=1+Math.sin(performance.now()/200)*0.12;targetRing.scale.set(s,s,1);}
+ else targetRing.visible=false;}
 let atkCd=0;
 function playerAttack(){if(atkCd>0||G.dead||G.paused||!G.started)return;
  const w=ITEMS[G.weapon]||ITEMS.rapier;atkCd=w.ranged?Math.max(0.6,1.1-0.05*skillLvl('musket')-(T('dextrous')?0.15:0)):(G.weapon==='axe'?0.7:(G.weapon==='spear'?0.6:((G.weapon==='cudgel'||G.weapon==='fists')?0.32:0.42)));
  AudioSys.sfx(w.ranged?'shot':'swing');
  if(playerMesh.userData.arm)playerMesh.userData.arm.rotation.x=-1.6;
  setTimeout(()=>{if(playerMesh.userData.arm)playerMesh.userData.arm.rotation.x=0;},180);
- if(w.ranged){const needAmmo=G.weapon==='blunderbuss'?2:1;
+ if(w.ranged){if(!aiming){toast('Hold RMB to aim a firearm — parish rules.','bad');return;}
+  if(G.reloadT>0){if(!G.dryT||performance.now()>G.dryT){G.dryT=performance.now()+1000;toast('…reloading…');}return;}
+  const needAmmo=G.weapon==='blunderbuss'?2:1;
   if((G.inv.ammo||0)<needAmmo){toast('No cartridge! Craft powder & ball (X).','bad');return;}
+  G.reloadT=G.weapon==='blunderbuss'?2.8:Math.max(1.2,2.2-0.1*skillLvl('musket'));
   for(let i=0;i<needAmmo;i++)takeItem('ammo',1);gainXp('powder',1);G.shake=Math.max(G.shake||0,0.25);
   for(let i=0;i<10;i++)spawnP(G.pos.x,1.5,G.pos.z,rand(-4,4),rand(1,4),rand(-4,4),0.5,0xffc46a);
   if(G.weapon==='blunderbuss'){let hit=0;const bdmg=(w.dmg+rand(0,8))*(1+0.1*skillLvl('musket'))*(aiming?1.25:1);
@@ -1403,16 +1441,7 @@ function playerAttack(){if(atkCd>0||G.dead||G.paused||!G.started)return;
   let best=null,bd=T('shortsighted')?20:28,bestC=null;
   for(const f of foes){const d=dist2(G.pos.x,G.pos.z,f.mesh.position.x,f.mesh.position.z);if(d<bd){bd=d;best=f;bestC=null;}}
   for(const c of critters){if(c.d.flying)continue;const d=dist2(G.pos.x,G.pos.z,c.mesh.position.x,c.mesh.position.z);if(d<bd){bd=d;bestC=c;best=null;}}  if(best){hurtFoe(best,(w.dmg+rand(0,10))*(1+0.1*skillLvl('musket'))*(aiming?1.25:1),true);gainXp('musket',3);}else if(bestC)hurtCritter(bestC,(w.dmg+rand(0,10))*(1+0.1*skillLvl('musket')));return;}
- for(const f of foes){const d=dist2(G.pos.x,G.pos.z,f.mesh.position.x,f.mesh.position.z);
-  if(d<3.0){const wt=G.weapon==='fists'?'brawl':(G.weapon==='axe'?'axe':(G.weapon==='spear'?'pike':((G.weapon==='cudgel'||G.weapon==='torch')?'blunt':'blade')));
-   let dmg=(w.dmg+rand(-2,4))*(1+0.08*skillLvl(wt))*(1+0.04*skillLvl('might'))*(T('smitharms')?1.15:1)*(aiming?1.25:1)*(T('strong')?1.2:1)*(G.parts?(0.7+0.3*Math.min(G.parts.larm,G.parts.rarm)/100):1);
-   if(wt==='brawl')dmg+=2*skillLvl('brawl')+(T('brawler')?4:0);
-   if(G.weapon==='silver'&&f.type==='wolf')dmg*=3;
-   if(G.inv.bible&&['ghost','vamp'].includes(f.type))dmg*=1.6;
-   if(T('clumsy')&&Math.random()<0.08){toast('🦶 Clumsy swing — air wins.','bad');}else{hurtFoe(f,dmg,false);gainXp(wt,2);}}}
- for(const c of [...critters]){if(c.d.flying)continue;const d=dist2(G.pos.x,G.pos.z,c.mesh.position.x,c.mesh.position.z);
-  if(d<3.0){const wt2=G.weapon==='fists'?'brawl':(G.weapon==='axe'?'axe':(G.weapon==='spear'?'pike':((G.weapon==='cudgel'||G.weapon==='torch')?'blunt':'blade')));
-   hurtCritter(c,(w.dmg+rand(-2,4))*(1+0.08*skillLvl(wt2))*(1+0.04*skillLvl('might')));gainXp(wt2,2);}}}
+ meleeAttack(w);}
 function hurtFoe(f,dmg,ranged){f.hp-=dmg;AudioSys.sfx('hit');blood(f.mesh.position.x,f.mesh.position.z);
  subtitle(f.d.n+': '+choice(['“Pay us.”','“The ledger bleeds.”','“Mud to mud, debt to debt.”','“Hssss.”','“You weigh nothing.”']));
  if(f.hp<=0)killFoe(f);}
@@ -1445,6 +1474,7 @@ function hurtPlayer(dmg,why){if(G.dead||!G.started||G.paused||dlgOpen)return;
 /* ---- foe AI ---- */
 function foeUpdate(f,dt){const m=f.mesh;f.cd-=dt;
  const px=G.pos.x,pz=G.pos.z;const d=dist2(m.position.x,m.position.z,px,pz);
+ if(f.down>0){f.down-=dt;m.rotation.x=1.1;m.position.y=0.2;if(f.down<=0){m.rotation.x=0;if(f.type!=='ghost')m.position.y=0;}return;}
  const sanctuary=dist2(px,pz,-34,-12)<13;
  let spd=f.d.spd;
  if(f.type==='wolf'&&!isNight())spd*=0.55;
@@ -2298,7 +2328,7 @@ function startGame(continued){G.started=true;G.paused=false;
 let lastT=0,miniT=0;
 function animate(t){requestAnimationFrame(animate);const dt=Math.min(0.05,(t-lastT)/1000||0.016);lastT=t;
  if(!G.started||G.paused){renderer&&renderer.render(scene,camera);return;}
- atkCd-=dt;shoveCd-=dt;shoutCd-=dt;
+ atkCd-=dt;shoveCd-=dt;shoutCd-=dt;if(G.reloadT>0)G.reloadT-=dt;
  // movement
  let mx=0,mz=0;if(!dlgOpen&&!G.dead){if(keys['w']||keys['arrowup'])mz-=1;if(keys['s']||keys['arrowdown'])mz+=1;
   if(keys['a']||keys['arrowleft'])mx-=1;if(keys['d']||keys['arrowright'])mx+=1;}
@@ -2339,7 +2369,7 @@ function animate(t){requestAnimationFrame(animate);const dt=Math.min(0.05,(t-las
  advanceTime(dt);survival(dt);sanityAura(dt);updateSky();nightSpawns(dt);
  foes.forEach(f=>foeUpdate(f,dt));npcs.forEach(n=>npcUpdate(n,dt));
  critters.forEach(c=>critterUpdate(c,dt));critterSpawns(dt);horses.forEach(h=>horseUpdate(h,dt));
- fires.forEach(f=>{f.flame.rotation.y+=dt*3;});forageUpdate();updateParticles(dt);
+ fires.forEach(f=>{f.flame.rotation.y+=dt*3;});forageUpdate();updateParticles(dt);updateTargetRing();
  if(buildSel&&ghostMesh){let gx=aimX,gz=aimZ;const dd=dist2(G.pos.x,G.pos.z,gx,gz);
   if(dd>7){const a=Math.atan2(gx-G.pos.x,gz-G.pos.z);gx=G.pos.x+Math.sin(a)*7;gz=G.pos.z+Math.cos(a)*7;}
   ghostMesh.position.set(gx,(buildSel.flat?0.2:buildSel.h/2),gz);
@@ -2365,7 +2395,7 @@ function animate(t){requestAnimationFrame(animate);const dt=Math.min(0.05,(t-las
  miniT-=dt;if(miniT<=0){miniT=1;checkQuestVisit();drawMini();refreshTracker();ck3alerts();
   $('clock-day').textContent='Day '+G.day+' · '+seasonFor(G.day).e+' '+seasonFor(G.day).n+' '+yearFor(G.day);$('clock-time').textContent=(isNight()?'☾ ':'☀ ')+fmtT(G.time);}
  renderer.render(scene,camera);}
-function boot(){initThree();buildWorld();initParticles();initMist();bootWindows();bootTips();buildPlayer();spawnNPCs();
+function boot(){initThree();buildWorld();initParticles();initMist();bootWindows();bootTips();makeTargetRing();buildPlayer();spawnNPCs();
  const autoMus=()=>{try{if(!AudioSys.ctx)AudioSys.init();if(AudioSys.ctx&&AudioSys.ctx.state==='suspended')AudioSys.ctx.resume();}catch(e){}};
  window.addEventListener('pointerdown',autoMus);window.addEventListener('keydown',autoMus);bindInput();wireButtons();
  spawnFoe('risen',40,10);spawnFoe('risen',-50,30);spawnFoe('ghost',-66,10);
