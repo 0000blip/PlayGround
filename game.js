@@ -143,6 +143,19 @@ const ITEMS={
  possum:{n:'Opossum',e:'🐀',d:'Played dead; lost the argument. +14 hunger.',use:'eat',hunger:14,price:3},
  bone:{n:'Old bones',e:'☠',d:'Levy-issue, long discharged. Apothecaries and priests pay.',price:2},
  locket:{n:'Silver locket',e:'💠',d:'Miniature portraits inside — Odette’s mother, unmistakably. Quest relic.',price:0,quest:true},
+ /* --- cookery: evolved parish dishes, all botanically local --- */
+ gumbo:{n:'Bayou gumbo',e:'🍲',d:'Crawfish, onion, sassafras, patience. +55 hunger, +4 reason.',use:'eat',hunger:55,sanity:4,price:12},
+ pudding:{n:'Persimmon pudding',e:'🍮',d:'Baked in coals, honeyed by frost. +40 hunger.',use:'eat',hunger:40,price:8},
+ smoked:{n:'Smoked venison',e:'🥩',d:'Hickory-smoked; keeps the wolves philosophical. +45 hunger.',use:'eat',hunger:45,price:10},
+ fricassee:{n:'Frog fricassee',e:'🍛',d:'Legs in wine with onion. +42 hunger.',use:'eat',hunger:42,price:9},
+ soup:{n:'Turtle soup',e:'🍵',d:'Seven meats, one pot. +48 hunger, +8 HP.',use:'eat',hunger:48,hp:8,price:11},
+ mash:{n:'Pawpaw mash',e:'🥣',d:'Custard fruit beaten with nuts. +38 hunger.',use:'eat',hunger:38,price:7},
+ cakes:{n:'Cattail cakes',e:'🥞',d:'Root flour, griddle-crisped. +36 hunger.',use:'eat',hunger:36,price:7},
+ hotpot:{n:'Hunter’s pot',e:'🍲',d:'Venison, groundnut, onion, all day. +60 hunger, +5 HP.',use:'eat',hunger:60,hp:5,price:14},
+ tea:{n:'Yaupon tea',e:'🍵',d:'The black drink, cassina-strong. +4 hunger, +20 reason.',use:'drink',hunger:4,sanity:20,price:6},
+ brew:{n:'Sassafras brew',e:'🍺',d:'Root beer of the woods. +10 hunger, +10 reason.',use:'drink',hunger:10,sanity:10,price:6},
+ mix:{n:'Trail mix',e:'🥜',d:'Hickory, maypop, pecan. +30 hunger.',use:'eat',hunger:30,price:6},
+ smothered:{n:'Smothered gator',e:'🍖',d:'Low and slow with onion and crawfish. +65 hunger, +5 HP.',use:'eat',hunger:65,hp:5,price:16},
  wine:{n:'Claret',e:'🍷',d:'French wine, cellared through the crossing. +6 hunger, +12 reason.',use:'drink',hunger:6,sanity:12,price:6},
  tafia:{n:'Tafia',e:'🥃',d:'Raw cane spirit. Burns clean through grief. +2 hunger, +18 reason, −5 HP.',use:'drink',hunger:2,sanity:18,hp:-5,price:8},
  tobacco:{n:'Pipe tobacco',e:'🚬',d:'Virginia leaf. Smoke a bowl and watch the mist. +10 reason, −2 HP.',use:'smoke',sanity:10,hp:-2,price:3},
@@ -161,6 +174,18 @@ const RECIPES=[
  {id:'snakeoil',n:'Snake-oil cure',need:{venom:1,sassafras:1},make:{tonic:1},txt:'1 venom sac + 1 sassafras → 1 fever tonic (the one honest cure)'},
  {id:'dugout',n:'Dugout canoe',need:{plank:6,nail:2},make:{canoe:1},txt:'6 plank + 2 nail → 1 launchable canoe (fast on water, drag on land)'},
  {id:'grisgris',n:'Gris-gris bag',need:{herb:1,candle:1},make:{grisgris:1},cost:5,txt:'herb + candle + 5 livres → gris-gris (+20 max spirit, carry it)'},
+ {id:'gumbo',cat:'cook',cookTier:1,fire:1,n:'Bayou gumbo',need:{crawfish:1,onion:1,sassafras:1},make:{gumbo:1},txt:'crawfish + onion + sassafras → gumbo (fire, apprentice cook)'},
+ {id:'pudding',cat:'cook',fire:1,n:'Persimmon pudding',need:{persimmon:2,acorn:1},make:{pudding:1},txt:'2 persimmon + acorn → pudding (fire)'},
+ {id:'smoked',cat:'cook',cookTier:1,fire:1,n:'Smoked venison',need:{venison:1,hickory:1},make:{smoked:1},txt:'venison + hickory → smoked (fire, apprentice)'},
+ {id:'fricassee',cat:'cook',fire:1,n:'Frog fricassee',need:{froglegs:1,onion:1,wine:1},make:{fricassee:1},txt:'frog legs + onion + wine → fricassee (fire)'},
+ {id:'soup',cat:'cook',cookTier:1,fire:1,n:'Turtle soup',need:{turtle:1,onion:1,herb:1},make:{soup:1},txt:'turtle + onion + herb → soup (fire, apprentice)'},
+ {id:'mash',cat:'cook',n:'Pawpaw mash',need:{pawpaw:1,muscadine:1,pecan:1},make:{mash:1},txt:'pawpaw + muscadine + pecan → mash (no fire)'},
+ {id:'cakes',cat:'cook',fire:1,n:'Cattail cakes',need:{cattail:2,groundnut:1},make:{cakes:1},txt:'2 cattail + groundnut → cakes (fire)'},
+ {id:'hotpot',cat:'cook',cookTier:2,fire:1,n:'Hunter’s pot',need:{venison:1,groundnut:1,onion:1},make:{hotpot:1},txt:'venison + groundnut + onion → pot (fire, journeyman)'},
+ {id:'tea',cat:'cook',fire:1,n:'Yaupon tea',need:{yaupon:2},make:{tea:1},txt:'2 yaupon → tea (fire, +20 reason)'},
+ {id:'brew',cat:'cook',fire:1,n:'Sassafras brew',need:{sassafras:1,muscadine:1},make:{brew:1},txt:'sassafras + muscadine → brew (fire)'},
+ {id:'mix',cat:'cook',n:'Trail mix',need:{hickory:1,maypop:1,pecan:1},make:{mix:1},txt:'hickory + maypop + pecan → mix (no fire)'},
+ {id:'smothered',cat:'cook',cookTier:2,fire:1,n:'Smothered gator',need:{gator:1,onion:1,crawfish:1},make:{smothered:1},txt:'gator + onion + crawfish → smothered (fire, journeyman)'},
 ];
 const ZONES=[
  {id:'palisade',n:'The Palisade',x:0,z:0,r:58},{id:'manor',n:'Seigneur’s Manor',x:0,z:-46,r:16},
@@ -517,13 +542,13 @@ function canvasTex(size,fn,rx,ry){const c=document.createElement('canvas');c.wid
  t.colorSpace=THREE.SRGBColorSpace;return t;}
 function grain(x,s,n,cols){for(let i=0;i<n;i++){x.fillStyle=cols[Math.floor(Math.random()*cols.length)];x.globalAlpha=rand(0.15,0.5);x.fillRect(rand(0,s),rand(0,s),rand(1,4),rand(1,4));}x.globalAlpha=1;}
 const TEX={
- mud:canvasTex(256,(x,s)=>{x.fillStyle='#4a4234';x.fillRect(0,0,s,s);grain(x,s,900,['#3a3226','#5a5040','#2e2820','#6a5c44']);},24,24),
- daub:canvasTex(256,(x,s)=>{x.fillStyle='#9a8a68';x.fillRect(0,0,s,s);grain(x,s,700,['#8a7a5a','#aa9a78','#7a6a4a']);x.strokeStyle='rgba(60,45,30,0.5)';x.lineWidth=3;for(let i=0;i<=4;i++){x.beginPath();x.moveTo(0,i*64);x.lineTo(s,i*64);x.stroke();x.beginPath();x.moveTo(i*64,0);x.lineTo(i*64,s);x.stroke();}},1,1),
- thatch:canvasTex(256,(x,s)=>{x.fillStyle='#6a5a34';x.fillRect(0,0,s,s);x.lineWidth=2;for(let r=0;r<8;r++){x.strokeStyle=r%2?'#5a4a28':'#7a6a40';for(let i=0;i<40;i++){const y=r*32+rand(0,8);x.beginPath();x.moveTo(rand(-10,s),y);x.lineTo(rand(0,s+10),y+rand(-4,10));x.stroke();}}},2,2),
- shingle:canvasTex(256,(x,s)=>{x.fillStyle='#3a3430';x.fillRect(0,0,s,s);for(let r=0;r<8;r++)for(let cix=0;cix<8;cix++){x.fillStyle=(r+cix)%2?'#443c34':'#322c28';x.fillRect(cix*32+(r%2?16:0)-16,r*32,30,30);}},2,2),
- wood:canvasTex(256,(x,s)=>{x.fillStyle='#5a4630';x.fillRect(0,0,s,s);for(let i=0;i<46;i++){x.strokeStyle='rgba(30,20,12,'+rand(0.3,0.7)+')';x.lineWidth=rand(1,3);const y=rand(0,s);x.beginPath();x.moveTo(0,y);x.bezierCurveTo(s*0.3,y+rand(-6,6),s*0.7,y+rand(-6,6),s,y);x.stroke();}},1,1),
- stone:canvasTex(256,(x,s)=>{x.fillStyle='#7a7a72';x.fillRect(0,0,s,s);grain(x,s,500,['#6a6a62','#8a8a80','#5a5a52']);x.strokeStyle='rgba(40,40,36,0.6)';x.lineWidth=2;for(let i=0;i<=3;i++){x.beginPath();x.moveTo(0,i*85);x.lineTo(s,i*85);x.stroke();}},1,1),
- water:canvasTex(256,(x,s)=>{x.fillStyle='#16262c';x.fillRect(0,0,s,s);x.strokeStyle='rgba(90,140,140,0.35)';x.lineWidth=2;for(let i=0;i<26;i++){const y=rand(0,s);x.beginPath();x.moveTo(rand(0,s),y);x.lineTo(rand(0,s),y+rand(-3,3));x.stroke();}},3,3),
+ mud:canvasTex(256,(x,s)=>{x.fillStyle='#b8ad99';x.fillRect(0,0,s,s);grain(x,s,900,['#a89d89','#c8bda9','#988d79','#d8cdb9']);},24,24),
+ daub:canvasTex(256,(x,s)=>{x.fillStyle='#d8c8a8';x.fillRect(0,0,s,s);grain(x,s,700,['#c8b898','#e8d8b8','#b8a888']);x.strokeStyle='rgba(90,70,45,0.5)';x.lineWidth=3;for(let i=0;i<=4;i++){x.beginPath();x.moveTo(0,i*64);x.lineTo(s,i*64);x.stroke();x.beginPath();x.moveTo(i*64,0);x.lineTo(i*64,s);x.stroke();}},1,1),
+ thatch:canvasTex(256,(x,s)=>{x.fillStyle='#b09a68';x.fillRect(0,0,s,s);x.lineWidth=2;for(let r=0;r<8;r++){x.strokeStyle=r%2?'#a08a58':'#c0aa78';for(let i=0;i<40;i++){const y=r*32+rand(0,8);x.beginPath();x.moveTo(rand(-10,s),y);x.lineTo(rand(0,s+10),y+rand(-4,10));x.stroke();}}},2,2),
+ shingle:canvasTex(256,(x,s)=>{x.fillStyle='#8a8078';x.fillRect(0,0,s,s);for(let r=0;r<8;r++)for(let cix=0;cix<8;cix++){x.fillStyle=(r+cix)%2?'#948a80':'#7a7068';x.fillRect(cix*32+(r%2?16:0)-16,r*32,30,30);}},2,2),
+ wood:canvasTex(256,(x,s)=>{x.fillStyle='#a8845e';x.fillRect(0,0,s,s);for(let i=0;i<46;i++){x.strokeStyle='rgba(80,55,30,'+rand(0.3,0.7)+')';x.lineWidth=rand(1,3);const y=rand(0,s);x.beginPath();x.moveTo(0,y);x.bezierCurveTo(s*0.3,y+rand(-6,6),s*0.7,y+rand(-6,6),s,y);x.stroke();}},1,1),
+ stone:canvasTex(256,(x,s)=>{x.fillStyle='#c2c2b8';x.fillRect(0,0,s,s);grain(x,s,500,['#b2b2a8','#d2d2c8','#a2a29a']);x.strokeStyle='rgba(90,90,86,0.6)';x.lineWidth=2;for(let i=0;i<=3;i++){x.beginPath();x.moveTo(0,i*85);x.lineTo(s,i*85);x.stroke();}},1,1),
+ water:canvasTex(256,(x,s)=>{x.fillStyle='#b8d4de';x.fillRect(0,0,s,s);x.strokeStyle='rgba(70,110,120,0.4)';x.lineWidth=2;for(let i=0;i<26;i++){const y=rand(0,s);x.beginPath();x.moveTo(rand(0,s),y);x.lineTo(rand(0,s),y+rand(-3,3));x.stroke();}},3,3),
  glow:canvasTex(128,(x,s)=>{const g=x.createRadialGradient(64,64,4,64,64,62);g.addColorStop(0,'rgba(255,200,120,1)');g.addColorStop(0.4,'rgba(255,150,60,0.5)');g.addColorStop(1,'rgba(255,120,30,0)');x.fillStyle=g;x.fillRect(0,0,s,s);}),
  soft:canvasTex(128,(x,s)=>{const g=x.createRadialGradient(64,64,4,64,64,62);g.addColorStop(0,'rgba(200,210,220,0.55)');g.addColorStop(1,'rgba(200,210,220,0)');x.fillStyle=g;x.fillRect(0,0,s,s);}),
 };
@@ -1293,17 +1318,24 @@ function renderInventory(){const g=$('inv-grid');g.innerHTML='';const ids=Object
   d.oncontextmenu=e=>{e.preventDefault();takeItem(id,1);addKarma(-1,'littering the commons');renderInventory();refreshHotbar();};
   g.appendChild(d);});
  $('inv-detail').textContent='Click: use/equip · Right-click: drop (−1 karma, the commune dislikes waste). Coins: '+G.coins+' livres.';}
+function nearFire(){for(const f of fires){if(dist2(G.pos.x,G.pos.z,f.x,f.z)<7)return true;}return false;}
 function renderCraft(){const l=$('craft-list');l.innerHTML='';
- RECIPES.forEach(r=>{const can=Object.entries(r.need).every(([k,n])=>n===0||hasItem(k,n))&&(!r.cost||G.coins>=r.cost);
+ ['field','cook'].forEach(cat=>{if(cat==='cook'){const h=document.createElement('h4');h.style.color='#c9a227';h.style.margin='10px 0 4px';h.textContent='🍳 Cookery — hot dishes want a campfire close, skill opens the rest';l.appendChild(h);}
+ RECIPES.filter(r=>(r.cat||'field')===cat).forEach(r=>{const w=G.work.cook||{xp:0,tier:0};
+  const can=Object.entries(r.need).every(([k,n])=>n===0||hasItem(k,n))&&(!r.cost||G.coins>=r.cost)&&(!r.cookTier||w.tier>=r.cookTier);
   const d=document.createElement('div');d.className='craft-row';
-  d.innerHTML='<span>🔨 <b>'+r.n+'</b><br><small>'+r.txt+'</small></span>';
-  const b=document.createElement('button');b.className='btn';b.textContent=can?'Make':'—';b.disabled=!can;
-  b.onclick=()=>{for(const [k,n] of Object.entries(r.need)){if(n>0)takeItem(k,n);}if(r.cost)G.coins-=r.cost;
+  d.innerHTML='<span>'+(r.cat==='cook'?'🍳':'🔨')+' <b>'+r.n+'</b><br><small>'+r.txt+'</small></span>';
+  const b=document.createElement('button');b.className='btn';b.textContent=r.cookTier&&w.tier<r.cookTier?TIER_NAMES[r.cookTier]+'+':(can?'Make':'—');b.disabled=!can;
+  b.onclick=()=>{if(r.fire&&!nearFire()){toast('🔥 This wants a campfire within a few paces.','bad');return;}
+   for(const [k,n] of Object.entries(r.need)){if(n>0)takeItem(k,n);}if(r.cost)G.coins-=r.cost;
    if(r.id==='plankwall'){addItem('barricade',1);G.hp=clamp(G.hp+10,0,G.maxhp);toast('🪵 Barricade bundled. Use it from your satchel to raise it. (+10 ❤)','good');}
    else for(const k in r.make)if(r.make[k]>0)addItem(k,r.make[k]);
    if(r.id==='silver')toast('🔪 Blessed silver dirk. Loups, beware.','good');
+   if(r.cat==='cook'){initWork();const cw=G.work.cook;cw.xp+=2;const nt=tierFor(cw.xp);
+    if(nt>cw.tier){cw.tier=nt;notify('🍳','Promotion: Cook — '+TIER_NAMES[nt],'The pot respects you now.',{major:true});}
+    toast('🍳 '+r.n+' — the commune will eat tonight. (Cook +2 XP)','good');}
    AudioSys.sfx('craft');addKarma(1,'honest labour');renderCraft();renderInventory();refreshHUD();refreshHotbar();};
-  d.appendChild(b);l.appendChild(d);});}
+  d.appendChild(b);l.appendChild(d);});});}
 function renderQuests(){const l=$('quest-list');l.innerHTML='';
  const open=QUESTS.filter(q=>G.quests[q.id].st==='open'),act=QUESTS.filter(q=>G.quests[q.id].st==='active'),done=QUESTS.filter(q=>G.quests[q.id].st==='done');
  if(!open.length&&!act.length)l.innerHTML='<i>No 重庆 ledger entries. Talk to townsfolk (E) — grief is generous with work.</i>';
