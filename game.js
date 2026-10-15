@@ -165,6 +165,50 @@ const ITEMS={
  brew:{n:'Sassafras brew',e:'🍺',d:'Root beer of the woods. +10 hunger, +10 reason.',use:'drink',hunger:10,sanity:10,price:6},
  mix:{n:'Trail mix',e:'🥜',d:'Hickory, maypop, pecan. +30 hunger.',use:'eat',hunger:30,price:6},
  smothered:{n:'Smothered gator',e:'🍖',d:'Low and slow with onion and crawfish. +65 hunger, +5 HP.',use:'eat',hunger:65,hp:5,price:16},
+ /* --- clothes & armor: worn for protection, Zomboid-style --- */
+ straw_hat:{n:'Straw hat',e:'👒',d:'Sun off the neck. 5 head.',use:'wear',slot:'head',def:5,price:3},
+ cavalier_hat:{n:'Cavalier hat',e:'🎩',d:'Broad brim, plumed past. 8 head.',use:'wear',slot:'head',def:8,price:6},
+ coif_cap:{n:'Linen coif',e:'🧢',d:'Tied under the chin. 5 head.',use:'wear',slot:'head',def:5,price:2},
+ tricorn:{n:'Black tricorn',e:'🤠',d:'Authority, cocked three ways. 10 head.',use:'wear',slot:'head',def:10,price:9},
+ rusty_helm:{n:'Rusty morion',e:'⛑',d:'A levy’s leftover. 35 head.',use:'wear',slot:'head',def:35,price:12},
+ linen_shirt:{n:'Linen shirt',e:'👕',d:'Sweat and honesty. 5 torso.',use:'wear',slot:'torso',def:5,price:3},
+ justaucorps:{n:'Justaucorps coat',e:'🧥',d:'Cut for a gentleman, worn by you. 15 torso.',use:'wear',slot:'torso',def:15,price:12},
+ leather_apron:{n:'Leather apron',e:'🥋',d:'Smith’s hide. 25 torso.',use:'wear',slot:'torso',def:25,price:10},
+ brocade_coat:{n:'Brocade coat',e:'🧥',d:'Stripped from the vain dead. 30 torso.',use:'wear',slot:'torso',def:30,price:25},
+ greatcoat:{n:'Greatcoat',e:'🧥',d:'Winter issue. 20 torso, laughs at frost.',use:'wear',slot:'torso',def:20,warm:1,price:14},
+ ragged_shirt:{n:'Ragged shirt',e:'🎽',d:'Somebody’s shroud, washed. 3 torso.',use:'wear',slot:'torso',def:3,price:1},
+ breeches:{n:'Wool breeches',e:'🩳',d:'Knee-bound and honest. 10 legs.',use:'wear',slot:'legs',def:10,price:5},
+ work_trousers:{n:'Work trousers',e:'👖',d:'Canvas, patched. 12 legs.',use:'wear',slot:'legs',def:12,price:6},
+ petticoat:{n:'Wool petticoat',e:'👗',d:'Layers against mud and gaze. 8 legs.',use:'wear',slot:'legs',def:8,price:5},
+ work_gloves:{n:'Work gloves',e:'🧤',d:'Hands kept. 15 arms.',use:'wear',slot:'arms',def:15,price:4},
+ lace_gloves:{n:'Lace gloves',e:'🧤',d:'Vain and delicate. 5 arms.',use:'wear',slot:'arms',def:5,price:7},
+ sabots:{n:'Wooden sabots',e:'🥿',d:'Clatter through mud. 8 feet.',use:'wear',slot:'feet',def:8,price:3},
+ boots:{n:'Tall boots',e:'🥾',d:'Up to the knee, through anything. 18 feet.',use:'wear',slot:'feet',def:18,price:11},
+ /* --- more blades --- */
+ saber:{n:'Cavalry saber',e:'⚔',d:'Dragoon’s curve. dmg 17, quick.',use:'equip',dmg:17,price:35},
+ knife:{n:'Skinning knife',e:'🔪',d:'dmg 9, quick. Skins game clean (+25% bonus drops).',use:'equip',dmg:9,price:12},
+ poker:{n:'Fire poker',e:'🥢',d:'Straightened at the forge. dmg 10, very fast.',use:'equip',dmg:10,price:5},
+ /* --- tools of the trades --- */
+ hammer:{n:'Claw hammer',e:'🔨',d:'Mends +10, hangs pictures of debts. Smiths love it.',price:8},
+ saw:{n:'Pit saw',e:'🪚',d:'Two-man song in steel. +2 carpenter pay.',price:10},
+ rod:{n:'Cane pole',e:'🎣',d:'Twelve feet of patience. +1 share from crawfish pools.',price:7},
+ trowel:{n:'Garden trowel',e:'⛏',d:'Turns soil and luck. +1 farm harvest.',price:4},
+ cookpot:{n:'Iron cookpot',e:'🍲',d:'Stews, gumbos and soups REQUIRE it. Black as sin, twice as useful.',price:9},
+ skillet:{n:'Spider skillet',e:'🍳',d:'Cakes, puddings and smokes REQUIRE it.',price:8},
+ kettle:{n:'Copper kettle',e:'🫖',d:'Teas and brews REQUIRE it. Sings before boiling.',price:7},
+ knapsack:{n:'Canvas knapsack',e:'🎒',d:'Carry it: +12 pack cells.',price:10},
+ gamebag:{n:'Game bag',e:'👜',d:'Blood-proofed canvas. Carry it: +8 pack cells.',price:8},
+ snare:{n:'Twine snare',e:'🪤',d:'Use in the wild: set a snare, check it later. Trapping skill helps.',use:'trap',price:5},
+ lockpick:{n:'Lockpick',e:'🗝',d:'Bent wire, honest intentions (mostly). Opens locked boxes; may snap.',price:4},
+ /* --- trinkets & knick-knacks --- */
+ rabbitfoot:{n:'Rabbit foot',e:'🐇',d:'Carry it: +3% dodge. Somebody’s luck, transferred.',price:6},
+ crucifix:{n:'Brass crucifix',e:'✝',d:'Carry it: apparitions frighten less (−40% fright).',price:8},
+ ring:{n:'Gold band',e:'💍',d:'Somebody’s forever, pawned. Sells dear.',price:14},
+ button:{n:'Brass button',e:'🔘',d:'Officer’s button, bitten. Sells.',price:2},
+ pipe:{n:'Clay pipe',e:'🚬',d:'Long-stemmed. Sells; smokes nothing alone.',price:3},
+ dice:{n:'Bone dice',e:'🎲',d:'Loaded, obviously. Sells to the hopeful.',price:4},
+ medallion:{n:'Saint medallion',e:'🏅',d:'St. Expedite, patron of haste. Sells.',price:7},
+ feather:{n:'Heron feather',e:'🪶',d:'For hats, lures, and love letters. Sells.',price:2},
  wine:{n:'Claret',e:'🍷',d:'French wine, cellared through the crossing. +6 hunger, +12 reason.',use:'drink',hunger:6,sanity:12,price:6},
  tafia:{n:'Tafia',e:'🥃',d:'Raw cane spirit. Burns clean through grief. +2 hunger, +18 reason, −5 HP.',use:'drink',hunger:2,sanity:18,hp:-5,price:8},
  tobacco:{n:'Pipe tobacco',e:'🚬',d:'Virginia leaf. Smoke a bowl and watch the mist. +10 reason, −2 HP.',use:'smoke',sanity:10,hp:-2,price:3},
@@ -188,19 +232,21 @@ const RECIPES=[
  {id:'powder',cat:'field',n:'Black powder ×2',need:{charcoal:1,powder_herb:1,niter:1},make:{blackpowder:2},txt:'charcoal + brimstone + nitre → 2 powder'},
  {id:'grenado',cat:'field',n:'Grenado',need:{blackpowder:2,nail:2},make:{grenado:1},txt:'2 powder + 2 nails → 1 grenado (throwable)'},
  {id:'kegmake',cat:'field',n:'Powder keg',need:{blackpowder:4,plank:2},make:{keg:1},txt:'4 powder + 2 plank → 1 powder keg (placeable, E to light)'},
+ {id:'snaremake',cat:'field',n:'Twine snare',need:{herb:2,plank:1},make:{snare:1},txt:'2 herb + 1 plank → 1 snare (set it wild, check later)'},
+ {id:'picks',cat:'field',n:'Lockpicks ×2',need:{nail:1},make:{lockpick:2},txt:'1 nail → 2 lockpicks (Nine-Fingers’ trade)'},
  {id:'grisgris',n:'Gris-gris bag',need:{herb:1,candle:1},make:{grisgris:1},cost:5,txt:'herb + candle + 5 livres → gris-gris (+20 max spirit, carry it)'},
- {id:'gumbo',cat:'cook',cookTier:1,fire:1,n:'Bayou gumbo',need:{crawfish:1,onion:1,sassafras:1},make:{gumbo:1},txt:'crawfish + onion + sassafras → gumbo (fire, apprentice cook)'},
- {id:'pudding',cat:'cook',fire:1,n:'Persimmon pudding',need:{persimmon:2,acorn:1},make:{pudding:1},txt:'2 persimmon + acorn → pudding (fire)'},
- {id:'smoked',cat:'cook',cookTier:1,fire:1,n:'Smoked venison',need:{venison:1,hickory:1},make:{smoked:1},txt:'venison + hickory → smoked (fire, apprentice)'},
- {id:'fricassee',cat:'cook',fire:1,n:'Frog fricassee',need:{froglegs:1,onion:1,wine:1},make:{fricassee:1},txt:'frog legs + onion + wine → fricassee (fire)'},
- {id:'soup',cat:'cook',cookTier:1,fire:1,n:'Turtle soup',need:{turtle:1,onion:1,herb:1},make:{soup:1},txt:'turtle + onion + herb → soup (fire, apprentice)'},
+ {id:'gumbo',tool:'cookpot',cat:'cook',cookTier:1,fire:1,n:'Bayou gumbo',need:{crawfish:1,onion:1,sassafras:1},make:{gumbo:1},txt:'crawfish + onion + sassafras → gumbo (fire, apprentice cook)'},
+ {id:'pudding',tool:'skillet',cat:'cook',fire:1,n:'Persimmon pudding',need:{persimmon:2,acorn:1},make:{pudding:1},txt:'2 persimmon + acorn → pudding (fire)'},
+ {id:'smoked',tool:'skillet',cat:'cook',cookTier:1,fire:1,n:'Smoked venison',need:{venison:1,hickory:1},make:{smoked:1},txt:'venison + hickory → smoked (fire, apprentice)'},
+ {id:'fricassee',tool:'cookpot',cat:'cook',fire:1,n:'Frog fricassee',need:{froglegs:1,onion:1,wine:1},make:{fricassee:1},txt:'frog legs + onion + wine → fricassee (fire)'},
+ {id:'soup',tool:'cookpot',cat:'cook',cookTier:1,fire:1,n:'Turtle soup',need:{turtle:1,onion:1,herb:1},make:{soup:1},txt:'turtle + onion + herb → soup (fire, apprentice)'},
  {id:'mash',cat:'cook',n:'Pawpaw mash',need:{pawpaw:1,muscadine:1,pecan:1},make:{mash:1},txt:'pawpaw + muscadine + pecan → mash (no fire)'},
- {id:'cakes',cat:'cook',fire:1,n:'Cattail cakes',need:{cattail:2,groundnut:1},make:{cakes:1},txt:'2 cattail + groundnut → cakes (fire)'},
- {id:'hotpot',cat:'cook',cookTier:2,fire:1,n:'Hunter’s pot',need:{venison:1,groundnut:1,onion:1},make:{hotpot:1},txt:'venison + groundnut + onion → pot (fire, journeyman)'},
- {id:'tea',cat:'cook',fire:1,n:'Yaupon tea',need:{yaupon:2},make:{tea:1},txt:'2 yaupon → tea (fire, +20 reason)'},
- {id:'brew',cat:'cook',fire:1,n:'Sassafras brew',need:{sassafras:1,muscadine:1},make:{brew:1},txt:'sassafras + muscadine → brew (fire)'},
+ {id:'cakes',tool:'skillet',cat:'cook',fire:1,n:'Cattail cakes',need:{cattail:2,groundnut:1},make:{cakes:1},txt:'2 cattail + groundnut → cakes (fire)'},
+ {id:'hotpot',tool:'cookpot',cat:'cook',cookTier:2,fire:1,n:'Hunter’s pot',need:{venison:1,groundnut:1,onion:1},make:{hotpot:1},txt:'venison + groundnut + onion → pot (fire, journeyman)'},
+ {id:'tea',tool:'kettle',cat:'cook',fire:1,n:'Yaupon tea',need:{yaupon:2},make:{tea:1},txt:'2 yaupon → tea (fire, +20 reason)'},
+ {id:'brew',tool:'kettle',cat:'cook',fire:1,n:'Sassafras brew',need:{sassafras:1,muscadine:1},make:{brew:1},txt:'sassafras + muscadine → brew (fire)'},
  {id:'mix',cat:'cook',n:'Trail mix',need:{hickory:1,maypop:1,pecan:1},make:{mix:1},txt:'hickory + maypop + pecan → mix (no fire)'},
- {id:'smothered',cat:'cook',cookTier:2,fire:1,n:'Smothered gator',need:{gator:1,onion:1,crawfish:1},make:{smothered:1},txt:'gator + onion + crawfish → smothered (fire, journeyman)'},
+ {id:'smothered',tool:'cookpot',cat:'cook',cookTier:2,fire:1,n:'Smothered gator',need:{gator:1,onion:1,crawfish:1},make:{smothered:1},txt:'gator + onion + crawfish → smothered (fire, journeyman)'},
 ];
 const ZONES=[
  {id:'palisade',n:'The Palisade',x:0,z:0,r:58},{id:'manor',n:'Seigneur’s Manor',x:0,z:-46,r:16},
@@ -247,7 +293,7 @@ const QUESTS=[
  {id:'q_dead',n:'Bury the Unpaid',giver:'anselme',chain:'main',karma:10,desc:'Three paupers lie unburied by the cemetery; the Seigneur charges 5 livres a grave. Bury them yourself: find 3 shallow graves (E) in the cemetery.',obj:[{t:'bury',n:3,label:'paupers buried'}],rw:{bible:1,karma:10}},
  {id:'q_guide',n:'Water Knows the Way',giver:'jean',chain:'side',karma:6,desc:'Jean-Baptiste will mark the swamp paths if you walk them: visit the Bayou Landing, the Drowned Swamp heart, and the Ruined Mission.',obj:[{t:'visit',zone:'bayou',label:'Bayou Landing'},{t:'visit',zone:'swamp',label:'Drowned Swamp'},{t:'visit',zone:'ruins',label:'Ruined Mission'}],rw:{stew:2,coin:8,karma:6}},
  {id:'q_wolf',n:'Teeth of the Moon',giver:'lucile',chain:'side',karma:8,desc:'Lucile saw her cousin change under the full moon. Bring 2 wolf pelts — proof — and she will tell you whose roof he sleeps under.',obj:[{t:'kill',foe:'wolf',n:2,label:'loups slain'}],rw:{silver:1,coin:12,karma:8}},
- {id:'q_ghost',n:'The Bell Tolls Thirteen',giver:'anselme',chain:'main',karma:10,desc:'Apparitions infest the chapel yard. Banish 3 with blessed steel or torch-light, then ring the chapel bell (E at the chapel).',obj:[{t:'kill',foe:'ghost',n:3,label:'apparitions banished'}],rw:{coin:14,karma:10}},
+ {id:'q_ghost',n:'The Bell Tolls Thirteen',giver:'anselme',chain:'main',karma:10,desc:'Apparitions infest the chapel yard. Banish 3 with blessed steel or torch-light, then ring the chapel bell (E at the chapel).',obj:[{t:'kill',foe:'ghost',n:3,label:'apparitions banished'}],rw:{coin:14,crucifix:1,karma:10}},
  {id:'q_tax',n:'The Tithe of Blood',giver:'odette',chain:'main',karma:12,desc:'Huissier Poulain demands 30 livres from the cabins by sundown — or takes Seamus instead. Either pay him, or drive him off (talk, then choose). Gold or iron decides.',obj:[{t:'tax',n:1,label:'the tithe, settled'}],rw:{karma:12,coin:10}},
  {id:'q_child',n:'Lost in the Canebrake',giver:'lucile',chain:'side',karma:8,desc:'A child wandered to the gallows oak at dusk and has not returned. Find the small shoe (loot, glowing crate) and bring word back to Lucile.',obj:[{t:'collect',item:'deed',n:1,label:'clue of the lost child'}],rw:{stew:2,karma:8}},
  {id:'q_vamp',n:'An Invitation in Brocade',giver:'doctor',chain:'side',karma:7,desc:'The Chirurgien was invited to sup with the Sang-Mêlé at the Ruined Mission. Refuse for him: confront and destroy the vampire (1) — or parley, at your soul’s peril.',obj:[{t:'kill',foe:'vamp',n:1,label:'sang-mêlé destroyed'}],rw:{fang:0,coin:20,karma:7}},
@@ -259,7 +305,7 @@ const QUESTS=[
  {id:'q_w_cook',n:'Noon Soup',giver:'odette',chain:'side',karma:5,desc:'The cabin row eats at noon or not at all. Work 3 cook shifts at the market cookfire and nobody calls you stranger again.',obj:[{t:'work',job:'cook',n:3,label:'cook shifts'}],rw:{stew:1,karma:5}},
  {id:'q_w_pirate',n:'Crates Without Names',giver:'seraphine',chain:'side',karma:2,desc:'Certain crates must pass the landing without passing the taxman. Work 2 pirate shifts after dark-ish. Ask no questions; Séraphine will tell you no lies.',obj:[{t:'work',job:'pirate',n:2,label:'smuggling runs'}],rw:{coin:18,karma:2}},
  {id:'q_w_fisher',n:'Supper From the Water',giver:'lucile',chain:'side',karma:6,desc:'Lucile’s family nets are torn and her brothers are small. Work 3 fisherman shifts at the bayou or swamp spots and teach her the knots.',obj:[{t:'work',job:'fisherman',n:3,label:'fishing shifts'}],rw:{crawfish:2,karma:6}},
- {id:'q_w_hunter',n:'Prove Provider',giver:'seamus',chain:'side',karma:6,desc:'Seamus says a pamphlet never filled a belly. Work 3 hunter shifts at the east-woods trapper’s post and lay meat on the cabin table.',obj:[{t:'work',job:'hunter',n:3,label:'hunting shifts'}],rw:{rabbit:2,karma:6}},
+ {id:'q_w_hunter',n:'Prove Provider',giver:'seamus',chain:'side',karma:6,desc:'Seamus says a pamphlet never filled a belly. Work 3 hunter shifts at the east-woods trapper’s post and lay meat on the cabin table.',obj:[{t:'work',job:'hunter',n:3,label:'hunting shifts'}],rw:{rabbit:2,saber:1,karma:6}},
  {id:'q_w_sheriff',n:'The Watch Takes You',giver:'anselme',chain:'side',karma:8,desc:'The chapel cannot sanctuary the whole parish. Work 3 sheriff shifts at the gallows watch post; Anselme himself pins on the ribbon.',obj:[{t:'work',job:'sheriff',n:3,label:'watch shifts'}],rw:{coin:12,karma:8}},
  {id:'q_w_soldier',n:'Shoulder Arms',giver:'baptiste',chain:'side',karma:5,desc:'The militia drills with sticks and good intentions. Work 3 soldier shifts at the south-gate yard — someone here has actually stood in a line.',obj:[{t:'work',job:'soldier',n:3,label:'drill shifts'}],rw:{ammo:4,karma:5}},
  {id:'q_w_tavern',n:'The Back Room',giver:'seraphine',chain:'side',karma:5,desc:'Séraphine’s grog stall needs a steady hand and a deaf ear. Work 3 tavern shifts: pour, listen, forget by morning.',obj:[{t:'work',job:'tavern',n:3,label:'tavern shifts'}],rw:{wine:1,coin:8,karma:5}},
@@ -281,7 +327,7 @@ const QUESTS=[
  {id:'q_t_garden',n:'Seamus’s Acre',giver:'seamus',chain:'side',karma:7,trait:'gardener',desc:'For Gardeners only: Seamus’s strip could feed three families in the right hands. Gather 8 wild foods to prove the hands.',obj:[{t:'forage',n:8,label:'wild foods'}],rw:{bread:3,karma:7}},
  {id:'q_t_coward',n:'Face the Bell',giver:'anselme',chain:'side',karma:8,trait:'cowardly',desc:'For the Cowardly only: Anselme prescribes terror as medicine. Slay 3 loups and the fear may leave you for good.',obj:[{t:'kill',foe:'wolf',n:3,label:'loups slain'}],rw:{karma:8}},
  {id:'q_t_haunt',n:'Lay Them Down',giver:'anselme',chain:'side',karma:10,trait:'haunted',desc:'For the Haunted only: what follows you can be faced. Banish 4 apparitions and sleep unaccompanied at last.',obj:[{t:'kill',foe:'ghost',n:4,label:'apparitions banished'}],rw:{karma:10}},
- {id:'q_risen',n:'The Night Shift',giver:'baptiste',chain:'side',karma:7,desc:'The Risen walk in force after dark. Put 6 back into the mud. The commune defends itself.',obj:[{t:'kill',foe:'risen',n:6,label:'risen laid to rest'}],rw:{ammo:6,coin:10,karma:7}},
+ {id:'q_risen',n:'The Night Shift',giver:'baptiste',chain:'side',karma:7,desc:'The Risen walk in force after dark. Put 6 back into the mud. The commune defends itself.',obj:[{t:'kill',foe:'risen',n:6,label:'risen laid to rest'}],rw:{ammo:6,coin:10,boots:1,karma:7}},
  {id:'q_seal',n:'Seal of the Drowned',giver:'jean',chain:'side',karma:9,desc:'A demon-stain festers in the swamp heart. Gather 2 consecrated ash from destroyed apparitions? No — from the chapel brazier after banishings. Then cleanse the stain (E) in the swamp.',obj:[{t:'collect',item:'ash',n:2,label:'consecrated ash'}],rw:{coin:16,karma:9}},
  {id:'q_manor',n:'What the Manor Owes',giver:'seamus',chain:'main',karma:14,desc:'Seamus found the manor’s debt-book: 60 souls bought for 12 livres the head. Steal it from the manor chest (glowing crate behind the manor) and bring it to the market cross.',obj:[{t:'collect',item:'deed',n:2,label:'pages of the debt-book'}],rw:{karma:14,coin:15}},
  {id:'q_fang',n:'Ivory Needles',giver:'doctor',chain:'side',karma:6,desc:'Fauche pays 15 livres a fang and asks no questions. Bring 2 vampire fangs. Science, he calls it.',obj:[{t:'collect',item:'fang',n:2,label:'vampire fangs'}],rw:{coin:30,karma:2}},
@@ -370,7 +416,7 @@ function gatherForage(it){const sp=FORAGE_DEFS[it.species];
  addItem(sp.item,1);
  if(Math.random()<0.1*skillLvl('forage')+(T('rootwise')?0.15:0)+(T('outdoorsman')?0.1:0)){addItem(sp.item,1);toast('🌿 A forager’s eye: double '+sp.label+'.','good');}
  if(sp.item==='herb'&&T('herbalist')&&Math.random()<0.5){addItem('herb',1);toast('🌿 Herbalist’s hands: twin sprigs.','good');}
- if(it.species==='crawfish'&&(skillLvl('fish')>=3||T('angler'))){addItem(sp.item,1);toast('🎣 Old water-hand: extra share.','good');}
+ if(it.species==='crawfish'&&(skillLvl('fish')>=3||T('angler')||hasItem('rod',1))){addItem(sp.item,1);toast('🎣 Old water-hand: extra share.','good');}
  gainXp('forage',2);if(it.species==='crawfish')gainXp('fish',2);
  if(sp.item2&&Math.random()<0.35){addItem(sp.item2,1);toast(sp.e+' A bonus! '+ITEMS[sp.item2].n+'.','good');}
  else toast(sp.e+' Gathered '+sp.label+'.','good');
@@ -449,6 +495,7 @@ function hurtCritter(c,dmg){if(c.d.flying)return;dmg*=(1+0.1*skillLvl('hunt'))*(
  else{c.tx=c.mesh.position.x+(c.mesh.position.x-G.pos.x);c.tz=c.mesh.position.z+(c.mesh.position.z-G.pos.z);c.wt=3;}}
 function killCritter(c){scene.remove(c.mesh);critters.splice(critters.indexOf(c),1);
  for(const [id,n,ch] of c.d.drops){if(Math.random()<ch)addItem(id,n);}
+ if(hasItem('knife',1)&&c.d.drops.length&&Math.random()<0.25){addItem(c.d.drops[0][0],1);toast('🔪 Clean skinning: bonus share.','good');}
  if(skillLvl('trap')>0&&c.d.drops.length&&Math.random()<0.1*skillLvl('trap')){addItem(c.d.drops[0][0],1);toast('🪤 A trapper’s clean work: bonus share.','good');}
  gainXp('hunt',3);
  toast(c.d.e+' '+c.d.n+' taken. The pot thanks you.');AudioSys.sfx('hurt');
@@ -573,7 +620,7 @@ const G={started:false,paused:false,dead:false,ending:false,day:1,time:8.0,weath
  killsByFoe:{},taxPaid:false,debtBook:0,shoeFound:0,bellRung:false,endingShown:false,pos:{x:6,z:10}};
 QUESTS.forEach(q=>G.quests[q.id]={st:'lock',have:{}});
 G.work={};G.shifts=0;G.grave=null;G.mana=100;G.maxmana=100;G.haggle={xp:0,tier:0};G.traits=[];
-G.song=null;G.songGap=6;G.autoplay=true;G.musicHold=false;G.lastSong=null;G.sneaking=false;G.flash=0;
+G.song=null;G.songGap=6;G.autoplay=true;G.musicHold=false;G.lastSong=null;G.sneaking=false;G.flash=0;G.worn={};G.craftSel=null;
 function qdef(id){return QUESTS.find(q=>q.id===id);}
 function karmaTitle(k){if(k>=60)return 'Saint of the Bayou';if(k>=35)return 'Friend of the Commune';if(k>=12)return 'Trusted Neighbour';if(k>-12)return 'Wanderer of the Bayou';if(k>-35)return 'Suspect Soul';if(k>-60)return 'Hound of the Seigneur';return 'Butcher of the Mud';}
 function addKarma(n,why){G.karma=clamp(G.karma+n,-100,100);toast((n>0?'+':'')+n+' ⚖ '+(why||''),n>=0?'good':'bad');refreshHUD();}
@@ -584,7 +631,7 @@ function takeItem(id,n){n=n||1;if(id==='coin'){G.coins-=n;refreshHUD();return tr
 /* ============ THREE SETUP ============ */
 let renderer,scene,camera,sun,moon,hemi,torchLight,playerMesh,lanternLight;
 let camYaw=0,camDist=26,camH=20; // fixed isometric, Zomboid-style: W walks screen-up (north)
-const colliders=[],interactables=[],foes=[],npcs=[],fires=[],labels=[],torches=[],critters=[],horses=[],carts=[],barricades=[],boats=[],kegs=[],WATER=[],FOLIAGE=[];
+const colliders=[],interactables=[],foes=[],npcs=[],fires=[],labels=[],torches=[],critters=[],horses=[],carts=[],barricades=[],boats=[],kegs=[],traps=[],WATER=[],FOLIAGE=[];
 function regLeaf(m){FOLIAGE.push({m,base:m.material.color.clone()});}
 const WORLD=240;
 function mat(c){return new THREE.MeshLambertMaterial({color:c});}
@@ -732,7 +779,7 @@ function buildWorld(){
  for(let i=0;i<22;i++){const x=rand(-84,-56),z=rand(-6,22);addBox(x,0.7,z,0.18,1.4,0.18,0x8a8072);addBox(x,1,z,0.8,0.18,0.18,0x8a8072);
   if(i<6)interactables.push({kind:'grave',name:'Shallow grave '+(i+1),x,z,r:2.6,txt:'Bury / mourn (E)',id:'grave'+i});}
  // market stalls + crates (loot)
- const lootSpots=[[12,-2,'Market crate'],[26,-16,'Smith crate'],[-14,24,'Herb bundle'],[4,-44,'Manor chest'],[76,18,'Mission cache'],[10,72,'Swamp cache'],[-50,50,'Landing cache'],[-32,-8,'Chapel box'],[22,26,'Cabin chest'],[-70,10,'Grave goods'],[-57,45,'Tackle box'],[54,22,'Trap cache']];
+ const lootSpots=[[12,-2,'Market crate'],[26,-16,'Smith crate'],[-14,24,'Herb bundle'],[4,-44,'Manor chest'],[76,18,'Mission cache'],[10,72,'Swamp cache'],[-50,50,'Landing cache'],[-32,-8,'Chapel box'],[22,26,'Cabin chest'],[-70,10,'Grave goods'],[-57,45,'Tackle box'],[54,22,'Trap cache'],[-44,60,'Sunken strongbox'],[64,-14,'Brigand cache'],[-72,16,'Crypt niche']];
  lootSpots.forEach(([x,z,nm])=>{const c=addBox(x,0.5,z,1.2,1,1.2,0x6a4a26);c.material.emissive=new THREE.Color(0x332200);
   interactables.push({kind:'loot',name:nm,x,z,r:2.8,txt:'Search '+nm});});
  // campfires / braziers
@@ -753,7 +800,7 @@ function buildWorld(){
  [[6,4],[-28,-4],[20,-12],[-12,20],[48,40]].forEach(([x,z])=>{addBox(x,1.5,z,0.25,3,0.25,0x3a2a1a);
   const l=new THREE.PointLight(0xffa04a,1.0,20);l.position.set(x,3.4,z);scene.add(l);torches.push(l);
   const f=new THREE.Mesh(new THREE.SphereGeometry(0.25,8,6),new THREE.MeshBasicMaterial({color:0xffc46a}));f.position.set(x,3.3,z);scene.add(f);glowAt(x,3.4,z,3.5,0.5);});
- plantForage();spawnHorses();placeCarts();placeBeds();placeWorks();buildGraveyard();buildMansion();buildCottages();placeAltars();buildPigstye();buildTavern();
+ plantForage();spawnHorses();placeCarts();placeBeds();placeWorks();buildGraveyard();buildMansion();buildCottages();placeAltars();buildPigstye();buildTavern();placeStrongboxes();
  // corral rails by the cabins
  [[26,34,8,0.3],[26,40,8,0.3]].forEach(([x,z,w,d])=>{addBox(x,0.6,z,w,1.0,d,0x5a4630);});
 }
@@ -787,6 +834,7 @@ function workShift(st){const J=JOBS[st.job];if(!J)return;const w=G.work[st.job];
  let pay=Math.round(J.pay*mult*rand(0.9,1.25));
  if(J.stake)pay+=Math.round(J.stake*rand(1.15,1.6)*(1+0.1*w.tier));
  G.coins+=pay;
+ if(st.job==='carpenter'&&hasItem('saw',1)){G.coins+=2;toast('🪚 The pit saw sings: +2.','good');}
  if(J.make)addItem(J.make,J.makeN+(w.tier>=2?1:0));
  if(J.table){const r=Math.random();let acc=0;for(const [id,n,ch] of J.table){acc+=ch;if(r<acc){addItem(id,n+(w.tier>=2?1:0)+((st.job==='farmer')?Math.floor(skillLvl('farm')/3):0)+((st.job==='farmer'&&T('gardener'))?1:0));break;}}}
  w.xp+=J.xp||1;G.shifts=(G.shifts||0)+1;
@@ -893,7 +941,7 @@ function mendBarricade(b){if(b.shutter&&b.hp>=b.maxhp){toggleShutter(b);return;}
   scene.remove(b.mesh);if(b.coll)b.coll.dead=true;if(b.parts)for(const p of b.parts)p.dead=true;if(b.inter)b.inter.gone=true;barricades.splice(barricades.indexOf(b),1);
   addItem('plank',2);toast('🪵 Torn down. 2 planks reclaimed.','good');return;}
  if(!hasItem('plank',1)){toast('Need 1 plank to mend.','bad');return;}
- takeItem('plank',1);b.hp=Math.min(b.maxhp,b.hp+25+8*skillLvl('smith')+(T('handy')?15:0));AudioSys.sfx('craft');
+ takeItem('plank',1);b.hp=Math.min(b.maxhp,b.hp+25+8*skillLvl('smith')+(T('handy')?15:0)+(hasItem('hammer',1)?10:0));AudioSys.sfx('craft');
  toast('🔨 Mended ('+Math.round(b.hp)+'/'+b.maxhp+' HP).','good');refreshHotbar();}
 function graveMarker(g){const m=new THREE.Group();
  const mound=new THREE.Mesh(new THREE.SphereGeometry(0.9,8,5),mat(0x3a2c1c));mound.scale.y=0.4;mound.position.y=0.1;m.add(mound);
@@ -945,6 +993,13 @@ function buildCottage(x,z,nm,id){
  solid(x+1.2,z+0.2,1.1,1.0);
  interactables.push({kind:'loot',name:nm+' shelf',x:x-1.4,z:z+1.0,r:2.4,txt:'Search shelf'});
  addBox(x-1.4,0.5,z+1.0,1.0,0.9,0.6,0x6a4a26);}
+function placeStrongboxes(){
+ [['Manor strongbox',10,-42,{loot:[['ring',1]],coins:30,karma:0}],
+  ['Lament cashbox',84,-30,{loot:[['fang',1]],coins:25,karma:0}],
+  ['Poor box',-32,-2,{loot:[],coins:12,karma:-10}]].forEach(([nm,x,z,L])=>{
+ const c=addBox(x,0.4,z,1.0,0.8,0.7,0x2a2018);c.material.emissive=new THREE.Color(0x220a00);
+ const lb=makeLabel('🗝 '+nm,0.4);lb.position.set(x,2.2,z);scene.add(lb);
+ interactables.push({kind:'locked',name:nm,x,z,r:2.8,txt:'Pick the '+nm+' (needs lockpick)',lock:{...L,opened:false}});});}
 function buildPigstye(){
  const X=-38,Z=-40;
  for(let x=X-6;x<=X+6;x+=2.4){addBox(x,0.5,Z-5,0.22,1.0,0.22,0x5a4630);if(x<X-2||x>X+2)addBox(x,0.5,Z+5,0.22,1.0,0.22,0x5a4630);}
@@ -1218,6 +1273,16 @@ function placeKeg(){const ry=playerMesh?playerMesh.rotation.y:0;
  AudioSys.sfx('craft');toast('🛢 Keg set. Light it and be elsewhere.','good');}
 function lightKeg(k){if(k.fuse>=0){toast('Already hissing! RUN!','bad');return;}
  k.fuse=3;toast('🔥 FUSE LIT — three seconds!','bad');AudioSys.sfx('shot');}
+function openLock(it){const L=it.lock;if(!L||L.opened)return;
+ if(!hasItem('lockpick',1)){toast('🗝 Locked tight. A lockpick would sing here (craft: nail).','bad');return;}
+ const ch=0.4+0.08*skillLvl('pick')+(T('dextrous')?0.05:0);
+ if(Math.random()<ch){L.opened=true;it.gone=true;gainXp('pick',5);
+  for(const [id,n] of L.loot)addItem(id,n);if(L.coins)G.coins+=L.coins;
+  if(L.karma)addKarma(L.karma,L.karma>0?'liberated':'desecrated');
+  AudioSys.sfx('gold');toast('🗝 Click! The '+it.name+' gives up its ghosts.','good');}
+ else{if(Math.random()<0.3){takeItem('lockpick',1);toast('🗝 SNAP. The pick breaks in the wards.','bad');}
+  else toast('🗝 The wards hold. Oil, patience, Pickpocketing.','bad');}
+ refreshHUD();refreshHotbar();}
 /* ============ CANOES ============ */
 function isWater(x,z){for(const w of WATER){const dx=(x-w.x)/w.rx,dz=(z-w.z)/w.rz;if(dx*dx+dz*dz<1)return true;}return false;}
 function makeCanoeMesh(){const g=new THREE.Group();
@@ -1359,18 +1424,21 @@ function killFoe(f){scene.remove(f.mesh);foes.splice(foes.indexOf(f),1);
  addKarma(2,'the commune breathes easier');gainXp('might',2);
  notify('☠',f.d.n+' laid to rest','The commune breathes easier. ('+G.kills+' total)');
  if(f.type==='wolf'&&Math.random()<0.8)dropLoot(f,'pelt',1);
- if(f.type==='vamp'){dropLoot(f,'fang',1);if(Math.random()<0.5)dropLoot(f,'coin',8);}
- if(f.type==='skeleton'){dropLoot(f,'bone',1);if(Math.random()<0.4)dropLoot(f,'coin',4);}
+ if(f.type==='vamp'){dropLoot(f,'fang',1);if(Math.random()<0.5)dropLoot(f,'coin',8);if(Math.random()<0.5)dropLoot(f,'brocade_coat',1);if(Math.random()<0.25)dropLoot(f,'ring',1);if(Math.random()<0.3)dropLoot(f,'lace_gloves',1);}
+ if(f.type==='skeleton'){dropLoot(f,'bone',1);if(Math.random()<0.4)dropLoot(f,'coin',4);if(Math.random()<0.3)dropLoot(f,'rusty_helm',1);}
  if(f.type==='ghost'&&Math.random()<0.5)dropLoot(f,'ash',1);
+ if(f.type==='ghost'&&Math.random()<0.3)dropLoot(f,'button',1);
  if(f.type==='risen'&&Math.random()<0.4)dropLoot(f,'bread',1);
- if(f.type==='demon'){onBossDead();}
+ if(f.type==='risen'&&Math.random()<0.25)dropLoot(f,'ragged_shirt',1);
+ if(f.type==='risen'&&Math.random()<0.15)dropLoot(f,'breeches',1);
+ if(f.type==='demon'){dropLoot(f,'ash',2);dropLoot(f,'coin',20);dropLoot(f,'medallion',1);onBossDead();}
  AudioSys.sfx('hurt');checkQuestKill(f.type);}
 function dropLoot(f,item,n){addItem(item,n);toast(f.d.e+' dropped: '+ITEMS[item].n+' ×'+n);}
 function hurtPlayer(dmg,why){if(G.dead||!G.started||G.paused||dlgOpen)return;
  if(G.wardUntil&&performance.now()<G.wardUntil)dmg*=0.5;
  if(T('thickskin'))dmg*=0.85;if(T('thinskin'))dmg*=1.15;
  if(T('hemo')&&dmg>=5){G.sanity=Math.max(0,G.sanity-4);toast('🩸 Blood. Too much blood. (−4 🕯)','bad');}
- woundPart(dmg);
+ dmg*=woundPart(dmg);
  G.hp-=dmg;AudioSys.sfx('hurt');
  const df=$('damage-flash');df.style.opacity=0.9;setTimeout(()=>df.style.opacity=0,300);
  if(G.hp<=0){G.hp=0;die(why||'the bayou took its tithe');}refreshHUD();}
@@ -1396,9 +1464,9 @@ function foeUpdate(f,dt){const m=f.mesh;f.cd-=dt;
   if(f.type==='demon'&&Math.random()<dt*0.8){hurtPlayer(12,'demon-fire');toast('🔥 The Bête breathes furnace-air!','bad');}
   if(d<(f.boss?3.2:1.8)&&f.cd<=0){f.cd=f.boss?1.2:1.5;
    let dmg=f.d.dmg+rand(-3,4);if(f.type==='ghost')dmg=8+G.infected*2;
-   if(Math.random()<0.02*skillLvl('foot')){toast('🌀 You slip the blow clean.','good');gainXp('foot',2);}
+   if(Math.random()<0.02*skillLvl('foot')+(hasItem('rabbitfoot',1)?0.03:0)+(T('gymnast')?0.02:0)){toast('🌀 You slip the blow clean.','good');gainXp('foot',2);}
    else{hurtPlayer(dmg,f.d.n);
-   const fright=({risen:3,wolf:5,ghost:8,vamp:6,demon:10,skeleton:5}[f.type]||3)*(T('brave')?0.7:1)*(T('cowardly')?1.5:1)*(T('desens')?0.5:1);
+   const fright=({risen:3,wolf:5,ghost:8,vamp:6,demon:10,skeleton:5}[f.type]||3)*(T('brave')?0.7:1)*(T('cowardly')?1.5:1)*(T('desens')?0.5:1)*(f.type==='ghost'&&hasItem('crucifix',1)?0.6:1);
    G.sanity=Math.max(0,G.sanity-fright);if(G.sanity<=10)subtitle('🕯 Your hands will not stop shaking.');
    toast(f.d.e+' '+f.d.n+' wounds you (−'+Math.round(dmg)+' HP, −'+fright+' 🕯)','bad');}}
  } else {f.wt-=dt;if(f.wt<=0){f.wt=rand(2,5);f.tx=m.position.x+rand(-14,14);f.tz=m.position.z+rand(-14,14);}
@@ -1467,7 +1535,7 @@ function survival(dt){const night=isNight();
  if(G.sanity<=0){G.hp-=dt*2;if(Math.random()<dt*0.2)subtitle('The faces in the mist wear your outstanding debts.');}
  if(G.sanity<(T('haunted')?45:30)&&Math.random()<dt*0.06)subtitle('🕯 '+choice(['“Pay us…” breathes the dark.','Something counts your debts aloud.','The mist wears a face you buried.','Thirteen bells. Twelve were real.','Your shadow arrives a moment late.']));
  const seasonNow=seasonFor(G.day).id;let warmNow=false;for(const f of fires){if(dist2(G.pos.x,G.pos.z,f.x,f.z)<6){warmNow=true;break;}}
- if(seasonNow==='winter'&&isNight()&&!warmNow&&!G.lantern&&!T('outdoorsman')){G.hp-=dt*1.2;if(Math.random()<dt*0.05)subtitle('🥶 The cold finds every seam. Fire is life.');}
+ if(seasonNow==='winter'&&isNight()&&!warmNow&&!G.lantern&&!T('outdoorsman')&&!Object.values(G.worn||{}).flat().some(id=>ITEMS[id]&&ITEMS[id].warm)){G.hp-=dt*1.2;if(Math.random()<dt*0.05)subtitle('🥶 The cold finds every seam. Fire is life.');}
  if(seasonNow==='summer'&&G.time>=11&&G.time<16)G.stam=Math.max(0,G.stam-dt*3);
  if(G.hp<=0){G.hp=0;die('hunger, fever and the dark together');}
  for(const p in (G.bleed||{}))if(G.bleed[p]>0)G.hp-=dt*0.6;
@@ -1633,11 +1701,22 @@ function useItem(id){const it=ITEMS[id];if(!it)return;if(!hasItem(id,1)){toast('
  else if(it.use==='smoke'){takeItem(id,1);G.sanity=clamp(G.sanity+(it.sanity||10),0,100);G.hp=clamp(G.hp+it.hp,1,G.maxhp);AudioSys.sfx('pray');toast('🚬 You smoke a slow bowl. The mist keeps its distance. (+'+(it.sanity||10)+' 🕯)','good');}
  else if(it.use==='place'){if(!takeItem(id,1))return;placeBarricade();refreshHotbar();}
  else if(it.use==='launch'){if(!takeItem(id,1))return;launchCanoe();refreshHotbar();}
+ else if(it.use==='wear'){const slot=it.slot;G.worn=G.worn||{};G.worn[slot]=G.worn[slot]||[];
+  if(!hasItem(id,1)){toast('Not carrying it.','bad');return;}
+  takeItem(id,1);const old=G.worn[slot][0];if(old)addItem(old,1);G.worn[slot]=[id];
+  AudioSys.sfx('pickup');toast('Wearing: '+it.e+' '+it.n+' ('+slot+(it.def?', '+it.def+' ward':'')+').','good');refreshHotbar();}
  else if(it.use==='bomb'){let tgt=null,bd=22;for(const f of foes){const d=dist2(G.pos.x,G.pos.z,f.mesh.position.x,f.mesh.position.z);if(d<bd){bd=d;tgt=f;}}
   if(!tgt){toast('💣 No horror in throw — hold it.','bad');return;}
   if(!takeItem(id,1))return;AudioSys.sfx('swing');
   detonate(tgt.mesh.position.x,tgt.mesh.position.z,5,Math.round(70*(1+0.1*skillLvl('powder'))));refreshHotbar();}
  else if(it.use==='keg'){if(!takeItem(id,1))return;placeKeg();refreshHotbar();}
+ else if(it.use==='trap'){if(!takeItem(id,1))return;const ry=playerMesh?playerMesh.rotation.y:0;
+  const x=clamp(G.pos.x+Math.sin(ry)*2,-112,112),z=clamp(G.pos.z+Math.cos(ry)*2,-112,112);
+  const g=new THREE.Group();const loop=new THREE.Mesh(new THREE.TorusGeometry(0.35,0.05,5,12),mat(0x8a7a5a));loop.rotation.x=Math.PI/2;loop.position.y=0.15;g.add(loop);
+  const stake=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.9,0.12),mat(0x4a3018));stake.position.set(0.4,0.45,0);g.add(stake);
+  g.position.set(x,0,z);scene.add(g);
+  const it2={kind:'trap',name:'Twine snare',x,z,r:2.6,txt:'Check snare (E)'};const tr={x,z,mesh:g,inter:it2,t:0,caught:null};it2.ref=tr;
+  interactables.push(it2);traps.push(tr);AudioSys.sfx('craft');toast('🪤 Snare set. Check it in a while.','good');refreshHotbar();}
  else if(it.use==='charm'){if(G.charm){toast('🧿 The gris-gris already rides with you.','good');return;}G.charm=true;G.maxmana=120;G.mana=Math.min(120,G.mana+20);AudioSys.sfx('pray');toast('🧿 Gris-gris on. +20 max spirit. (+20 🌀 now)','good');}
  else toast(it.d);refreshHUD();}
 function refreshTracker(){const t=$('quest-tracker');t.innerHTML='';
@@ -1660,7 +1739,7 @@ function togglePanel(id,render){const el=document.getElementById(id);if(!el)retu
 const SIZES={musket:[4,1],blunderbuss:[4,1],rapier:[3,1],axe:[3,1],spear:[3,1],silver:[2,1],cudgel:[2,1],torch:[2,1],plank:[2,1],barricade:[2,2],canoe:[2,2],keg:[2,2]};
 function itemSize(id){return SIZES[id]||[1,1];}
 function usedCells(){let u=0;for(const k in G.inv){const s=itemSize(k);u+=s[0]*s[1];}return u;}
-function invCap(){return 48+(T('packmule')?12:0);}
+function invCap(){return 48+(T('packmule')?12:0)+(hasItem('knapsack',1)?12:0)+(hasItem('gamebag',1)?8:0);}
 function renderInventory(){const g=$('inv-grid');g.innerHTML='';const ids=Object.keys(G.inv);
  if(!ids.length)g.innerHTML='<i>Empty satchel. The mud provides — search crates (E).</i>';
  ids.forEach(id=>{const it=ITEMS[id];if(!it)return;const d=document.createElement('div');d.className='inv-item'+(G.weapon===id?' equipped':'');
@@ -1676,7 +1755,7 @@ function nearFire(){for(const f of fires){if(dist2(G.pos.x,G.pos.z,f.x,f.z)<7)re
 function renderCraft(){const l=$('craft-list');l.innerHTML='';
  ['field','cook'].forEach(cat=>{if(cat==='cook'){const h=document.createElement('h4');h.style.color='#c9a227';h.style.margin='10px 0 4px';h.textContent='🍳 Cookery — hot dishes want a campfire close, skill opens the rest';l.appendChild(h);}
  RECIPES.filter(r=>(r.cat||'field')===cat).forEach(r=>{const w=G.work.cook||{xp:0,tier:0};
-  const can=Object.entries(r.need).every(([k,n])=>n===0||hasItem(k,n))&&(!r.cost||G.coins>=r.cost)&&(!r.cookTier||w.tier>=r.cookTier);
+  const can=Object.entries(r.need).every(([k,n])=>n===0||hasItem(k,n))&&(!r.cost||G.coins>=r.cost)&&(!r.cookTier||w.tier>=r.cookTier)&&(!r.tool||hasItem(r.tool,1));
   const d=document.createElement('div');d.className='craft-row';
   d.setAttribute('data-rid',r.id);d.onclick=()=>{G.craftSel=r.id;renderCraftDetail();};
   d.innerHTML='<span>'+(r.cat==='cook'?'🍳':'🔨')+' <b>'+r.n+'</b><br><small>'+r.txt+'</small></span>';
@@ -1689,6 +1768,7 @@ function renderCraft(){const l=$('craft-list');l.innerHTML='';
    if((r.id==='bandage'||r.id==='tonic')&&skillLvl('tailor')>=4){for(const k in r.make)addItem(k,1);toast('🪡 Clean stitches: bonus share.','good');}
    if((r.id==='bandage'||r.id==='tonic'))gainXp('tailor',2);
    if(r.id==='ammo'&&skillLvl('smith')>=3){addItem('ammo',1);toast('⚒ True-cast balls: bonus cartridge.','good');}
+   if(['powder','char','grenado','kegmake'].includes(r.id))gainXp('powder',3);
    if(r.cat==='cook'){initWork();const cw=G.work.cook;cw.xp+=2;const nt=tierFor(cw.xp);
     if(nt>cw.tier){cw.tier=nt;notify('🍳','Promotion: Cook — '+TIER_NAMES[nt],'The pot respects you now.',{major:true});}
     toast('🍳 '+r.n+' — the commune will eat tonight. (Cook +2 XP)','good');}
@@ -1698,7 +1778,7 @@ function renderCraftDetail(){const d=$('craft-detail');if(!d)return;const r=RECI
  if(!r){d.textContent='Select a working on the left.';return;}
  const w=G.work.cook||{xp:0,tier:0};
  const needs=Object.entries(r.need).map(([k,n])=>{const h=(G.inv[k]||0);const ok=n===0||h>=n;return '<span style="color:'+(ok?'#5fd06f':'#ff7777')+'">'+(ITEMS[k]?ITEMS[k].e+' '+ITEMS[k].n:k)+' '+Math.min(h,n)+'/'+n+'</span>';}).join(' · ')||'nothing but will';
- d.innerHTML='<b>'+(r.cat==='cook'?'🍳 ':'🔨 ')+r.n+'</b><br><small>'+r.txt+'</small><br><div style="margin:6px 0;font-size:13px">'+needs+'</div>'+(r.cookTier?'<small>Cook '+TIER_NAMES[r.cookTier]+'+ (you: '+TIER_NAMES[w.tier]+')</small><br>':'')+(r.cost?'<small>Fee: '+r.cost+' 🪙</small><br>':'')+(r.fire?'<small>🔥 Wants a campfire close.</small><br>':'');
+ d.innerHTML='<b>'+(r.cat==='cook'?'🍳 ':'🔨 ')+r.n+'</b><br><small>'+r.txt+'</small><br><div style="margin:6px 0;font-size:13px">'+needs+'</div>'+(r.tool?'<small>🧰 Tool wanted: '+ITEMS[r.tool].e+' '+ITEMS[r.tool].n+(hasItem(r.tool,1)?' ✓':' ✗')+'</small><br>':'')+(r.cookTier?'<small>Cook '+TIER_NAMES[r.cookTier]+'+ (you: '+TIER_NAMES[w.tier]+')</small><br>':'')+(r.cost?'<small>Fee: '+r.cost+' 🪙</small><br>':'')+(r.fire?'<small>🔥 Wants a campfire close.</small><br>':'');
  const b=document.createElement('button');b.className='btn';b.textContent='Make it so';b.style.marginTop='8px';
  b.onclick=()=>{const rb=document.querySelector('#craft-list [data-rid="'+r.id+'"] button');if(rb)rb.click();setTimeout(renderCraftDetail,60);};
  d.appendChild(b);}
@@ -1722,7 +1802,9 @@ function renderChar(){$('char-body').innerHTML=
  '<div class="char-row"><span>☠ Kills</span><b>'+G.kills+' '+Object.entries(G.killsByFoe).map(([k,v])=>FOE_DEFS[k].e+v).join(' ')+'</b></div>'+
  '<div class="char-row"><span>⚰ Buried</span><b>'+G.buried+'</b></div>'+
  '<div class="char-row"><span>🤝 Companions</span><b>'+(G.companions.map(npcName).join(', ')||'none yet — karma 10+ recruits')+'</b></div>'+
- '<p style="font-style:italic;color:#a89a76">Saints get −20% prices, chapel sanctuary, and volunteers. Butchers pay +30%, are refused recruits, and the Bête hunts them first.</p>';}
+ '<div class="char-row"><span>👕 Wardrobe</span><b>'+['head','torso','legs','arms','feet'].map(s=>{const id=(G.worn&&G.worn[s]||[])[0];return s+': '+(id?ITEMS[id].e+' '+ITEMS[id].n+'<a class="takeoff" data-slot="'+s+'" style="cursor:pointer;color:#ff8888"> [doff]</a>':'—');}).join(' · ')+'</b></div>'+
+ '<p style="font-style:italic;color:#a89a76">Saints get −20% prices, chapel sanctuary, and volunteers. Butchers pay +30%, are refused recruits, and the Bête hunts them first.</p>';
+ document.querySelectorAll('#char-body .takeoff').forEach(a=>{a.onclick=()=>{const s=a.getAttribute('data-slot');const id=(G.worn[s]||[])[0];if(id){G.worn[s]=[];addItem(id,1);toast('Doffed: '+ITEMS[id].n+'.');renderChar();refreshHUD();}};});}
 function renderWork(){const l=$('work-list');l.innerHTML='<p style="font-size:13px;color:#a89a76">Honest labour steadies the hands and the head: every shift pays coin, restores 🕯, and climbs its trade toward Grandmaster (better pay, better peace). Find the stations by their floating signs.</p>';
  for(const k in JOBS){const J=JOBS[k],w=G.work[k]||{xp:0,tier:0};const next=w.tier<4?TIER_XP[w.tier+1]:null;
   const d=document.createElement('div');d.className='craft-row';d.setAttribute('data-tip','work:'+k);
@@ -1880,7 +1962,7 @@ function fightTax(n){n.dead=true;scene.remove(n.mesh);G.taxPaid=true;addKarma(-6
  const s=G.quests['q_tax'];if(s.st==='active')completeQuest('q_tax');else if(s.st==='open'){acceptQuest('q_tax');completeQuest('q_tax');}
  addItem('coin',20);closeDialogue();toast('🗡 Poulain flees without wig or ledger. The cabins cheer. (−6 ⚖, +20 livres)','good');}
 /* trade */
-const STOCKS={baptiste:['rapier','axe','ammo','nail','plank','tobacco','blackpowder','charcoal'],manon:['herb','tonic','bandage','stew'],doctor:['tonic','bandage','fang','tafia','wine','candle'],odette:['bread','stew','herb','plank','wine','tobacco','candle'],seraphine:['tobacco','wine','stew'],jeanluc:['pork','bread','onion','acorn'],mama:['stew','bread','wine','tafia','tobacco'],nine:['ammo','blackpowder','charcoal','venom','fang']};
+const STOCKS={baptiste:['rapier','axe','saber','knife','ammo','nail','plank','tobacco','blackpowder','charcoal','hammer','saw','lockpick'],manon:['herb','tonic','bandage','stew','candle'],doctor:['tonic','bandage','fang','tafia','wine','candle'],odette:['bread','stew','herb','plank','wine','tobacco','candle','linen_shirt','breeches','justaucorps','straw_hat','boots','greatcoat','work_gloves'],seraphine:['tobacco','wine','stew','pipe','dice','lace_gloves'],jeanluc:['pork','bread','onion','acorn'],mama:['stew','bread','wine','tafia','tobacco','cookpot','skillet','kettle'],nine:['ammo','blackpowder','charcoal','venom','fang','lockpick','knife','ring']};
 let tradeNPC=null;
 const HAGGLE_NAMES=['Stranger','Known Face','Haggler','Merchant','Factor of the Bayou'];
 function gainHaggle(){if(!G.haggle)G.haggle={xp:0,tier:0};G.haggle.xp++;const nt=tierFor(G.haggle.xp);
@@ -1934,6 +2016,10 @@ function doInteract(it){if(!it)return;AudioSys.sfx('pickup');
  if(it.kind==='hdoor'){claimHouse(it);return;}
  if(it.kind==='altar'){doRitual(it);return;}
  if(it.kind==='keg'&&it.ref){lightKeg(it.ref);return;}
+ if(it.kind==='trap'&&it.ref){const tr=it.ref;
+  if(tr.caught){addItem(tr.caught,1);toast('🪤 Snared: '+ITEMS[tr.caught].n+'! Reset the twine.','good');tr.caught=null;tr.t=0;it.txt='Check snare (E)';}
+  else toast('🪤 Empty twine. Patience, and Trapping skill.');return;}
+ if(it.kind==='locked'){openLock(it);return;}
  if(it.kind==='grave'){if(G.looted[it.id]){subtitle('A tended mound. Someone scratched: “PAID IN FULL.”');return;}
   G.looted[it.id]=1;buryAt();if(Math.random()<0.4){addItem('coin',2);toast('Among the roots: 2 forgotten livres.','good');}return;}
  if(it.kind==='fire'){G.hp=clamp(G.hp+8,0,G.maxhp);G.sanity=clamp(G.sanity+14,0,100);G.hunger=Math.max(0,G.hunger-4);
@@ -1963,6 +2049,12 @@ function lootCrate(it){const nm=it.name;
  const once=k=>{if(G.looted[k])return false;G.looted[k]=1;return true;};
  if(nm==='Grave goods'&&once('q_rosary')){addItem('rosary',1);toast('📿 Bog-oak rosary, cold as a kept promise. Bring it to Odette.','good');checkQuestItem();it.cd=performance.now()+60000;return;}
  if(nm==='Manor chest'&&once('q_deed1')){addItem('deed',2);addItem('coin',12);toast('📜 The debt-book! 60 souls at 12 livres the head. To the market cross!','good');addKarma(4,'evidence liberated');checkQuestItem();it.cd=performance.now()+60000;return;}
+ if(nm==='Grave goods'&&!G.looted['q_med0']){G.looted['q_med0']=1;addItem('medallion',1);toast('🏅 A saint’s medallion among the grave goods.','good');}
+ if(nm==='Tackle box'&&once('q_rod0')){addItem('rod',1);addItem('crawfish',1);toast('🎣 A cane pole and last night’s bait. The bayou provides.','good');checkQuestItem();it.cd=performance.now()+60000;return;}
+ if(nm==='Trap cache'&&once('q_knife0')){addItem('knife',1);addItem('snare',1);toast('🔪 A skinning knife and spare twine. The east woods provide.','good');checkQuestItem();it.cd=performance.now()+60000;return;}
+ if(nm==='Sunken strongbox'&&once('q_tre0')){addItem('coin',40);addItem('ring',1);toast('💍 A drowned strongbox: Spanish coin and a gold band!','good');AudioSys.sfx('gold');checkQuestItem();it.cd=performance.now()+60000;return;}
+ if(nm==='Brigand cache'&&once('q_tre1')){addItem('saber',1);addItem('ammo',4);addItem('tafia',1);toast('⚔ A brigand’s retirement fund: saber, shot, and spirit.','good');checkQuestItem();it.cd=performance.now()+60000;return;}
+ if(nm==='Crypt niche'&&once('q_tre2')){addItem('crucifix',1);addItem('coin',10);addKarma(-5,'robbing the vault dead');toast('✝ A brass crucifix — and the weight of sacrilege. (−5 ⚖)','bad');checkQuestItem();it.cd=performance.now()+60000;return;}
  if(nm==='Study cache'&&once('q_lock0')){addItem('locket',1);toast('💠 A silver locket, miniatures inside. Odette’s mother, unmistakably.','good');checkQuestItem();it.cd=performance.now()+60000;return;}
  if(nm==='Cabin chest'&&once('q_shoe')){addItem('deed',1);toast('🧦 A child’s shoe — and a scrap: “took the shortcut by the oak”. To Lucile, quickly!','good');checkQuestItem();it.cd=performance.now()+60000;return;}
  if(nm==='Mission cache'){if(once('q_fang0')){addItem('fang',1);toast('🦷 An ivory fang in a snuffbox. The Sang-Mêlé supped here.','good');}else genericLoot();}
@@ -1975,10 +2067,11 @@ function lootCrate(it){const nm=it.name;
   else if(r<0.75){addItem('coin',randi(2,7));AudioSys.sfx('gold');toast('🪙 Livres!','good');}
   else if(r<0.83){addItem('ammo',randi(1,3));toast('🧨 Cartridges.','good');}
   else if(r<0.88){addItem('powder_herb',1);toast('🧂 Brimstone.','good');}
-  else if(r<0.92){addItem('tobacco',1);toast('🚬 Pipe tobacco. The mist fears it.','good');}
-  else if(r<0.94){addItem('wine',1);toast('🍷 A bottle of claret, cellared through the crossing.','good');}
-  else if(r<0.97){addItem('candle',1);toast('🕯 A tallow candle. Somebody’s prayer, unlit.','good');}
-  if(T('keen')&&Math.random()<0.15){addItem(choice(['bread','herb','nail']),1);toast('👁 Keen eyes: something extra in the crate.','good');}
+  else if(r<0.90){addItem('tobacco',1);toast('🚬 Pipe tobacco. The mist fears it.','good');}
+  else if(r<0.92){addItem('wine',1);toast('🍷 A bottle of claret, cellared through the crossing.','good');}
+  else if(r<0.94){addItem('candle',1);toast('🕯 A tallow candle. Somebody’s prayer, unlit.','good');}
+  else if(r<0.965){const t=choice(['button','pipe','dice','feather','medallion','nail','herb']);addItem(t,1);toast(ITEMS[t].e+' A knick-knack: '+ITEMS[t].n+'.','good');}
+  else if(r<0.985){const c=choice(['linen_shirt','breeches','sabots','straw_hat','coif_cap','ragged_shirt','petticoat']);addItem(c,1);toast(ITEMS[c].e+' Folded clothes: '+ITEMS[c].n+'.','good');}
   else{addItem('stew',1);toast('🍲 Bayou stew, still warm. Suspicious. Delicious.','good');}
   if(Math.random()<0.12){G.infected=1;toast('🤢 Something bit you in the crate-shadow. Fever rises — herb/tonic!','bad');}}
  refreshHUD();refreshHotbar();}
@@ -2009,9 +2102,13 @@ function bootWindows(){document.querySelectorAll('.panel').forEach(p=>makeMovabl
 const PARTS=[['head','Head','🧠'],['torso','Torso','🫀'],['larm','L Arm','💪'],['rarm','R Arm','💪'],['lleg','L Leg','🦵'],['rleg','R Leg','🦵']];
 function initParts(){if(!G.parts)G.parts={head:100,torso:100,larm:100,rarm:100,lleg:100,rleg:100};if(!G.bleed)G.bleed={};}
 function woundPart(dmg){initParts();const r=Math.random();const p=r<0.4?'torso':(r<0.55?'head':(r<0.7?'larm':(r<0.8?'rarm':(r<0.9?'lleg':'rleg'))));
- G.parts[p]=Math.max(0,G.parts[p]-dmg*(p==='head'?1.5:1));
+ const cover={head:['head'],torso:['torso'],larm:['arms'],rarm:['arms'],lleg:['legs','feet'],rleg:['legs','feet']};
+ let mult=1,blocked=null;for(const s of (cover[p]||[])){for(const id of ((G.worn||{})[s]||[])){const it=ITEMS[id];if(it&&it.def&&Math.random()<it.def/100){mult*=0.4;blocked=id;}}}
+ if(mult<1&&blocked&&Math.random()<0.25)toast('🧥 The '+ITEMS[blocked].n+' takes the worst of it.','good');
+ const pd=Math.round(dmg*mult);G.parts[p]=Math.max(0,G.parts[p]-pd*(p==='head'?1.5:1));
  if(Math.random()<0.25)G.bleed[p]=1;
- if(G.parts.head<=0||G.parts.torso<=0){G.hp=0;die('the head / the heart — pick one');}}
+ if(G.parts.head<=0||G.parts.torso<=0){G.hp=0;die('the head / the heart — pick one');}
+ return mult;}
 function bandagePart(p){if(!hasItem('bandage',1)){toast('Need a linen bandage. Craft one (X): herb.','bad');return;}
  takeItem('bandage',1);G.parts[p]=clamp(G.parts[p]+30,0,100);delete G.bleed[p];
  gainXp('aid',3);AudioSys.sfx('craft');toast('🩹 Bound the '+p+'. Bleeding stopped.','good');refreshHUD();renderHealth();refreshHotbar();}
@@ -2144,12 +2241,12 @@ function togglePause(){G.paused=!G.paused;$('pause').classList.toggle('hidden',!
 function save(){try{const d={day:G.day,time:G.time,hp:G.hp,hunger:G.hunger,sanity:G.sanity,karma:G.karma,coins:G.coins,
  inv:G.inv,weapon:G.weapon,maxhp:G.maxhp,quests:Object.fromEntries(Object.entries(G.quests).map(([k,v])=>[k,v.st])),
  have:Object.fromEntries(Object.entries(G.quests).map(([k,v])=>[k,v.have])),qactive:G.qactive,buried:G.buried,kills:G.kills,
- looted:G.looted,work:G.work,shifts:G.shifts||0,haggle:G.haggle||{xp:0,tier:0},skills:G.skills||{},parts:G.parts||null,bleed:G.bleed||{},traits:G.traits||[],homeId:G.homeId||null,home:G.home||null,mana:Math.floor(G.mana),maxmana:G.maxmana,charm:!!G.charm,grave:G.grave?{x:G.grave.x,z:G.grave.z,inv:G.grave.inv,coins:G.grave.coins}:null,npc:npcs.map(n=>({id:n.id,dead:n.dead,follow:n.follow}))};
+ looted:G.looted,work:G.work,shifts:G.shifts||0,haggle:G.haggle||{xp:0,tier:0},skills:G.skills||{},worn:G.worn||{},parts:G.parts||null,bleed:G.bleed||{},traits:G.traits||[],homeId:G.homeId||null,home:G.home||null,mana:Math.floor(G.mana),maxmana:G.maxmana,charm:!!G.charm,grave:G.grave?{x:G.grave.x,z:G.grave.z,inv:G.grave.inv,coins:G.grave.coins}:null,npc:npcs.map(n=>({id:n.id,dead:n.dead,follow:n.follow}))};
  localStorage.setItem('bayou-requiem-save',JSON.stringify(d));toast('💾 Soul recorded in the parish register.','good');}catch(e){toast('Save failed: '+e,'bad');}}
 function load(){try{const raw=localStorage.getItem('bayou-requiem-save');if(!raw)return false;const d=JSON.parse(raw);
  Object.assign(G,{day:d.day,time:d.time,hp:d.hp,hunger:d.hunger,sanity:d.sanity,karma:d.karma,coins:d.coins,inv:d.inv,weapon:d.weapon,maxhp:d.maxhp,qactive:d.qactive||[],buried:d.buried||0,kills:d.kills||0,looted:d.looted||{}});
  for(const k in d.quests)if(G.quests[k])G.quests[k].st=d.quests[k];
- initWork();if(d.work)for(const k in d.work)if(G.work[k])G.work[k]=d.work[k];G.shifts=d.shifts||0;if(d.haggle)G.haggle=d.haggle;if(d.traits)G.traits=d.traits;initSkills();if(d.parts)G.parts=d.parts;if(d.bleed)G.bleed=d.bleed;if(d.skills)for(const k in d.skills)if(G.skills[k])G.skills[k]=d.skills[k];G.homeId=d.homeId||null;G.home=d.home||null;if(typeof d.mana==='number')G.mana=d.mana;if(d.maxmana)G.maxmana=d.maxmana;G.charm=!!d.charm;G.wardUntil=0;G.hasteUntil=0;
+ initWork();if(d.work)for(const k in d.work)if(G.work[k])G.work[k]=d.work[k];G.shifts=d.shifts||0;if(d.haggle)G.haggle=d.haggle;if(d.traits)G.traits=d.traits;initSkills();if(d.parts)G.parts=d.parts;if(d.bleed)G.bleed=d.bleed;if(d.worn)G.worn=d.worn;if(d.skills)for(const k in d.skills)if(G.skills[k])G.skills[k]=d.skills[k];G.homeId=d.homeId||null;G.home=d.home||null;if(typeof d.mana==='number')G.mana=d.mana;if(d.maxmana)G.maxmana=d.maxmana;G.charm=!!d.charm;G.wardUntil=0;G.hasteUntil=0;
  if(d.grave){G.grave={x:d.grave.x,z:d.grave.z,inv:d.grave.inv||{},coins:d.grave.coins||0};G.grave.mesh=graveMarker(G.grave);linkGrave();}
  for(const k in d.have)if(G.quests[k])G.quests[k].have=d.have[k];
  (d.npc||[]).forEach(s=>{const n=npcs.find(n=>n.id===s.id);if(n){n.dead=s.dead;n.follow=s.follow;if(n.dead)scene.remove(n.mesh);if(s.follow)G.companions.push(n.id);}});
@@ -2254,6 +2351,7 @@ function animate(t){requestAnimationFrame(animate);const dt=Math.min(0.05,(t-las
   if(k.fuse<=0){kegs.splice(kegs.indexOf(k),1);scene.remove(k.mesh);if(k.inter)k.inter.gone=true;
    detonate(k.x,k.z,8,Math.round(120*(1+0.1*skillLvl('powder'))));}}
  if(G.shake>0)G.shake=Math.max(0,G.shake-dt*1.2);
+ for(const t of traps){t.t+=dt;if(t.t>120){t.t=0;if(!t.caught&&Math.random()<0.25+0.05*skillLvl('trap')){t.caught=choice(['rabbit','squirrel']);if(t.inter)t.inter.txt='Snare: SOMETHING (E to collect)';toast('🪤 A snare twitched out there.','good');}}}
  waterTex.offset.x+=dt*0.02;waterTex.offset.y+=dt*0.013;
  for(const m of mists){m.position.x+=dt*0.4;if(m.position.x>45)m.position.x=-95;m.material.opacity=(isNight()?0.17:0.07)*(G.weather==='rain'?1.5:1);}
  // interact prompt
@@ -2283,7 +2381,7 @@ function boot(){initThree();buildWorld();initParticles();initMist();bootWindows(
  unlockQuests();refreshHUD();refreshHotbar();
  $('loading').style.display='none';
  // expose for tests
- window.__game={G,foes,npcs,critters,horses,carts,boats,barricades,interactables,spawnFoe,spawnCritter,acceptQuest,completeQuest,addItem,useItem,startGame,mountHorse,mountCart,dismount,openStash,boardBoat};
+ window.__game={G,foes,npcs,critters,horses,carts,boats,barricades,traps,interactables,spawnFoe,spawnCritter,acceptQuest,completeQuest,addItem,useItem,startGame,mountHorse,mountCart,dismount,openStash,boardBoat};
  requestAnimationFrame(animate);}
 boot();
 
