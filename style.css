@@ -59,7 +59,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 /* screens */
 .screen{position:absolute;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 30%,#2e2839 0%,#17141d 60%,#0a090d 100%);overflow:auto;padding:20px}
 .menu-bg-orn{font-size:30px;color:var(--gold);letter-spacing:14px;text-shadow:0 0 14px rgba(201,162,39,.6);animation:candle 3.2s ease-in-out infinite}
-.game-title{position:relative;font-family:var(--display-font);font-size:88px;margin:6px 0 0;letter-spacing:8px;color:#f0e2c0;text-shadow:0 0 34px rgba(201,162,39,.45),0 0 90px rgba(140,20,20,.35),0 4px 0 #000;font-weight:normal;animation:candle 4s ease-in-out infinite}
+.game-title{position:relative;font-family:var(--display-font);font-size:88px;margin:6px 0 0;letter-spacing:8px;color:#f0e2c0;text-shadow:0 0 18px rgba(102,242,219,.35),0 0 42px rgba(201,162,39,.45),0 0 90px rgba(245,72,66,.30),0 4px 0 #000;font-weight:normal;animation:candle 4s ease-in-out infinite}
 .game-title::before,.game-title::after{content:attr(data-text);position:absolute;inset:0;pointer-events:none;font-family:inherit;font-size:inherit;letter-spacing:inherit}
 .game-title::before{color:var(--coral);opacity:.25;animation:gl1 2.8s steps(3) infinite}
 .game-title::after{color:var(--teal);opacity:.25;animation:gl2 3.4s steps(3) infinite}
@@ -101,11 +101,22 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 @keyframes tick{to{transform:translateX(-100%)}}
 .game-sub{font-size:17px;color:var(--gold);letter-spacing:2px}
 .game-tag{font-style:italic;color:var(--dim);margin:6px 0 18px}
-.menu-buttons{display:flex;flex-direction:column;gap:10px;min-width:320px}
+.menu-buttons{display:grid;grid-template-columns:1fr 1fr;gap:14px 30px;width:min(880px,94vw);min-width:0;align-items:start}
+/* odd twisted configuration: spread across the screen, staggered, asymmetric, tri-color edged */
+.menu-buttons .btn{border-radius:4px;width:100%;max-width:400px}
+.menu-buttons .btn:nth-child(odd){grid-column:1;justify-self:start}
+.menu-buttons .btn:nth-child(even){grid-column:2;justify-self:end}
+.menu-buttons .btn:nth-child(1){border-radius:4px 26px 4px 26px;border-left:4px solid var(--coral);margin-top:4px}
+.menu-buttons .btn:nth-child(2){border-radius:26px 4px 26px 4px;border-right:4px solid var(--teal);margin-top:20px}
+.menu-buttons .btn:nth-child(3){border-radius:4px 4px 26px 4px;border-left:4px solid var(--gold);margin-top:0}
+.menu-buttons .btn:nth-child(4){border-radius:26px 4px 4px 26px;border-right:4px solid var(--coral);margin-top:16px}
+.menu-buttons .btn:nth-child(5){border-radius:4px 26px 26px 4px;border-left:4px solid var(--teal);margin-top:0}
+.menu-buttons .btn:nth-child(6){border-radius:26px 4px 26px 4px;border-right:4px solid var(--gold);margin-top:14px}
+@media (max-width:640px){.menu-buttons{grid-template-columns:1fr;width:min(420px,92vw)}.menu-buttons .btn:nth-child(n){grid-column:1;justify-self:stretch;max-width:none;margin-top:0}}
 .btn{background:linear-gradient(180deg,#3c3445,#241e2e);border:1px solid #6b5626;color:var(--ink);padding:10px 22px;border-radius:6px;font-family:inherit;font-size:15px;cursor:pointer;letter-spacing:1px}
 .btn:hover{border-color:var(--teal);background:linear-gradient(180deg,#2c3440,#141a20);box-shadow:0 0 14px rgba(102,242,219,.3);text-shadow:0 0 8px rgba(102,242,219,.6)}
 .btn.big{font-size:18px;padding:13px 26px;border-color:var(--gold)}
-.menu-lore{max-width:640px;margin-top:18px;font-size:15px;line-height:1.7;color:#cbbb92;background:rgba(0,0,0,.4);padding:14px 20px;border:1px solid #3a2d18;border-radius:8px}
+.menu-lore{max-width:640px;margin-top:18px;font-size:15px;line-height:1.7;color:#cbbb92;background:rgba(0,0,0,.4);padding:14px 20px;border:1px solid #3a2d18;border-left:4px solid var(--coral);border-right:4px solid var(--teal);border-radius:8px}
 .controls-mini{color:var(--gold)!important;font-size:12px!important}
 .menu-foot{margin-top:14px;font-size:12px;color:var(--dim)}
 .paper{background:linear-gradient(180deg,#2e2836,#1a1620);border:1px solid #6b5626;border-radius:10px;padding:26px 32px;max-width:700px;box-shadow:0 0 60px #000}

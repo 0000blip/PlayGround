@@ -2293,19 +2293,81 @@ function load(){try{const raw=localStorage.getItem('bayou-requiem-save');if(!raw
 /* ============ CODEX ============ */
 /* ============ TEXT ATELIER ============ */
 const ATELIER_KEY='bayou-requiem-text';
-function atelierSections(){return {quests:'📜 Quests',npcs:'🗣 Townsfolk',codex:'🕮 Codex',items:'🎒 Items'};}
+function atelierSections(){return {quests:'📜 Quests',npcs:'🗣 Townsfolk',codex:'🕮 Codex',items:'🎒 Items',intro:'🕯 Title, Logo & Intro'};}
+const INTRO_TEXTS=[
+ {id:'gameTitle',label:'Game name (title + logo)'},
+ {id:'gameSub',label:'Subtitle line'},
+ {id:'gameTag',label:'Tagline'},
+ {id:'menuOrn',label:'Logo ornament'},
+ {id:'btnNew',label:'Menu button: Begin'},
+ {id:'btnContinue',label:'Menu button: Continue'},
+ {id:'btnCodex',label:'Menu button: Codex'},
+ {id:'btnHelp',label:'Menu button: How to Survive'},
+ {id:'btnAtelier',label:'Menu button: Text Atelier'},
+ {id:'btnMusic',label:'Menu button: Music prefix'},
+ {id:'menuLore',label:'Menu lore paragraph (HTML)'},
+ {id:'menuFoot',label:'Menu footer line'},
+ {id:'ticker',label:'Parish notices ticker (HTML)'},
+ {id:'introTitle',label:'Prologue heading'},
+ {id:'introBody',label:'Prologue body (HTML)'},
+ {id:'btnStart',label:'Prologue button'},
+];
+function getIntroText(id){const q=s=>{const el=document.querySelector(s);return el?(el.innerHTML||''):'';};
+ switch(id){
+  case 'gameTitle':return (document.querySelector('.game-title')||{}).textContent||'';
+  case 'gameSub':return q('.game-sub').replace(/<[^>]*>/g,'');
+  case 'gameTag':return q('.game-tag').replace(/<[^>]*>/g,'');
+  case 'menuOrn':return q('.menu-bg-orn').replace(/<[^>]*>/g,'');
+  case 'btnNew':return ($('btn-new')||{}).textContent||'';
+  case 'btnContinue':return ($('btn-continue')||{}).textContent||'';
+  case 'btnCodex':return ($('btn-codex')||{}).textContent||'';
+  case 'btnHelp':return ($('btn-help')||{}).textContent||'';
+  case 'btnAtelier':return ($('btn-atelier')||{}).textContent||'';
+  case 'btnMusic':{const b=$('btn-music');if(!b)return '';const st=$('music-state');const full=b.textContent||'';return st?full.replace(st.textContent,'').trim():full; }
+  case 'menuLore':{const el=document.querySelector('.menu-lore p');return el?el.innerHTML:'';}
+  case 'menuFoot':return q('.menu-foot').replace(/<[^>]*>/g,'');
+  case 'ticker':return ($('ticker')||{}).innerHTML||'';
+  case 'introTitle':{const el=document.querySelector('#intro h2');return el?el.textContent:'';}
+  case 'introBody':{const el=document.querySelector('.prologue-text');return el?el.innerHTML:'';}
+  case 'btnStart':return ($('btn-start')||{}).textContent||'';
+  default:return '';}}
+function setIntroText(id,val){if(typeof val!=='string'||!val)return;const v=val.trim();if(!v)return;
+ const set=(sel,html)=>{const el=document.querySelector(sel);if(el)el.innerHTML=html;};
+ const setT=(sel)=>{const el=document.querySelector(sel);if(el)el.textContent=v;};
+ switch(id){
+  case 'gameTitle':{const h=document.querySelector('.game-title');if(h){h.textContent=v;h.setAttribute('data-text',v);}document.title=v+' — A Gothic Marxist Survival · Nouvelle-Orléans 1666';
+   const cl=document.getElementById('compass-label');if(cl)cl.textContent='— '+v+' —';
+   const mt=document.getElementById('mus-title');if(mt)mt.textContent='♪ '+v;break;}
+  case 'gameSub':setT('.game-sub');document.title=(document.querySelector('.game-title')||{}).textContent+' — '+v;break;
+  case 'gameTag':setT('.game-tag');break;
+  case 'menuOrn':setT('.menu-bg-orn');break;
+  case 'btnNew':{const b=$('btn-new');if(b)b.textContent=v;break;}
+  case 'btnContinue':{const b=$('btn-continue');if(b)b.textContent=v;break;}
+  case 'btnCodex':{const b=$('btn-codex');if(b)b.textContent=v;break;}
+  case 'btnHelp':{const b=$('btn-help');if(b)b.textContent=v;break;}
+  case 'btnAtelier':{const b=$('btn-atelier');if(b)b.textContent=v;break;}
+  case 'btnMusic':{const b=$('btn-music');if(b){const st=(document.querySelector('.game-title')||{}).textContent;const cur=$('music-state');const s=cur?cur.textContent:'ON';b.innerHTML='';b.append(document.createTextNode(v.endsWith(' ')?v:v+' '));const sp=document.createElement('span');sp.id='music-state';sp.textContent=s;b.append(sp);}break;}
+  case 'menuLore':{const el=document.querySelector('.menu-lore p');if(el)el.innerHTML=v;break;}
+  case 'menuFoot':setT('.menu-foot');break;
+  case 'ticker':{const el=$('ticker');if(el)el.innerHTML=v;break;}
+  case 'introTitle':{const el=document.querySelector('#intro h2');if(el)el.textContent=v;break;}
+  case 'introBody':set('.prologue-text',v);break;
+  case 'btnStart':{const b=$('btn-start');if(b)b.textContent=v;break;}
+  default:break;}}
 function atelierEntries(sec){if(sec==='quests')return QUESTS.map(q=>({id:q.id,label:q.n}));
+ if(sec==='intro')return INTRO_TEXTS.map(e=>({id:e.id,label:e.label}));
  if(sec==='npcs')return NPC_DEFS.map(n=>({id:n.id,label:n.n}));
  if(sec==='codex')return Object.keys(CODEX).map(k=>({id:k,label:CODEX[k].t}));
  return Object.keys(ITEMS).map(k=>({id:k,label:ITEMS[k].n}));}
 function atelierFields(sec,id){const F=[];
+ if(sec==='intro'){const meta=INTRO_TEXTS.find(e=>e.id===id);if(meta)F.push(['text',meta.label+(id==='menuLore'||id==='ticker'||id==='introBody'?' (HTML allowed)':''),getIntroText(id)]);return F;}
  if(sec==='quests'){const q=qdef(id);if(q){F.push(['n','Title',q.n]);F.push(['desc','Tale',q.desc]);}}
  else if(sec==='npcs'){const n=NPC_DEFS.find(n=>n.id===id);if(n){F.push(['d','Saying',n.d]);F.push(['role','Station',n.role]);}}
  else if(sec==='codex'){if(CODEX[id])F.push(['b','Page (HTML allowed)',CODEX[id].b]);}
  else if(ITEMS[id]){F.push(['n','Name',ITEMS[id].n]);F.push(['d','Description',ITEMS[id].d]);}
  return F;}
 function renderAtelier(){const ss=atelierSections();const sec=$('atelier-sec'),ent=$('atelier-entry');
- if(!sec.options.length)for(const k in ss){const o=document.createElement('option');o.value=k;o.textContent=ss[k];sec.appendChild(o);}
+ if(sec.options.length!==Object.keys(ss).length){sec.innerHTML='';for(const k in ss){const o=document.createElement('option');o.value=k;o.textContent=ss[k];sec.appendChild(o);}}
  const cur=sec.value||'quests';
  ent.innerHTML='';for(const e of atelierEntries(cur)){const o=document.createElement('option');o.value=e.id;o.textContent=e.label;ent.appendChild(o);}
  renderAtelierFields();}
@@ -2313,7 +2375,8 @@ function renderAtelierFields(){const sec=$('atelier-sec').value,id=$('atelier-en
  box.innerHTML='';for(const [k,label,val] of atelierFields(sec,id)){
   const h=document.createElement('h4');h.style.color='#c9a227';h.style.margin='10px 0 4px';h.textContent=label;box.appendChild(h);
   const t=document.createElement('textarea');t.id='atelier-f-'+k;t.value=val||'';
-  t.style.cssText='width:100%;min-height:90px;background:#0a0806;color:#e8dcc0;border:1px solid #4a3a22;border-radius:6px;padding:10px;font-family:inherit;font-size:14px;';
+  const tall=(sec==='intro'&&/menuLore|ticker|introBody/.test(id))||val&&(val||'').length>300;
+  t.style.cssText='width:100%;min-height:'+(tall?'180px':'90px')+';background:#0a0806;color:#e8dcc0;border:1px solid #4a3a22;border-radius:6px;padding:10px;font-family:inherit;font-size:14px;';
   box.appendChild(t);}}
 function saveAtelier(){const sec=$('atelier-sec').value,id=$('atelier-entry').value;
  let all={};try{all=JSON.parse(localStorage.getItem(ATELIER_KEY)||'{}');}catch(e){}
@@ -2333,7 +2396,8 @@ function applyTextOverrides(){let all={};try{all=JSON.parse(localStorage.getItem
   if(typeof o.d==='string'&&o.d)n.d=o.d;if(typeof o.role==='string'&&o.role)n.role=o.role;}
  for(const k in (all.codex||{})){if(CODEX[k]&&typeof all.codex[k].b==='string'&&all.codex[k].b)CODEX[k].b=all.codex[k].b;}
  for(const id in (all.items||{})){if(!ITEMS[id])continue;const o=all.items[id];
-  if(typeof o.n==='string'&&o.n)ITEMS[id].n=o.n;if(typeof o.d==='string'&&o.d)ITEMS[id].d=o.d;}}
+  if(typeof o.n==='string'&&o.n)ITEMS[id].n=o.n;if(typeof o.d==='string'&&o.d)ITEMS[id].d=o.d;}
+ for(const id in (all.intro||{})){const o=all.intro[id];if(o&&typeof o.text==='string'&&o.text.trim())setIntroText(id,o.text);}}
 function renderCodex(key){const tabs=$('codex-tabs');tabs.innerHTML='';const body=$('codex-body');
  Object.keys(CODEX).forEach(k=>{const b=document.createElement('button');b.className='tab'+(k===key?' active':'');b.textContent=CODEX[k].t;b.onclick=()=>renderCodex(k);tabs.appendChild(b);});
  body.innerHTML='<h3>'+CODEX[key].t+'</h3>'+CODEX[key].b;}
