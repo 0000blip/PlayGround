@@ -55,10 +55,21 @@
   <!-- Main menu -->
   <div id="menu" class="screen">
     <div class="menu-bg-orn">❧ ⚜ ❧</div>
+    <div class="veve" aria-hidden="true"></div>
     <h1 class="game-title" data-text="BAYOU REQUIEM">BAYOU REQUIEM</h1>
+    <div class="bloodline" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
     <div class="game-sub">A Gothic-Marxist Survival · Nouvelle-Orléans, Anno 1666</div>
     <div class="iron-rule">⚜ ❦ ⚜</div>
     <div class="game-tag">the dead work the night shift · the living work all the rest</div>
+    <div id="candle" title="Feed it or snuff it">
+      <div class="c-glow"></div>
+      <div class="c-flame"><div class="c-core"></div></div>
+      <div class="c-wick"></div>
+      <div class="c-wax"><div class="c-drip d1"></div><div class="c-drip d2"></div></div>
+      <div class="c-pool"></div>
+      <div class="c-smoke"></div>
+    </div>
+    <div class="candle-hint">hover to feed the flame · click to snuff / kindle</div>
     <div class="menu-buttons">
       <button id="btn-new" class="btn big">⚔ Begin the Requiem</button>
       <button id="btn-continue" class="btn">📜 Continue (save found)</button>
@@ -74,6 +85,22 @@
       <p class="controls-mini">Desktop · Keyboard + Mouse · Best in fullscreen · Click to lock pointer for musket aim</p>
     </div>
     <div class="menu-foot">⚜ Southern Gothic Horror · historical 1660s dress & timber-work · procedural dark score ⚜<br><span style="font-size:11px">leaves & weaves: Cleveland Museum of Art, via archive.org — public domain (Hours of Rouen, Mississippi map, tiraz cloth, memento, labours of October, Ifá vessel)</span></div>
+    <div id="curios" aria-hidden="true">
+      <div class="curio-col left">
+        <span class="curio c1" title="gris-gris">🧿</span>
+        <span class="curio c2" title="crossbones">🦴</span>
+        <span class="curio c3" title="coffin">⚰</span>
+        <span class="curio c4" title="candle stub">🕯</span>
+        <span class="curio c5" title="heron feather">🪶</span>
+      </div>
+      <div class="curio-col right">
+        <span class="curio c6" title="skull">💀</span>
+        <span class="curio c7" title="seer crystal">🔮</span>
+        <span class="curio c8" title="goofer bottle">🍾</span>
+        <span class="curio c9" title="gator tooth">🐊</span>
+        <span class="curio c10" title="moon charm">🌙</span>
+      </div>
+    </div>
     <div id="ticker-wrap"><div id="ticker"><b>❦ Parish notices, cried by Lucile ❦</b>&nbsp;&nbsp;The union dead are hired at the cabin plots — Brothers Rattle, Clatter &amp; Marrow till on Tuesdays.&nbsp;&nbsp;⚜&nbsp;&nbsp;Maison Lament condemned (again); looters report green windows.&nbsp;&nbsp;⚜&nbsp;&nbsp;Poulain’s exchange now takes tycoons; stakes honoured, souls itemised.&nbsp;&nbsp;⚜&nbsp;&nbsp;The Widow Odette seeks her mother’s locket; discretion and reward.&nbsp;&nbsp;⚜&nbsp;&nbsp;Beware the Hollow Levy on parish roads after dark.&nbsp;&nbsp;⚜&nbsp;&nbsp;Tafia Reel declared parish anthem by acclamation (1 vote).&nbsp;&nbsp;⚜&nbsp;&nbsp;Jean-Luc’s Pigstye opens; pannage rates fair, wives locatable.&nbsp;&nbsp;⚜&nbsp;&nbsp;Barricades now hold! The commune thanks its carpenters.&nbsp;&nbsp;⚜&nbsp;&nbsp;Gris-gris half-price for gravediggers (Pelle’s discount).&nbsp;&nbsp;⚜&nbsp;&nbsp;<b>❦ Parish notices, cried by Lucile ❦</b>&nbsp;&nbsp;The union dead are hired at the cabin plots.&nbsp;&nbsp;⚜&nbsp;&nbsp;Maison Lament condemned (again).&nbsp;&nbsp;⚜&nbsp;&nbsp;The Widow seeks her locket.&nbsp;&nbsp;⚜&nbsp;&nbsp;Beware the Hollow Levy.&nbsp;&nbsp;⚜&nbsp;&nbsp;Barricades now hold!&nbsp;&nbsp;⚜&nbsp;&nbsp;</div></div>
   </div>
 
@@ -225,6 +252,7 @@
     <div class="trade-cols"><div><h4>Their wares</h4><div id="trade-theirs"></div></div><div><h4>Your satchel</h4><div id="trade-yours"></div></div></div>
     <div id="trade-info"></div>
   </div>
+  <div id="poster-view" class="hidden"><img id="poster-img" src="poster/bayou-requiem-poster.png" alt="Bayou Requiem one-sheet playbill"><div id="poster-x" title="roll it up">✕ roll it up</div></div>
 
   <!-- Death / Ending -->
   <div id="death" class="screen hidden"><div class="paper dark">

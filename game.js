@@ -209,6 +209,7 @@ const ITEMS={
  dice:{n:'Bone dice',e:'🎲',d:'Loaded, obviously. Sells to the hopeful.',price:4},
  medallion:{n:'Saint medallion',e:'🏅',d:'St. Expedite, patron of haste. Sells.',price:7},
  feather:{n:'Heron feather',e:'🪶',d:'For hats, lures, and love letters. Sells.',price:2},
+ onesheet:{n:'One-sheet playbill',e:'🎟',d:'A pulp poster for your own life, printed before you lived it. RARE. Use to unroll it (+6 reason, once per bill).',use:'poster',price:40},
  wine:{n:'Claret',e:'🍷',d:'French wine, cellared through the crossing. +6 hunger, +12 reason.',use:'drink',hunger:6,sanity:12,price:6},
  tafia:{n:'Tafia',e:'🥃',d:'Raw cane spirit. Burns clean through grief. +2 hunger, +18 reason, −5 HP.',use:'drink',hunger:2,sanity:18,hp:-5,price:8},
  tobacco:{n:'Pipe tobacco',e:'🚬',d:'Virginia leaf. Smoke a bowl and watch the mist. +10 reason, −2 HP.',use:'smoke',sanity:10,hp:-2,price:3},
@@ -1003,7 +1004,7 @@ function buildCottage(x,z,nm,id){
  addBox(x-1.4,0.5,z+1.0,1.0,0.9,0.6,0x6a4a26);}
 function placeStrongboxes(){
  [['Manor strongbox',10,-42,{loot:[['ring',1]],coins:30,karma:0}],
-  ['Lament cashbox',84,-30,{loot:[['fang',1]],coins:25,karma:0}],
+  ['Lament cashbox',84,-30,{loot:[['fang',1],['onesheet',1]],coins:25,karma:0}],
   ['Poor box',-32,-2,{loot:[],coins:12,karma:-10}]].forEach(([nm,x,z,L])=>{
  const c=addBox(x,0.4,z,1.0,0.8,0.7,0x2a2018);c.material.emissive=new THREE.Color(0x220a00);
  const lb=makeLabel('🗝 '+nm,0.4);lb.position.set(x,2.2,z);scene.add(lb);
@@ -1468,7 +1469,7 @@ function killFoe(f){scene.remove(f.mesh);foes.splice(foes.indexOf(f),1);
  if(f.type==='risen'&&Math.random()<0.4)dropLoot(f,'bread',1);
  if(f.type==='risen'&&Math.random()<0.25)dropLoot(f,'ragged_shirt',1);
  if(f.type==='risen'&&Math.random()<0.15)dropLoot(f,'breeches',1);
- if(f.type==='demon'){dropLoot(f,'ash',2);dropLoot(f,'coin',20);dropLoot(f,'medallion',1);onBossDead();}
+ if(f.type==='demon'){dropLoot(f,'ash',2);dropLoot(f,'coin',20);dropLoot(f,'medallion',1);dropLoot(f,'onesheet',1);onBossDead();}
  AudioSys.sfx('hurt');checkQuestKill(f.type);}
 function dropLoot(f,item,n){addItem(item,n);toast(f.d.e+' dropped: '+ITEMS[item].n+' ×'+n);}
 function hurtPlayer(dmg,why){if(G.dead||!G.started||G.paused||dlgOpen)return;
@@ -1610,6 +1611,9 @@ function yearFor(day){return 1666+Math.floor((day-1)/20);}
 function pickWeather(){const s=seasonFor(G.day);G.weather=choice(s.wx);}
 function updateSeasonVisual(){const s=seasonFor(G.day);const tint=new THREE.Color(s.leaf);
  for(const f of FOLIAGE)f.m.material.color.copy(f.base).lerp(tint,0.55);}
+function updateMenuSeason(){const m=$('menu');if(!m)return;const s=seasonFor(G.day).id;
+ const img=s==='autumn'?'textures/props/october.jpg':'textures/props/mississippi.jpg';
+ m.style.background=`linear-gradient(rgba(7,13,11,.86),rgba(7,13,11,.91)),url('${img}') center 30%/cover no-repeat,repeating-linear-gradient(45deg,rgba(216,169,60,.06) 0 2px,transparent 2px 9px),repeating-linear-gradient(-45deg,rgba(154,127,240,.05) 0 2px,transparent 2px 9px),radial-gradient(ellipse at 50% 30%,#1a241c 0%,#0e1410 60%,#060a08 100%)`;}
 function thunder(){if(!AudioSys.ctx||AudioSys.muted)return;const c=AudioSys.ctx,t=c.currentTime;
  const b=c.createBuffer(1,c.sampleRate*1.2,c.sampleRate),d=b.getChannelData(0);
  for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2);
@@ -1619,7 +1623,7 @@ function advanceTime(dt){const prev=G.time;G.time+=dt*(24/480);
  if(G.time>=24){G.time-=24;G.day++;AudioSys.bell();toast('☀ Day '+G.day+' — the bell counts what the Seigneur cannot.','good');
   if(T('smoker')&&!hasItem('tobacco',1)){G.sanity=clamp(G.sanity-10,0,100);toast('🚬 Dawn and no leaf. The hands shake till noon. (−10 🕯)','bad');}
   if(G.day===3){subtitle('The air tastes of iron. Tonight the bell will toll thirteen.');AudioSys.setMode('night');}
-  if((G.day-1)%5===0&&G.day>1){const s=seasonFor(G.day);updateSeasonVisual();notify(s.e,'The wheel turns: '+s.n+' '+yearFor(G.day),s.note,{tone:'lore',major:true});}
+  if((G.day-1)%5===0&&G.day>1){const s=seasonFor(G.day);updateSeasonVisual();updateMenuSeason();notify(s.e,'The wheel turns: '+s.n+' '+yearFor(G.day),s.note,{tone:'lore',major:true});}
   unlockQuests();}
  // weather drift, seasonal
  if(Math.random()<dt*0.03)pickWeather();
@@ -1756,6 +1760,7 @@ function useItem(id){const it=ITEMS[id];if(!it)return;if(!hasItem(id,1)){toast('
   const it2={kind:'trap',name:'Twine snare',x,z,r:2.6,txt:'Check snare (E)'};const tr={x,z,mesh:g,inter:it2,t:0,caught:null};it2.ref=tr;
   interactables.push(it2);traps.push(tr);AudioSys.sfx('craft');toast('🪤 Snare set. Check it in a while.','good');refreshHotbar();}
  else if(it.use==='charm'){if(G.charm){toast('🧿 The gris-gris already rides with you.','good');return;}G.charm=true;G.maxmana=120;G.mana=Math.min(120,G.mana+20);AudioSys.sfx('pray');toast('🧿 Gris-gris on. +20 max spirit. (+20 🌀 now)','good');}
+ else if(it.use==='poster'){const v=$('poster-view');if(v){v.classList.remove('hidden');AudioSys.sfx('quest');}if(!G.posterSeen){G.posterSeen=true;G.sanity=clamp(G.sanity+6,0,100);toast('🎟 You unroll your own legend. (+6 🕯)','good');}refreshHUD();}
  else toast(it.d);refreshHUD();}
 function refreshTracker(){const t=$('quest-tracker');t.innerHTML='';
  G.qactive.slice(0,4).forEach(id=>{const q=qdef(id),s=G.quests[id];const d=document.createElement('div');d.className='qtask';
@@ -2092,7 +2097,7 @@ function lootCrate(it){const nm=it.name;
  if(nm==='Trap cache'&&once('q_knife0')){addItem('knife',1);addItem('snare',1);toast('🔪 A skinning knife and spare twine. The east woods provide.','good');checkQuestItem();it.cd=performance.now()+60000;return;}
  if(nm==='Sunken strongbox'&&once('q_tre0')){addItem('coin',40);addItem('ring',1);toast('💍 A drowned strongbox: Spanish coin and a gold band!','good');AudioSys.sfx('gold');checkQuestItem();it.cd=performance.now()+60000;return;}
  if(nm==='Brigand cache'&&once('q_tre1')){addItem('saber',1);addItem('ammo',4);addItem('tafia',1);toast('⚔ A brigand’s retirement fund: saber, shot, and spirit.','good');checkQuestItem();it.cd=performance.now()+60000;return;}
- if(nm==='Crypt niche'&&once('q_tre2')){addItem('crucifix',1);addItem('coin',10);addKarma(-5,'robbing the vault dead');toast('✝ A brass crucifix — and the weight of sacrilege. (−5 ⚖)','bad');checkQuestItem();it.cd=performance.now()+60000;return;}
+ if(nm==='Crypt niche'&&once('q_tre2')){addItem('crucifix',1);addItem('coin',10);addKarma(-5,'robbing the vault dead');toast('✝ A brass crucifix — and the weight of sacrilege. (−5 ⚖)','bad');if(Math.random()<0.5){addItem('onesheet',1);toast('🎟 Behind the bones: a playbill for your own life?! RARE.','good');}checkQuestItem();it.cd=performance.now()+60000;return;}
  if(nm==='Study cache'&&once('q_lock0')){addItem('locket',1);toast('💠 A silver locket, miniatures inside. Odette’s mother, unmistakably.','good');checkQuestItem();it.cd=performance.now()+60000;return;}
  if(nm==='Cabin chest'&&once('q_shoe')){addItem('deed',1);toast('🧦 A child’s shoe — and a scrap: “took the shortcut by the oak”. To Lucile, quickly!','good');checkQuestItem();it.cd=performance.now()+60000;return;}
  if(nm==='Mission cache'){if(once('q_fang0')){addItem('fang',1);toast('🦷 An ivory fang in a snuffbox. The Sang-Mêlé supped here.','good');}else genericLoot();}
@@ -2280,10 +2285,10 @@ function togglePause(){G.paused=!G.paused;$('pause').classList.toggle('hidden',!
 function save(){try{const d={day:G.day,time:G.time,hp:G.hp,hunger:G.hunger,sanity:G.sanity,karma:G.karma,coins:G.coins,
  inv:G.inv,weapon:G.weapon,maxhp:G.maxhp,quests:Object.fromEntries(Object.entries(G.quests).map(([k,v])=>[k,v.st])),
  have:Object.fromEntries(Object.entries(G.quests).map(([k,v])=>[k,v.have])),qactive:G.qactive,buried:G.buried,kills:G.kills,
- looted:G.looted,work:G.work,shifts:G.shifts||0,haggle:G.haggle||{xp:0,tier:0},skills:G.skills||{},worn:G.worn||{},parts:G.parts||null,bleed:G.bleed||{},traits:G.traits||[],homeId:G.homeId||null,home:G.home||null,mana:Math.floor(G.mana),maxmana:G.maxmana,charm:!!G.charm,grave:G.grave?{x:G.grave.x,z:G.grave.z,inv:G.grave.inv,coins:G.grave.coins}:null,npc:npcs.map(n=>({id:n.id,dead:n.dead,follow:n.follow}))};
+ looted:G.looted,work:G.work,shifts:G.shifts||0,haggle:G.haggle||{xp:0,tier:0},skills:G.skills||{},worn:G.worn||{},parts:G.parts||null,bleed:G.bleed||{},traits:G.traits||[],homeId:G.homeId||null,home:G.home||null,mana:Math.floor(G.mana),maxmana:G.maxmana,posterSeen:!!G.posterSeen,charm:!!G.charm,grave:G.grave?{x:G.grave.x,z:G.grave.z,inv:G.grave.inv,coins:G.grave.coins}:null,npc:npcs.map(n=>({id:n.id,dead:n.dead,follow:n.follow}))};
  localStorage.setItem('bayou-requiem-save',JSON.stringify(d));toast('💾 Soul recorded in the parish register.','good');}catch(e){toast('Save failed: '+e,'bad');}}
 function load(){try{const raw=localStorage.getItem('bayou-requiem-save');if(!raw)return false;const d=JSON.parse(raw);
- Object.assign(G,{day:d.day,time:d.time,hp:d.hp,hunger:d.hunger,sanity:d.sanity,karma:d.karma,coins:d.coins,inv:d.inv,weapon:d.weapon,maxhp:d.maxhp,qactive:d.qactive||[],buried:d.buried||0,kills:d.kills||0,looted:d.looted||{}});
+ Object.assign(G,{day:d.day,time:d.time,hp:d.hp,hunger:d.hunger,sanity:d.sanity,karma:d.karma,coins:d.coins,inv:d.inv,weapon:d.weapon,maxhp:d.maxhp,qactive:d.qactive||[],buried:d.buried||0,kills:d.kills||0,looted:d.looted||{},posterSeen:!!d.posterSeen});
  for(const k in d.quests)if(G.quests[k])G.quests[k].st=d.quests[k];
  initWork();if(d.work)for(const k in d.work)if(G.work[k])G.work[k]=d.work[k];G.shifts=d.shifts||0;if(d.haggle)G.haggle=d.haggle;if(d.traits)G.traits=d.traits;initSkills();if(d.parts)G.parts=d.parts;if(d.bleed)G.bleed=d.bleed;if(d.worn)G.worn=d.worn;if(d.skills)for(const k in d.skills)if(G.skills[k])G.skills[k]=d.skills[k];G.homeId=d.homeId||null;G.home=d.home||null;if(typeof d.mana==='number')G.mana=d.mana;if(d.maxmana)G.maxmana=d.maxmana;G.charm=!!d.charm;G.wardUntil=0;G.hasteUntil=0;
  if(d.grave){G.grave={x:d.grave.x,z:d.grave.z,inv:d.grave.inv||{},coins:d.grave.coins||0};G.grave.mesh=graveMarker(G.grave);linkGrave();}
@@ -2413,6 +2418,11 @@ function wireButtons(){
  $('btn-atelier-save').onclick=saveAtelier;$('btn-atelier-reset').onclick=resetAtelier;
  $('btn-atelier-back').onclick=()=>{$('atelier').classList.add('hidden');if(G.started){}else $('menu').classList.remove('hidden');};
  document.querySelector('.menu-buttons').addEventListener('mouseover',e=>{if(e.target.closest('.btn')&&AudioSys.ctx&&!AudioSys.muted)AudioSys.sfx('pickup');});
+ const cd=$('candle');
+ if(cd){let wax=96;setInterval(()=>{if(cd.classList.contains('out'))return;if(wax>44){wax-=2;cd.style.setProperty('--waxh',wax+'px');}},20000);
+  cd.addEventListener('mouseenter',()=>{if(AudioSys.ctx&&!AudioSys.muted)AudioSys.sfx('pickup');});
+  cd.addEventListener('click',()=>{AudioSys.init();const out=cd.classList.toggle('out');AudioSys.sfx(out?'hurt':'pray');
+   toast(out?'🕯 Snuffed. The dark leans closer.':'🕯 Kindled. The parish breathes again.',out?'bad':'good');});}
  $('btn-music').onclick=()=>{AudioSys.init();AudioSys.toggle();};
  AudioSys.vol=0.6;
  $('mus-vol').oninput=e=>{AudioSys.init();AudioSys.setVol(e.target.value/100);};
@@ -2437,7 +2447,8 @@ function wireButtons(){
   if(G.grave)toast('⚰ Your satchel waits where you fell — find the ⚰ mark on the ring.','good');refreshHUD();};
  $('btn-dead-menu').onclick=()=>location.reload();
  $('btn-ending-menu').onclick=()=>{$('ending').classList.add('hidden');G.ending=false;};
- $('trade-x').onclick=()=>$('trade').classList.add('hidden');}
+ $('trade-x').onclick=()=>$('trade').classList.add('hidden');
+ const px=$('poster-x');if(px)px.onclick=()=>$('poster-view').classList.add('hidden');}
 function startGame(continued){G.started=true;G.paused=false;
  $('hud').classList.remove('hidden');$('loading').style.display='none';
  if(!continued){unlockQuests();acceptQuest('q_bread');
@@ -2528,7 +2539,7 @@ function boot(){initThree();buildWorld();initParticles();initMist();bootWindows(
  spawnCritter('heron',-40,56);spawnCritter('otter',14,80);
  spawnCritter('eagle',10,70);spawnCritter('eagle',-60,0);
  spawnSkelFarmers();spawnFoe('skeleton',-64,16);
- initWork();initSkills();updateSeasonVisual();pickWeather();applyTextOverrides();
+ initWork();initSkills();updateSeasonVisual();pickWeather();applyTextOverrides();updateMenuSeason();
  unlockQuests();refreshHUD();refreshHotbar();
  $('loading').style.display='none';
  // expose for tests
