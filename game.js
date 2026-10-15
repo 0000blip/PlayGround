@@ -435,7 +435,8 @@ function critterUpdate(c,dt){const m=c.mesh;c.cd-=dt;
    if(d<2.2&&c.cd<=0){c.cd=1.6;hurtPlayer(c.d.dmg+rand(-3,3),c.d.n);toast(c.d.e+' '+c.d.n+(c.type==='gator'?' rolls!':' strikes!')+' (−HP)','bad');if(c.d.venom&&G.infected<=0){G.infected=1;toast('☠ Venom in the blood! Herb or tonic, quickly!','bad');}}return;}
   c.wt-=dt;if(c.wt<=0){c.wt=rand(4,9);c.tx=c.hx+rand(-10,10);c.tz=c.hz+rand(-10,10);}
  }else{
-  if(d<7&&!G.dead){const dx=(m.position.x-px)/d,dz=(m.position.z-pz)/d;const cc=collide(m.position.x+dx*c.d.spd*dt,m.position.z+dz*c.d.spd*dt,0.5);m.position.x=cc.x;m.position.z=cc.z;m.lookAt(m.position.x+dx,0,m.position.z+dz);return;}
+  const fleeR=(G.sneaking?0.6:1)*Math.max(3,7-0.4*skillLvl('sneak'));
+  if(d<fleeR&&!G.dead){const dx=(m.position.x-px)/d,dz=(m.position.z-pz)/d;const cc=collide(m.position.x+dx*c.d.spd*dt,m.position.z+dz*c.d.spd*dt,0.5);m.position.x=cc.x;m.position.z=cc.z;m.lookAt(m.position.x+dx,0,m.position.z+dz);return;}
   c.wt-=dt;if(c.wt<=0){c.wt=rand(3,8);c.tx=c.hx+rand(-16,16);c.tz=c.hz+rand(-16,16);}
  }
  const dx=c.tx-m.position.x,dz=c.tz-m.position.z,dd=Math.hypot(dx,dz);
@@ -534,7 +535,7 @@ function doSleep(bed){if(G.time>=6&&G.time<18){subtitle('Only owls and the guilt
  const nightmare=(G.sanity<35||G.infected>0)&&Math.random()<0.45;
  if(nightmare){G.sanity=clamp(G.sanity+10,0,100);G.hp=clamp(G.hp-10,1,G.maxhp);
   subtitle('You dream of ledgers written in teeth. You wake chewing the blanket.');toast('Nightmare. (+10 🕯 only, −10 ❤)','bad');}
- else{G.sanity=clamp(G.sanity+45,0,100);G.hp=clamp(G.hp+25,0,G.maxhp);
+ else{G.sanity=clamp(G.sanity+45,0,100);G.hp=clamp(G.hp+25,0,G.maxhp);gainXp('vigor',4);
   if(G.hunger<=0){G.hp=clamp(G.hp-10,1,G.maxhp);toast('You slept hungry. The belly keeps its own ledger.','bad');}
   else toast('🛏 You slept at '+bed.name+'. (+45 🕯, +25 ❤)','good');AudioSys.sfx('pray');}
  refreshHUD();checkEnding();}
@@ -545,7 +546,7 @@ const G={started:false,paused:false,dead:false,ending:false,day:1,time:8.0,weath
  killsByFoe:{},taxPaid:false,debtBook:0,shoeFound:0,bellRung:false,endingShown:false,pos:{x:6,z:10}};
 QUESTS.forEach(q=>G.quests[q.id]={st:'lock',have:{}});
 G.work={};G.shifts=0;G.grave=null;G.mana=100;G.maxmana=100;G.haggle={xp:0,tier:0};G.traits=[];
-G.song=null;G.songGap=6;G.autoplay=true;G.musicHold=false;G.lastSong=null;
+G.song=null;G.songGap=6;G.autoplay=true;G.musicHold=false;G.lastSong=null;G.sneaking=false;
 function qdef(id){return QUESTS.find(q=>q.id===id);}
 function karmaTitle(k){if(k>=60)return 'Saint of the Bayou';if(k>=35)return 'Friend of the Commune';if(k>=12)return 'Trusted Neighbour';if(k>-12)return 'Wanderer of the Bayou';if(k>-35)return 'Suspect Soul';if(k>-60)return 'Hound of the Seigneur';return 'Butcher of the Mud';}
 function addKarma(n,why){G.karma=clamp(G.karma+n,-100,100);toast((n>0?'+':'')+n+' ⚖ '+(why||''),n>=0?'good':'bad');refreshHUD();}
@@ -555,7 +556,7 @@ function takeItem(id,n){n=n||1;if(id==='coin'){G.coins-=n;refreshHUD();return tr
 
 /* ============ THREE SETUP ============ */
 let renderer,scene,camera,sun,moon,hemi,torchLight,playerMesh,lanternLight;
-let camYaw=0.7,camDist=26,camH=20;
+let camYaw=0,camDist=26,camH=20; // fixed isometric, Zomboid-style: W walks screen-up (north)
 const colliders=[],interactables=[],foes=[],npcs=[],fires=[],labels=[],torches=[],critters=[],horses=[],carts=[],barricades=[],boats=[],WATER=[];
 const WORLD=240;
 function mat(c){return new THREE.MeshLambertMaterial({color:c});}
@@ -759,7 +760,7 @@ function workShift(st){const J=JOBS[st.job];if(!J)return;const w=G.work[st.job];
  if(J.stake)pay+=Math.round(J.stake*rand(1.15,1.6)*(1+0.1*w.tier));
  G.coins+=pay;
  if(J.make)addItem(J.make,J.makeN+(w.tier>=2?1:0));
- if(J.table){const r=Math.random();let acc=0;for(const [id,n,ch] of J.table){acc+=ch;if(r<acc){addItem(id,n+(w.tier>=2?1:0));break;}}}
+ if(J.table){const r=Math.random();let acc=0;for(const [id,n,ch] of J.table){acc+=ch;if(r<acc){addItem(id,n+(w.tier>=2?1:0)+((st.job==='farmer')?Math.floor(skillLvl('farm')/3):0));break;}}}
  w.xp+=J.xp||1;G.shifts=(G.shifts||0)+1;
  if(JOB_SKILL[st.job])gainXp(JOB_SKILL[st.job],2);
  const nt=tierFor(w.xp);
@@ -846,7 +847,7 @@ function placeBarricade(){const ry=playerMesh?playerMesh.rotation.y:0;
  for(const s of [-1,1]){const post=new THREE.Mesh(new THREE.BoxGeometry(0.22,1.7,0.22),mat(0x4a3018));post.position.set(s*1.1,0.85,0);g.add(post);}
  g.position.set(x,0,z);g.rotation.y=ry+Math.PI/2;scene.add(g);
  const coll={x0:x-1.2,x1:x+1.2,z0:z-1.2,z1:z+1.2};colliders.push(coll);
- const maxhp=60+((G.work&&G.work.carpenter?G.work.carpenter.tier:0)*15);
+ const maxhp=60+((G.work&&G.work.carpenter?G.work.carpenter.tier:0)*15)+skillLvl('carp')*10;
  const it={kind:'barr',name:'Barricade',x,z,r:2.6,txt:'Mend (plank) / tear down (E)',node:g};
  const b={x,z,hp:maxhp,maxhp,mesh:g,coll,inter:it};it.ref=b;
  interactables.push(it);barricades.push(b);
@@ -859,7 +860,7 @@ function mendBarricade(b){if(b.hp>=b.maxhp){
   scene.remove(b.mesh);b.coll.dead=true;if(b.inter)b.inter.gone=true;barricades.splice(barricades.indexOf(b),1);
   addItem('plank',2);toast('🪵 Torn down. 2 planks reclaimed.','good');return;}
  if(!hasItem('plank',1)){toast('Need 1 plank to mend.','bad');return;}
- takeItem('plank',1);b.hp=Math.min(b.maxhp,b.hp+25);AudioSys.sfx('craft');
+ takeItem('plank',1);b.hp=Math.min(b.maxhp,b.hp+25+8*skillLvl('smith'));AudioSys.sfx('craft');
  toast('🔨 Mended ('+Math.round(b.hp)+'/'+b.maxhp+' HP).','good');refreshHotbar();}
 function graveMarker(g){const m=new THREE.Group();
  const mound=new THREE.Mesh(new THREE.SphereGeometry(0.9,8,5),mat(0x3a2c1c));mound.scale.y=0.4;mound.position.y=0.1;m.add(mound);
@@ -972,8 +973,9 @@ const SPELLS=[
 ];
 function castSpell(id){const s=SPELLS.find(s=>s.id===id);if(!s)return;
  if(!G.started||G.paused||G.dead||dlgOpen)return;
- if(G.mana<s.cost){toast('Not enough spirit (need '+s.cost+' 🌀). Work the altars.','bad');return;}
- G.mana-=s.cost;AudioSys.sfx('pray');
+ const cost=Math.max(1,Math.round(s.cost*(1-0.03*skillLvl('root'))));
+ if(G.mana<cost){toast('Not enough spirit (need '+cost+' 🌀). Work the altars.','bad');return;}
+ G.mana-=cost;gainXp('root',2);AudioSys.sfx('pray');
  if(id==='ward'){G.wardUntil=performance.now()+30000;toast('🛡 The ward settles on your shoulders. (30s)','good');}
  else if(id==='lantern'){let hit=0;for(const f of [...foes]){if(!['ghost','vamp','risen'].includes(f.type))continue;
    if(dist2(G.pos.x,G.pos.z,f.mesh.position.x,f.mesh.position.z)<12){hurtFoe(f,f.type==='ghost'?45:30,false);hit++;}}
@@ -1002,7 +1004,7 @@ function placeAltars(){[['cross',10,48],['ancestor',-70,14],['water',-46,52],['c
 function doRitual(it){const R=RITUALS.find(r=>r.site===it.site);if(!R)return;
  for(const k in R.need){if(!hasItem(k,R.need[k])){toast('The rite wants: '+Object.entries(R.need).map(([a,b])=>b+' '+(ITEMS[a]?ITEMS[a].n:a)).join(', ')+'.','bad');return;}}
  for(const k in R.need)takeItem(k,R.need[k]);
- G.mana=Math.min(G.maxmana,G.mana+R.mana);G.sanity=clamp(G.sanity+R.sanity,0,100);
+ G.mana=Math.min(G.maxmana,G.mana+Math.round(R.mana*(1+0.05*skillLvl('root'))));G.sanity=clamp(G.sanity+R.sanity,0,100);gainXp('root',3);
  if(R.karma)addKarma(R.karma,'the old ways');
  AudioSys.sfx('pray');toast(R.e+' '+R.txt,'good');
  ritualProgress();refreshHUD();refreshHotbar();}
@@ -1164,6 +1166,28 @@ function collide(x,z,r){for(const c of colliders){if(c.dead)continue;const nx=cl
   const dx=x-nx,dz=z-nz,d=Math.hypot(dx,dz);if(d<r){if(d<0.001){return{x:x+(r),z};}return{x:nx+dx/d*r,z:nz+dz/d*r};}}return{x,z};}
 
 /* ---- combat ---- */
+let aiming=false,aimX=0,aimZ=0,shoveCd=0,shoutCd=0,runAcc=0;
+const _ray=new THREE.Raycaster(),_ndc=new THREE.Vector2(),_plane=new THREE.Plane(new THREE.Vector3(0,1,0),0);
+function updateAim(cx,cy){if(typeof camera==='undefined')return;_ndc.set(cx/innerWidth*2-1,-(cy/innerHeight)*2+1);_ray.setFromCamera(_ndc,camera);
+ const p=new THREE.Vector3();if(_ray.ray.intersectPlane(_plane,p)){aimX=p.x;aimZ=p.z;}}
+function shout(){if(shoutCd>0||!G.started||G.paused||G.dead)return;shoutCd=5;AudioSys.sfx('shot');
+ subtitle('“HEY! OVER HERE, YOU HUNGRY LEDGERS!”');
+ for(const f of foes){if(dist2(G.pos.x,G.pos.z,f.mesh.position.x,f.mesh.position.z)<34){f.tx=G.pos.x+rand(-2,2);f.tz=G.pos.z+rand(-2,2);f.wt=6;}}
+ for(const c of critters){if(c.d.flying||c.d.hostile)continue;if(dist2(G.pos.x,G.pos.z,c.mesh.position.x,c.mesh.position.z)<20){c.tx=c.mesh.position.x*2-G.pos.x;c.tz=c.mesh.position.z*2-G.pos.z;c.wt=4;}}
+ toast('📢 You shout. Everything hungry heard.','bad');}
+function shove(){if(shoveCd>0||G.dead||G.paused||!G.started||dlgOpen)return;shoveCd=0.8;
+ AudioSys.sfx('swing');let hit=false;
+ for(const f of foes){if(dist2(G.pos.x,G.pos.z,f.mesh.position.x,f.mesh.position.z)<2.4){
+  const dx=f.mesh.position.x-G.pos.x,dz=f.mesh.position.z-G.pos.z,d=Math.hypot(dx,dz)||1;
+  const cc=collide(clamp(f.mesh.position.x+dx/d*2.5,-112,112),clamp(f.mesh.position.z+dz/d*2.5,-112,112),0.6);
+  f.mesh.position.x=cc.x;f.mesh.position.z=cc.z;f.cd=Math.max(f.cd,0.9);
+  hurtFoe(f,(3+2*skillLvl('brawl'))*(1+0.04*skillLvl('might')),false);hit=true;}}
+ for(const c of [...critters]){if(c.d.flying)continue;if(dist2(G.pos.x,G.pos.z,c.mesh.position.x,c.mesh.position.z)<2.4){
+  const dx=c.mesh.position.x-G.pos.x,dz=c.mesh.position.z-G.pos.z,d=Math.hypot(dx,dz)||1;
+  c.mesh.position.x=clamp(c.mesh.position.x+dx/d*2.5,-112,112);c.mesh.position.z=clamp(c.mesh.position.z+dz/d*2.5,-112,112);
+  hurtCritter(c,3+2*skillLvl('brawl'));hit=true;}}
+ if(playerMesh.userData.arm){playerMesh.userData.arm.rotation.x=-1.2;setTimeout(()=>{if(playerMesh.userData.arm)playerMesh.userData.arm.rotation.x=0;},150);}
+ if(hit)gainXp('brawl',1);}
 let atkCd=0;
 function playerAttack(){if(atkCd>0||G.dead||G.paused||!G.started)return;
  const w=ITEMS[G.weapon]||ITEMS.rapier;atkCd=w.ranged?Math.max(0.6,1.1-0.05*skillLvl('musket')):(G.weapon==='axe'?0.7:(G.weapon==='spear'?0.6:((G.weapon==='cudgel'||G.weapon==='fists')?0.32:0.42)));
@@ -1174,10 +1198,10 @@ function playerAttack(){if(atkCd>0||G.dead||G.paused||!G.started)return;
   if(G.weapon==='musket')takeItem('ammo',1);
   let best=null,bd=28,bestC=null;
   for(const f of foes){const d=dist2(G.pos.x,G.pos.z,f.mesh.position.x,f.mesh.position.z);if(d<bd){bd=d;best=f;bestC=null;}}
-  for(const c of critters){if(c.d.flying)continue;const d=dist2(G.pos.x,G.pos.z,c.mesh.position.x,c.mesh.position.z);if(d<bd){bd=d;bestC=c;best=null;}}  if(best){hurtFoe(best,(w.dmg+rand(0,10))*(1+0.1*skillLvl('musket')),true);gainXp('musket',3);}else if(bestC)hurtCritter(bestC,(w.dmg+rand(0,10))*(1+0.1*skillLvl('musket')));return;}
+  for(const c of critters){if(c.d.flying)continue;const d=dist2(G.pos.x,G.pos.z,c.mesh.position.x,c.mesh.position.z);if(d<bd){bd=d;bestC=c;best=null;}}  if(best){hurtFoe(best,(w.dmg+rand(0,10))*(1+0.1*skillLvl('musket'))*(aiming?1.25:1),true);gainXp('musket',3);}else if(bestC)hurtCritter(bestC,(w.dmg+rand(0,10))*(1+0.1*skillLvl('musket')));return;}
  for(const f of foes){const d=dist2(G.pos.x,G.pos.z,f.mesh.position.x,f.mesh.position.z);
   if(d<3.0){const wt=G.weapon==='fists'?'brawl':(G.weapon==='axe'?'axe':(G.weapon==='spear'?'pike':((G.weapon==='cudgel'||G.weapon==='torch')?'blunt':'blade')));
-   let dmg=(w.dmg+rand(-2,4))*(1+0.08*skillLvl(wt))*(1+0.04*skillLvl('might'))*(T('smitharms')?1.15:1);
+   let dmg=(w.dmg+rand(-2,4))*(1+0.08*skillLvl(wt))*(1+0.04*skillLvl('might'))*(T('smitharms')?1.15:1)*(aiming?1.25:1);
    if(wt==='brawl')dmg+=2*skillLvl('brawl');
    if(G.weapon==='silver'&&f.type==='wolf')dmg*=3;
    if(G.inv.bible&&['ghost','vamp'].includes(f.type))dmg*=1.6;
@@ -1217,7 +1241,8 @@ function foeUpdate(f,dt){const m=f.mesh;f.cd-=dt;
  if(f.type==='vamp'&&!isNight()){spd*=0.4;f.hp-=dt*2;if(f.hp<=0){killFoe(f);subtitle('Dawn unmakes the vain. The Sang-Mêlé is ash.');return;}}
  if(f.type==='ghost'&&sanctuary)spd*=0.5;
  if(f.type==='demon'){const bf=$('boss-fill');if(bf)bf.style.width=(100*f.hp/f.maxhp)+'%';}
- if(d<26||f.hp<f.maxhp){ // aggro
+ const aggroR=(G.sneaking?0.5:1)*Math.max(12,26-1.5*skillLvl('sneak'));
+ if(d<aggroR||f.hp<f.maxhp){ // aggro
   const dx=(px-m.position.x)/d,dz=(pz-m.position.z)/d;
   let nx=m.position.x+dx*spd*dt,nz=m.position.z+dz*spd*dt;
   let bar=null,bd=2.6;for(const b of barricades){if(b.hp<=0)continue;const dd=dist2(m.position.x,m.position.z,b.x,b.z);if(dd<bd){bd=dd;bar=b;}}
@@ -1229,10 +1254,11 @@ function foeUpdate(f,dt){const m=f.mesh;f.cd-=dt;
   if(f.type==='demon'&&Math.random()<dt*0.8){hurtPlayer(12,'demon-fire');toast('🔥 The Bête breathes furnace-air!','bad');}
   if(d<(f.boss?3.2:1.8)&&f.cd<=0){f.cd=f.boss?1.2:1.5;
    let dmg=f.d.dmg+rand(-3,4);if(f.type==='ghost')dmg=8+G.infected*2;
-   hurtPlayer(dmg,f.d.n);
+   if(Math.random()<0.02*skillLvl('foot')){toast('🌀 You slip the blow clean.','good');gainXp('foot',2);}
+   else{hurtPlayer(dmg,f.d.n);
    const fright={risen:3,wolf:5,ghost:8,vamp:6,demon:10,skeleton:5}[f.type]||3;
    G.sanity=Math.max(0,G.sanity-fright);if(G.sanity<=10)subtitle('🕯 Your hands will not stop shaking.');
-   toast(f.d.e+' '+f.d.n+' wounds you (−'+Math.round(dmg)+' HP, −'+fright+' 🕯)','bad');}
+   toast(f.d.e+' '+f.d.n+' wounds you (−'+Math.round(dmg)+' HP, −'+fright+' 🕯)','bad');}}
  } else {f.wt-=dt;if(f.wt<=0){f.wt=rand(2,5);f.tx=m.position.x+rand(-14,14);f.tz=m.position.z+rand(-14,14);}
   const dx=f.tx-m.position.x,dz=f.tz-m.position.z,dd=Math.hypot(dx,dz);
   if(dd>1){const c=collide(m.position.x+dx/dd*spd*0.4*dt,m.position.z+dz/dd*spd*0.4*dt,0.6);m.position.x=c.x;m.position.z=c.z;}}
@@ -1419,7 +1445,7 @@ function refreshTracker(){const t=$('quest-tracker');t.innerHTML='';
    return o.label;}).join(' · ');
   d.innerHTML='<b>'+q.n+'</b><div class="obj">'+objs+'</div>';t.appendChild(d);});}
 function closePanels(){['panel-inventory','panel-craft','panel-quests','panel-char','panel-map','panel-work','panel-spells'].forEach(p=>$(p).classList.add('hidden'));}
-function togglePanel(id,render){const el=$(id);const was=el.classList.contains('hidden');closePanels();if(was){if(render)render();el.classList.remove('hidden');AudioSys.sfx('pickup');}}
+function togglePanel(id,render){const el=document.getElementById(id);if(!el)return;const was=el.classList.contains('hidden');closePanels();if(was){if(render)render();el.classList.remove('hidden');AudioSys.sfx('pickup');}}
 function renderInventory(){const g=$('inv-grid');g.innerHTML='';const ids=Object.keys(G.inv);
  if(!ids.length)g.innerHTML='<i>Empty satchel. The mud provides — search crates (E).</i>';
  ids.forEach(id=>{const it=ITEMS[id];if(!it)return;const d=document.createElement('div');d.className='inv-item'+(G.weapon===id?' equipped':'');
@@ -1441,6 +1467,9 @@ function renderCraft(){const l=$('craft-list');l.innerHTML='';
    if(r.id==='plankwall'){addItem('barricade',1);G.hp=clamp(G.hp+10,0,G.maxhp);toast('🪵 Barricade bundled. Use it from your satchel to raise it. (+10 ❤)','good');}
    else for(const k in r.make)if(r.make[k]>0)addItem(k,r.make[k]);
    if(r.id==='silver')toast('🔪 Blessed silver dirk. Loups, beware.','good');
+   if((r.id==='bandage'||r.id==='tonic')&&skillLvl('tailor')>=4){for(const k in r.make)addItem(k,1);toast('🪡 Clean stitches: bonus share.','good');}
+   if((r.id==='bandage'||r.id==='tonic'))gainXp('tailor',2);
+   if(r.id==='ammo'&&skillLvl('smith')>=3){addItem('ammo',1);toast('⚒ True-cast balls: bonus cartridge.','good');}
    if(r.cat==='cook'){initWork();const cw=G.work.cook;cw.xp+=2;const nt=tierFor(cw.xp);
     if(nt>cw.tier){cw.tier=nt;notify('🍳','Promotion: Cook — '+TIER_NAMES[nt],'The pot respects you now.',{major:true});}
     toast('🍳 '+r.n+' — the commune will eat tonight. (Cook +2 XP)','good');}
@@ -1530,6 +1559,7 @@ function mainPage(n){const disp=G.dispo[n.id]||0;
  if(n.id!=='taxman'&&!n.follow)ch.push({label:'🤝 “Walk with me. The commune defends itself.” (recruit)',cls:'good',fn:()=>recruit(n)});
  if(n.id==='anselme')ch.push({label:'🕯 “Bless me, Father — the dark gets in.” (confess, +reason)',cls:'good',fn:()=>shrive(n)});
  if(n.id==='seraphine')ch.push({label:'💋 “Company, conversation, forgetfulness.” (4 livres, +peace)',fn:()=>comfort(n)});
+ if(!n.dead)ch.push({label:'🤏 Lift something ('+Math.round((0.5+0.07*skillLvl('pick')+0.03*skillLvl('sneak'))*100)+'% — pickpocket)',fn:()=>pickpocket(n)});
  ch.push({label:'🎭 “Surely you can bend the truth, for a friend…” (deceive)',fn:()=>deceive(n)});
  if(n.id==='taxman')ch.push({label:'💰 Pay the tithe — 30 livres (save Seamus)',cls:'good',fn:()=>payTax(n)});
  if(n.id==='taxman')ch.push({label:'🗡 “The ledger ends here, leech.” (drive him off / fight)',cls:'danger',fn:()=>fightTax(n)});
@@ -1561,6 +1591,19 @@ function deceive(n){if(Math.random()<0.55){const gain=randi(4,10);G.coins+=gain;
   showDlgPage('You spin a tale of drowned tolls and vanished receipts. '+n.n+' blinks — and your purse grows heavier by '+gain+' livres.<br><i>(−4 karma. Lies compound like interest.)</i>',[{label:'Smile.',fn:closeDialogue}]);}
  else{G.dispo[n.id]=(G.dispo[n.id]||0)-1;addKarma(-2,'caught lying');
   showDlgPage('“...” '+n.n+' stares through your story like chapel glass. “The swamp hears everything, liar.”<br><i>Disposition down.</i>',[{label:'Back away.',fn:closeDialogue}]);}refreshHUD();}
+function pickpocket(n){const now=performance.now();
+ if(n.ppCd&&now<n.ppCd){showDlgPage('“...” '+n.n+' is watching their pockets — and you. Come back later.',[{label:'Back',fn:()=>openDialogue(n)}]);return;}
+ n.ppCd=now+120000;
+ const ch=0.5+0.07*skillLvl('pick')+0.03*skillLvl('sneak');
+ if(Math.random()<ch){const take=choice(['coin','coin','bread','tobacco','wine','herb','nail']);
+  if(take==='coin'){const c=randi(4,10)+skillLvl('pick')*3;G.coins+=c;toast('🪙 Lifted '+c+' livres. Silent as rent day.','good');}
+  else{addItem(take,1);toast(ITEMS[take].e+' Lifted: '+ITEMS[take].n+'.','good');}
+  gainXp('pick',4);gainXp('sneak',2);
+  showDlgPage('Your fingers remember older hungers. '+n.n+' suspects nothing — the parish provides.',[{label:'Pocket it.',fn:closeDialogue}]);}
+ else{G.dispo[n.id]=(G.dispo[n.id]||0)-2;addKarma(-3,'caught with fingers in the till');
+  toast('“THIEF!” '+n.n+' catches your wrist.','bad');
+  showDlgPage('“THIEF!” '+n.n+' catches your wrist before the whole row. You smile the smile of the innocent and walk very quickly away.<br><i>(−3 ⚖)</i>',[{label:'Walk quickly away.',fn:closeDialogue}]);}
+ refreshHUD();refreshHotbar();}
 function killNPC(n){n.dead=true;scene.remove(n.mesh);G.companions=G.companions.filter(x=>x!==n.id);
  addKarma(-25,'blood on the commons — '+n.n+' slain');AudioSys.sfx('hit');
  addItem('coin',randi(3,9));closeDialogue();
@@ -1702,27 +1745,33 @@ function bindInput(){window.addEventListener('keydown',e=>{const k=e.key.toLower
  if([' ','tab'].includes(k))e.preventDefault();keys[k]=true;
  if(!G.started||$('menu').offsetParent)return;
  if(k==='escape'||k==='p'){if(dlgOpen){closeDialogue();return;}if(!$('trade').classList.contains('hidden')){$('trade').classList.add('hidden');return;}
-  const anyPanel=['panel-inventory','panel-craft','panel-quests','panel-char','panel-map','panel-work'].some(p=>!$(p).classList.contains('hidden'));
+  const anyPanel=['panel-inventory','panel-craft','panel-quests','panel-char','panel-map','panel-work','panel-spells','panel-skills','panel-songs'].some(p=>{const el=$(p);return el&&!el.classList.contains('hidden');});
   if(anyPanel){closePanels();return;}togglePause();return;}
  if(G.paused||G.dead)return;
  if(k==='e'){if(G.mounted){dismount();return;}doInteract(nearestInteract());}
  if(k==='v'){const c=nearestCart();if(c)openStash(c);else if(G.mounted&&G.mounted.kind==='cart')openStash(G.mounted.ref);}
- if(k==='f'){if(hasItem('torch',1)){G.lantern=!G.lantern;toast(G.lantern?'🔥 Lantern high. The dark steps back.':'Lantern doused.');}else toast('No torch. Craft one (C): 2 planks.','bad');}
+ if(k==='f'){if(hasItem('torch',1)){G.lantern=!G.lantern;toast(G.lantern?'🔥 Lantern high. The dark steps back.':'Lantern doused.');}else toast('No torch. Craft one (X): 2 planks.','bad');}
  if(k==='tab'||k==='i')togglePanel('panel-inventory',renderInventory);
- if(k==='c')togglePanel('panel-craft',renderCraft);
+ if(k==='x')togglePanel('panel-craft',renderCraft);
+ if(k==='c'){G.sneaking=!G.sneaking;toast(G.sneaking?'🌙 Sneaking — slow and soft. (C to stand)':'You stand tall again.');AudioSys.sfx('pickup');}
+ if(k==='q')shout();
+ if(k==='g'){G.weapon='fists';toast('✊ Fists up. Irish diplomacy.');refreshHotbar();}
  if(k==='j')togglePanel('panel-quests',renderQuests);
  if(k==='k')togglePanel('panel-char',renderChar);
  if(k==='m')togglePanel('panel-map',drawBig);
  if(k==='b')togglePanel('panel-work',renderWork);
+ if(k==='y')togglePanel('panel-skills',renderSkills);
+ if(k==='n')togglePanel('panel-songs',renderSongs);
  if(k==='r')togglePanel('panel-spells',renderSpells);
  if(k==='7')castSpell('ward');if(k==='8')castSpell('lantern');if(k==='9')castSpell('haste');if(k==='0')castSpell('communion');if(k==='-')castSpell('rebuke');
- if(k===' '){playerAttack();}
+ if(k===' '){shove();}
  if(k>='1'&&k<='6'){useItem(HOT[+k-1]);}});
  window.addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});
  const cv=$('game-canvas');
- cv.addEventListener('mousedown',e=>{dragging=true;lastMX=e.clientX;movedPx=0;});
- window.addEventListener('mousemove',e=>{if(!dragging)return;const dx=e.clientX-lastMX;lastMX=e.clientX;movedPx+=Math.abs(dx);camYaw-=dx*0.005;});
- window.addEventListener('mouseup',()=>{if(dragging&&movedPx<6&&G.started&&!G.paused&&!dlgOpen){const el=document.elementFromPoint(lastMX,innerHeight/2);if(el===cv)playerAttack();}dragging=false;});
+ cv.addEventListener('mousedown',e=>{if(e.button===2){aiming=true;document.getElementById('crosshair').classList.remove('hidden');updateAim(e.clientX,e.clientY);return;}dragging=true;lastMX=e.clientX;movedPx=0;});
+ window.addEventListener('mousemove',e=>{updateAim(e.clientX,e.clientY);if(!dragging)return;movedPx+=Math.abs(e.clientX-lastMX);lastMX=e.clientX;});
+ window.addEventListener('mouseup',e=>{if(e.button===2){aiming=false;document.getElementById('crosshair').classList.add('hidden');return;}
+  if(dragging&&movedPx<6&&G.started&&!G.paused&&!dlgOpen){const el=document.elementFromPoint(lastMX,innerHeight/2);if(el===cv)playerAttack();}dragging=false;});
  cv.addEventListener('wheel',e=>{camDist=clamp(camDist+e.deltaY*0.02,14,46);},{passive:true});
  window.addEventListener('contextmenu',e=>{if(e.target===cv)e.preventDefault();});}
 function togglePause(){G.paused=!G.paused;$('pause').classList.toggle('hidden',!G.paused);AudioSys.sfx('pickup');}
@@ -1730,12 +1779,12 @@ function togglePause(){G.paused=!G.paused;$('pause').classList.toggle('hidden',!
 function save(){try{const d={day:G.day,time:G.time,hp:G.hp,hunger:G.hunger,sanity:G.sanity,karma:G.karma,coins:G.coins,
  inv:G.inv,weapon:G.weapon,maxhp:G.maxhp,quests:Object.fromEntries(Object.entries(G.quests).map(([k,v])=>[k,v.st])),
  have:Object.fromEntries(Object.entries(G.quests).map(([k,v])=>[k,v.have])),qactive:G.qactive,buried:G.buried,kills:G.kills,
- looted:G.looted,work:G.work,shifts:G.shifts||0,haggle:G.haggle||{xp:0,tier:0},traits:G.traits||[],homeId:G.homeId||null,home:G.home||null,mana:Math.floor(G.mana),maxmana:G.maxmana,charm:!!G.charm,grave:G.grave?{x:G.grave.x,z:G.grave.z,inv:G.grave.inv,coins:G.grave.coins}:null,npc:npcs.map(n=>({id:n.id,dead:n.dead,follow:n.follow}))};
+ looted:G.looted,work:G.work,shifts:G.shifts||0,haggle:G.haggle||{xp:0,tier:0},skills:G.skills||{},traits:G.traits||[],homeId:G.homeId||null,home:G.home||null,mana:Math.floor(G.mana),maxmana:G.maxmana,charm:!!G.charm,grave:G.grave?{x:G.grave.x,z:G.grave.z,inv:G.grave.inv,coins:G.grave.coins}:null,npc:npcs.map(n=>({id:n.id,dead:n.dead,follow:n.follow}))};
  localStorage.setItem('bayou-requiem-save',JSON.stringify(d));toast('💾 Soul recorded in the parish register.','good');}catch(e){toast('Save failed: '+e,'bad');}}
 function load(){try{const raw=localStorage.getItem('bayou-requiem-save');if(!raw)return false;const d=JSON.parse(raw);
  Object.assign(G,{day:d.day,time:d.time,hp:d.hp,hunger:d.hunger,sanity:d.sanity,karma:d.karma,coins:d.coins,inv:d.inv,weapon:d.weapon,maxhp:d.maxhp,qactive:d.qactive||[],buried:d.buried||0,kills:d.kills||0,looted:d.looted||{}});
  for(const k in d.quests)if(G.quests[k])G.quests[k].st=d.quests[k];
- initWork();if(d.work)for(const k in d.work)if(G.work[k])G.work[k]=d.work[k];G.shifts=d.shifts||0;if(d.haggle)G.haggle=d.haggle;if(d.traits)G.traits=d.traits;G.homeId=d.homeId||null;G.home=d.home||null;if(typeof d.mana==='number')G.mana=d.mana;if(d.maxmana)G.maxmana=d.maxmana;G.charm=!!d.charm;G.wardUntil=0;G.hasteUntil=0;
+ initWork();if(d.work)for(const k in d.work)if(G.work[k])G.work[k]=d.work[k];G.shifts=d.shifts||0;if(d.haggle)G.haggle=d.haggle;if(d.traits)G.traits=d.traits;initSkills();if(d.skills)for(const k in d.skills)if(G.skills[k])G.skills[k]=d.skills[k];G.homeId=d.homeId||null;G.home=d.home||null;if(typeof d.mana==='number')G.mana=d.mana;if(d.maxmana)G.maxmana=d.maxmana;G.charm=!!d.charm;G.wardUntil=0;G.hasteUntil=0;
  if(d.grave){G.grave={x:d.grave.x,z:d.grave.z,inv:d.grave.inv||{},coins:d.grave.coins||0};G.grave.mesh=graveMarker(G.grave);linkGrave();}
  for(const k in d.have)if(G.quests[k])G.quests[k].have=d.have[k];
  (d.npc||[]).forEach(s=>{const n=npcs.find(n=>n.id===s.id);if(n){n.dead=s.dead;n.follow=s.follow;if(n.dead)scene.remove(n.mesh);if(s.follow)G.companions.push(n.id);}});
@@ -1787,17 +1836,19 @@ function startGame(continued){G.started=true;G.paused=false;
 let lastT=0,miniT=0;
 function animate(t){requestAnimationFrame(animate);const dt=Math.min(0.05,(t-lastT)/1000||0.016);lastT=t;
  if(!G.started||G.paused){renderer&&renderer.render(scene,camera);return;}
- atkCd-=dt;
+ atkCd-=dt;shoveCd-=dt;shoutCd-=dt;
  // movement
  let mx=0,mz=0;if(!dlgOpen&&!G.dead){if(keys['w']||keys['arrowup'])mz-=1;if(keys['s']||keys['arrowdown'])mz+=1;
   if(keys['a']||keys['arrowleft'])mx-=1;if(keys['d']||keys['arrowright'])mx+=1;}
  const mount=G.mounted;
- const sprint=(keys['shift'])&&G.stam>1&&(mx||mz);
+ const sprint=(keys['shift'])&&G.stam>1&&(mx||mz)&&!G.sneaking;
  let sp=sprint?6.4:3.8,rad=0.7;
  sp*=((1+0.02*skillLvl('run'))*(T('swampfoot')?1.04:1)*(T('clubfoot')?0.92:1));
  if(mount)sp=mount.kind==='cart'?(sprint?8:6):(sprint?11:8);
  if(G.hasteUntil&&performance.now()<G.hasteUntil)sp*=1.35;
- if(mount&&mount.kind==='boat')sp=isWater(G.pos.x,G.pos.z)?(sprint?10:7):1.6;
+ sp*=1+0.02*skillLvl('run');
+ if(G.sneaking)sp*=0.55;if(aiming)sp*=0.6;
+ if(mount&&mount.kind==='boat')sp=isWater(G.pos.x,G.pos.z)?(sprint?10:7)*(1+0.04*skillLvl('sail')):1.6;
  if(mount)rad=mount.kind==='cart'?1.5:1.0;
  if(mx||mz){const l=Math.hypot(mx,mz);mx/=l;mz/=l;
   const s=Math.sin(camYaw),c=Math.cos(camYaw);const wx=mx*c-mz*s,wz=mx*s+mz*c;
@@ -1808,11 +1859,12 @@ function animate(t){requestAnimationFrame(animate);const dt=Math.min(0.05,(t-las
    playerMesh.position.set(G.pos.x,0,G.pos.z);playerMesh.position.y=mount.kind==='cart'?1.35:(mount.kind==='boat'?1.0:2.0);playerMesh.rotation.y=Math.atan2(wx,wz);}
   else{playerMesh.position.set(G.pos.x,0,G.pos.z);playerMesh.rotation.y=Math.atan2(wx,wz);
    playerMesh.position.y=Math.abs(Math.sin(t/130))*(sprint?0.12:0.06);}
-  if(sprint){G.stam=Math.max(0,G.stam-dt*16);}else G.stam=Math.min(100,G.stam+dt*10*(T('maroon')?1.3:1));
+  if(sprint){G.stam=Math.max(0,G.stam-dt*16);runAcc+=dt;if(runAcc>4){runAcc=0;gainXp('run',1);gainXp('vigor',1);if(mount&&mount.kind==='boat')gainXp('sail',2);}}else G.stam=Math.min(100,G.stam+dt*10*(T('maroon')?1.3:1)*(1+0.1*skillLvl('vigor')));
   G.hunger=Math.max(0,G.hunger-dt*(sprint?0.5:0.2));}
- else G.stam=Math.min(100,G.stam+dt*14*(T('maroon')?1.3:1));
- // camera keys
- if(keys['q'])camYaw+=dt*1.6;if(keys['e']&&dlgOpen==null){camYaw-=dt*1.6;}
+ else G.stam=Math.min(100,G.stam+dt*14*(T('maroon')?1.3:1)*(1+0.1*skillLvl('vigor')));
+ playerMesh.scale.y=G.sneaking?0.78:1;
+ if(aiming&&!G.dead&&!dlgOpen)playerMesh.rotation.y=Math.atan2(aimX-G.pos.x,aimZ-G.pos.z);
+ // (fixed camera — no rotation keys)
  camera.position.set(G.pos.x+Math.sin(camYaw)*camDist,camH+G.pos.z*0+camDist*0.62,G.pos.z+Math.cos(camYaw)*camDist);
  camera.lookAt(G.pos.x,1.5,G.pos.z);
  torchLight.position.set(G.pos.x,2.5,G.pos.z);
@@ -1834,7 +1886,9 @@ function animate(t){requestAnimationFrame(animate);const dt=Math.min(0.05,(t-las
  miniT-=dt;if(miniT<=0){miniT=1;checkQuestVisit();drawMini();refreshTracker();ck3alerts();
   $('clock-day').textContent='Day '+G.day+' · 1666';$('clock-time').textContent=(isNight()?'☾ ':'☀ ')+fmtT(G.time);}
  renderer.render(scene,camera);}
-function boot(){initThree();buildWorld();initParticles();initMist();bootWindows();buildPlayer();spawnNPCs();bindInput();wireButtons();
+function boot(){initThree();buildWorld();initParticles();initMist();bootWindows();buildPlayer();spawnNPCs();
+ const autoMus=()=>{try{if(!AudioSys.ctx)AudioSys.init();if(AudioSys.ctx&&AudioSys.ctx.state==='suspended')AudioSys.ctx.resume();}catch(e){}};
+ window.addEventListener('pointerdown',autoMus);window.addEventListener('keydown',autoMus);bindInput();wireButtons();
  spawnFoe('risen',40,10);spawnFoe('risen',-50,30);spawnFoe('ghost',-66,10);
  spawnCritter('rabbit',34,10);spawnCritter('rabbit',-44,30);spawnCritter('squirrel',50,-14);spawnCritter('deer',64,24);
  spawnCritter('turkey',40,36);spawnCritter('duck',-46,50);spawnCritter('gator',12,78);spawnCritter('gator',-38,60);
