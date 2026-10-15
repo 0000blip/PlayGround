@@ -1097,6 +1097,14 @@ function autoNext(){if(!G.started||G.musicHold)return;
  if(Math.random()<0.5){const pool=Object.keys(SONGS).filter(k=>k!==G.lastSong);id=choice(pool);}
  if(id)playSong(id,4);else playSong(genSong(),4);}
 function skipSong(){if(!AudioSys.ctx)return;stopRecord();AudioSys.fade(0.02,0.7,()=>{G.song=null;G.songGap=1;autoNext();AudioSys.fade((AudioSys.vol||0.6)*0.6,2);});}
+function libList(){return [...Object.keys(SONGS),...RECORDS.map(r=>'rec:'+r.id)];}
+function playLibNext(dir){AudioSys.init();const L=libList();if(!L.length)return;
+ let pool=L;
+ if(!G.started){pool=L.filter(x=>x.startsWith('rec:'));if(!pool.length)return;}
+ let i=pool.indexOf(G.lastSong);i=(i+dir+pool.length)%pool.length;
+ const id=pool[i];stopRecord(true);
+ if(id.startsWith('rec:'))playRecord(id.slice(4));
+ else{G.musicHold=false;playSong(id,4);}}
 function stopMusic(){stopRecord();G.musicHold=true;G.song=null;G.autoplay=false;const a=$('mus-auto');if(a)a.checked=false;const p=$('mus-play');if(p)p.textContent='▶';if(AudioSys.ctx)AudioSys.fade(0.0001,1.5);}
 function startMusic(){G.musicHold=false;G.autoplay=true;const a=$('mus-auto');if(a)a.checked=true;const p=$('mus-play');if(p)p.textContent='⏸';G.songGap=2;if(AudioSys.ctx)AudioSys.fade((AudioSys.vol||0.6)*0.6,2.5);}
 /* parish recordings: real audio files from lib/music, sung over the procedural score */
@@ -2605,8 +2613,8 @@ function wireButtons(){
     else if(sq&&sq.st==='open'&&!G.song11Hint){if(song11Ready()){acceptQuest('q_song11');progressTempo(v);subtitle('Célestin gasps: “That tempo… the lost Song 11 stirs!”');}
      else{G.song11Hint=true;toast('🎻 Célestin watches your hand: “Journeyman of the tavern or crier — or Master of any trade — and I’ll tell you of Song 11.”','lore');}}}};}
  try{const sv=parseFloat(localStorage.getItem('bayou-requiem-speed'));if(!isNaN(sv)&&typeof G!=='undefined')G.playRate=clamp(sv,0.25,2);}catch(_){}
- $('mus-next').onclick=()=>{AudioSys.init();skipSong();};
- $('mus-prev').onclick=()=>{AudioSys.init();if(G.song){G.song.steps=0;G.song.left=32;toast('♪ again, from the top.','lore');}};
+ $('mus-next').onclick=()=>playLibNext(1);
+ $('mus-prev').onclick=()=>playLibNext(-1);
  $('mus-play').onclick=()=>{AudioSys.init();if(G.musicHold)startMusic();else stopMusic();};
  $('mus-stop').onclick=()=>{AudioSys.init();stopMusic();const mt=$('mus-title');if(mt)mt.textContent='♪ Bayou Requiem (silent)';toast('⏹ All playback stopped. The parish holds its breath.','lore');};
  $('mus-rec').onclick=()=>{AudioSys.init();const pool=RECORDS.filter(r=>'rec:'+r.id!==G.lastSong);playRecord((pool.length?choice(pool):choice(RECORDS)).id);};
@@ -2636,7 +2644,13 @@ function startGame(continued){G.started=true;G.paused=false;
   setTimeout(()=>toast('⚜ Survive the nights. The Leveling Night comes on <b>Night 3</b> — finish the debt-book quest to face it.'),2500);}
  else{unlockQuests();subtitle('The mud kept your place. Day '+G.day+', '+fmtT(G.time)+'.');}
  refreshHUD();refreshHotbar();renderQuests();refreshTracker();
- G.songGap=6;if(AudioSys.ctx)AudioSys.fade((AudioSys.vol||0.6)*0.6,3);}
+ G.songGap=6;if(AudioSys.ctx)AudioSys.fade((AudioSys.vol||0.6)*0.6,3);
+ if(!continued&&!AudioSys.muted){AudioSys.init();AudioSys.setVol(0.6);
+  const kv=$('knob-vol');if(kv)kv.style.setProperty('--rot',((-135+(60/130)*270))+'deg');
+  const L=libList().filter(x=>G.started||x.startsWith('rec:'));
+  const pick=L.length?choice(L):null;
+  if(pick){if(pick.startsWith('rec:'))playRecord(pick.slice(4));else{G.musicHold=false;playSong(pick,4);}}
+}}
 let lastT=0,miniT=0;
 function animate(t){requestAnimationFrame(animate);const dt=Math.min(0.05,(t-lastT)/1000||0.016);lastT=t;
  if(!G.started||G.paused){renderer&&renderer.render(scene,camera);return;}
