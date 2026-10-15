@@ -1,0 +1,5 @@
+[
+ {"id":"bassblues","file":"lib/music/Bass_Blues-A_Ricki.mp3","n":"Bass Blues — A. Ricki","note":"a parish recording, bass-first blues"},
+ {"id":"guitarblues","file":"lib/music/Guitar-1_Blues-A_Ricki.mp3","n":"Guitar Blues — A. Ricki","note":"a parish recording, guitar-led blues"},
+ {"id":"keysblues","file":"lib/music/Keys_Blues-A_Ricki.mp3","n":"Keys Blues — A. Ricki","note":"a parish recording, keys-led blues"}
+]
