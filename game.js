@@ -143,6 +143,20 @@ const QUESTS=[
  {id:'q_forage',n:'The Commons Provide',giver:'manon',chain:'side',karma:8,desc:'October, and the unenclosed woods are generous: pecans, muscadines, persimmons, groundnuts — all free to hands that know. Gather 5 wild foods (E at green growth) and take 2 head of game. The Seigneur cannot tithe what he never planted.',obj:[{t:'forage',n:5,label:'wild foods gathered'},{t:'hunt',n:2,label:'game taken'}],rw:{stew:1,coin:8,karma:8}},
  {id:'q_gumbo',n:'A Gumbo for the Commune',giver:'odette',chain:'side',karma:7,desc:'The Widow means to feed the whole cabin row from one pot: 2 frog legs, 2 crawfish, 2 wild onions. “A gumbo is the commune in a kettle — everything in, everybody fed.”',obj:[{t:'collect',item:'froglegs',n:2,label:'frog legs'},{t:'collect',item:'crawfish',n:2,label:'crawfish'},{t:'collect',item:'onion',n:2,label:'wild onions'}],rw:{stew:2,karma:7}},
  {id:'q_teeth',n:'Teeth of the Water',giver:'jean',chain:'side',karma:8,desc:'Gator, snapper, moccasin — the water charges rent in blood. Take 4 head of game anywhere, and Jean will call you square with the bayou. Mind the nests.',obj:[{t:'hunt',n:4,label:'game taken'}],rw:{ammo:4,coin:10,karma:8}},
+ {id:'q_w_carpenter',n:'Boards for the Barricade',giver:'baptiste',chain:'side',karma:4,desc:'The chapel door hangs by a prayer. Work 3 shifts at the cabin sawpit (E) and Baptiste will call you chip of his own block.',obj:[{t:'work',job:'carpenter',n:3,label:'carpenter shifts'}],rw:{coin:10,nail:2,karma:4}},
+ {id:'q_w_cook',n:'Noon Soup',giver:'odette',chain:'side',karma:5,desc:'The cabin row eats at noon or not at all. Work 3 cook shifts at the market cookfire and nobody calls you stranger again.',obj:[{t:'work',job:'cook',n:3,label:'cook shifts'}],rw:{stew:1,karma:5}},
+ {id:'q_w_pirate',n:'Crates Without Names',giver:'seraphine',chain:'side',karma:2,desc:'Certain crates must pass the landing without passing the taxman. Work 2 pirate shifts after dark-ish. Ask no questions; Séraphine will tell you no lies.',obj:[{t:'work',job:'pirate',n:2,label:'smuggling runs'}],rw:{coin:18,karma:2}},
+ {id:'q_w_fisher',n:'Supper From the Water',giver:'lucile',chain:'side',karma:6,desc:'Lucile’s family nets are torn and her brothers are small. Work 3 fisherman shifts at the bayou or swamp spots and teach her the knots.',obj:[{t:'work',job:'fisherman',n:3,label:'fishing shifts'}],rw:{crawfish:2,karma:6}},
+ {id:'q_w_hunter',n:'Prove Provider',giver:'seamus',chain:'side',karma:6,desc:'Seamus says a pamphlet never filled a belly. Work 3 hunter shifts at the east-woods trapper’s post and lay meat on the cabin table.',obj:[{t:'work',job:'hunter',n:3,label:'hunting shifts'}],rw:{rabbit:2,karma:6}},
+ {id:'q_w_sheriff',n:'The Watch Takes You',giver:'anselme',chain:'side',karma:8,desc:'The chapel cannot sanctuary the whole parish. Work 3 sheriff shifts at the gallows watch post; Anselme himself pins on the ribbon.',obj:[{t:'work',job:'sheriff',n:3,label:'watch shifts'}],rw:{coin:12,karma:8}},
+ {id:'q_w_soldier',n:'Shoulder Arms',giver:'baptiste',chain:'side',karma:5,desc:'The militia drills with sticks and good intentions. Work 3 soldier shifts at the south-gate yard — someone here has actually stood in a line.',obj:[{t:'work',job:'soldier',n:3,label:'drill shifts'}],rw:{ammo:4,karma:5}},
+ {id:'q_w_tavern',n:'The Back Room',giver:'seraphine',chain:'side',karma:5,desc:'Séraphine’s grog stall needs a steady hand and a deaf ear. Work 3 tavern shifts: pour, listen, forget by morning.',obj:[{t:'work',job:'tavern',n:3,label:'tavern shifts'}],rw:{wine:1,coin:8,karma:5}},
+ {id:'q_w_smith',n:'Apprentice of the Forge',giver:'baptiste',chain:'side',karma:5,desc:'Baptiste’s hammer-arm gives out by dusk. Work 3 smith shifts at the forge (bring planks for charcoal) and earn the burn-scars.',obj:[{t:'work',job:'smith',n:3,label:'forge shifts'}],rw:{nail:3,karma:5}},
+ {id:'q_w_farmer',n:'Common Acres',giver:'seamus',chain:'side',karma:7,desc:'A strip behind the cabins lies fallow — “nobody’s”, which means everybody’s. Work 3 farmer shifts and the commune eats in October.',obj:[{t:'work',job:'farmer',n:3,label:'farm shifts'}],rw:{bread:2,karma:7}},
+ {id:'q_w_banker',n:'Honest Books',giver:'taxman',chain:'side',karma:6,desc:'Poulain, incredibly, wants the manor books honest — “fraud is a tax on myself.” Work 3 banker shifts at the counting desk and quietly forgive one cabin debt.',obj:[{t:'work',job:'banker',n:3,label:'ledger shifts'}],rw:{coin:14,karma:6}},
+ {id:'q_w_tycoon',n:'Corner the Market',giver:'taxman',chain:'side',karma:3,desc:'“Accumulation,” says Poulain, “is a virtue with interest.” Work 2 tycoon shifts at the exchange corner (10-livre stake each) and prove the pamphlet wrong — or rich.',obj:[{t:'work',job:'tycoon',n:2,label:'speculations'}],rw:{coin:12,karma:3}},
+ {id:'q_w_sewer',n:'The Miasma Theory',giver:'doctor',chain:'side',karma:7,desc:'Fauche blames the airs, and for once the airs agree. Work 3 sewer shifts at the drainage ditches. Danger money, gloves, no questions.',obj:[{t:'work',job:'sewer',n:3,label:'ditch shifts'}],rw:{coin:16,tonic:1,karma:7}},
+ {id:'q_w_crier',n:'Lungs for the Commune',giver:'lucile',chain:'side',karma:6,desc:'Lucile runs messages; the parish needs a voice. Work 3 crier shifts at the market stone and cry the commune’s news true.',obj:[{t:'work',job:'crier',n:3,label:'crying shifts'}],rw:{coin:10,karma:6}},
  {id:'q_risen',n:'The Night Shift',giver:'baptiste',chain:'side',karma:7,desc:'The Risen walk in force after dark. Put 6 back into the mud. The commune defends itself.',obj:[{t:'kill',foe:'risen',n:6,label:'risen laid to rest'}],rw:{ammo:6,coin:10,karma:7}},
  {id:'q_seal',n:'Seal of the Drowned',giver:'jean',chain:'side',karma:9,desc:'A demon-stain festers in the swamp heart. Gather 2 consecrated ash from destroyed apparitions? No — from the chapel brazier after banishings. Then cleanse the stain (E) in the swamp.',obj:[{t:'collect',item:'ash',n:2,label:'consecrated ash'}],rw:{coin:16,karma:9}},
  {id:'q_manor',n:'What the Manor Owes',giver:'seamus',chain:'main',karma:14,desc:'Seamus found the manor’s debt-book: 60 souls bought for 12 livres the head. Steal it from the manor chest (glowing crate behind the manor) and bring it to the market cross.',obj:[{t:'collect',item:'deed',n:2,label:'pages of the debt-book'}],rw:{karma:14,coin:15}},
@@ -413,6 +427,7 @@ const G={started:false,paused:false,dead:false,ending:false,day:1,time:8.0,weath
  inv:{bread:2,torch:1,rapier:1,plank:1},ammo:0,quests:{},qactive:[],companions:[],dispo:{},looted:{},planted:0,
  killsByFoe:{},taxPaid:false,debtBook:0,shoeFound:0,bellRung:false,endingShown:false,pos:{x:6,z:10}};
 QUESTS.forEach(q=>G.quests[q.id]={st:'lock',have:{}});
+G.work={};G.shifts=0;
 function qdef(id){return QUESTS.find(q=>q.id===id);}
 function karmaTitle(k){if(k>=60)return 'Saint of the Bayou';if(k>=35)return 'Friend of the Commune';if(k>=12)return 'Trusted Neighbour';if(k>-12)return 'Wanderer of the Bayou';if(k>-35)return 'Suspect Soul';if(k>-60)return 'Hound of the Seigneur';return 'Butcher of the Mud';}
 function addKarma(n,why){G.karma=clamp(G.karma+n,-100,100);toast((n>0?'+':'')+n+' ⚖ '+(why||''),n>=0?'good':'bad');refreshHUD();}
@@ -540,10 +555,87 @@ function buildWorld(){
  [[6,4],[-28,-4],[20,-12],[-12,20],[48,40]].forEach(([x,z])=>{addBox(x,1.5,z,0.25,3,0.25,0x3a2a1a);
   const l=new THREE.PointLight(0xffa04a,1.0,20);l.position.set(x,3.4,z);scene.add(l);torches.push(l);
   const f=new THREE.Mesh(new THREE.SphereGeometry(0.25,8,6),new THREE.MeshBasicMaterial({color:0xffc46a}));f.position.set(x,3.3,z);scene.add(f);});
- plantForage();spawnHorses();placeCarts();placeBeds();
+ plantForage();spawnHorses();placeCarts();placeBeds();placeWorks();
  // corral rails by the cabins
  [[26,34,8,0.3],[26,40,8,0.3]].forEach(([x,z,w,d])=>{addBox(x,0.6,z,w,1.0,d,0x5a4630);});
 }
+/* ============ WORK & PROFESSIONS ============ */
+const TIER_NAMES=['Day-labourer','Apprentice','Journeyman','Master','Grandmaster'];
+const TIER_XP=[0,8,20,40,70];
+function tierFor(xp){let t=0;for(let i=0;i<TIER_XP.length;i++)if(xp>=TIER_XP[i])t=i;return t;}
+const JOBS={
+ carpenter:{n:'Carpenter',e:'🪚',pay:6,sanity:5,cd:60000,make:'plank',makeN:2,xp:1,karma:1,site:'Sawpit, cabin row',shift:['You rip cypress all shift. The sawdust smells like honesty.','Mortise, tenon, peg. The chapel door hangs true.','You square a beam the Seigneur will never pay for — and keep the offcuts.']},
+ cook:{n:'Cook',e:'🍳',pay:4,sanity:6,cd:60000,make:'stew',makeN:1,xp:1,karma:1,site:'Cookfire, market row',shift:['You stir a pot big enough to baptise in.','Okra, pepper, patience. The row eats tonight.','You scrape the pot and feed the scraps to the thin ones first.']},
+ pirate:{n:'Pirate',e:'🏴‍☠️',pay:12,sanity:4,cd:120000,xp:2,karma:-1,site:'Smuggler’s cache, bayou landing',shift:['Crates land with no names on them. Yours is the back that carries them.','Tafia in, muskets out. The taxman sees nothing.','You row past the survey stakes by moonlight, whistling.']},
+ fisherman:{n:'Fisherman',e:'🎣',pay:4,sanity:7,cd:60000,make:'crawfish',makeN:1,xp:1,karma:1,site:'Fishing spots, bayou & swamp',shift:['You check the traps at grey dawn. The water pays.','A gar sulks past your lines. The crawfish do not sulk.','You mend nets and hum; the herons approve.']},
+ hunter:{n:'Hunter',e:'🏹',pay:5,sanity:6,cd:75000,xp:1,karma:1,site:'Trapper’s post, east woods',table:[['rabbit',1,0.5],['squirrel',1,0.3],['turkey',1,0.15],['venison',1,0.08]],site2:'',shift:['You walk the trapline before the mist lifts.','Something rustles; supper volunteers.','You read tracks like parish registers.']},
+ sheriff:{n:'Sheriff',e:'🤠',pay:7,sanity:5,cd:90000,xp:1,karma:2,site:'Watch post, gallows oak',shift:['You walk the rounds, lantern high. Doors unbar at your step.','You settle a dispute over a pig with Solomon’s patience.','The night shift tips its hat to you.']},
+ soldier:{n:'Retired soldier',e:'🎖',pay:6,sanity:5,cd:75000,make:'ammo',makeN:2,xp:1,karma:1,site:'Drill yard, south gate',shift:['Left! Right! The militia learns to stand together.','You teach trigger discipline and latrine digging, in that order.','Old war stories for new recruits. The fear gets smaller.']},
+ tavern:{n:'Tavern keeper',e:'🍺',pay:6,sanity:6,cd:60000,xp:1,karma:1,site:'Grog stall, market row',shift:['You pull tafia and pour out the news with it.','A song, a round, a shoulder. The stall glows.','You water nothing and short nobody. Saints drink here.']},
+ smith:{n:'Smith',e:'⚒',pay:6,sanity:5,cd:60000,need:'plank',make:'nail',makeN:2,xp:1,karma:1,site:'Forge, smithy',shift:['Sparks write brief sermons on the dark.','You turn a plank’s worth of charcoal into honest nails.','Horseshoes by day, hinges for the chapel by night.']},
+ farmer:{n:'Farmer',e:'🌾',pay:4,sanity:7,cd:60000,xp:1,karma:1,site:'Garden plots, cabin row',table:[['onion',1,0.4],['groundnut',1,0.35],['bread',1,0.25]],shift:['You hill the rows and curse the cutworms kindly.','Rain does half your work; you do it double anyway.','The commune’s acres, worked in common, green up.']},
+ banker:{n:'Banker',e:'🏦',pay:8,sanity:3,cd:90000,xp:1,karma:1,site:'Counting desk, manor',shift:['You reconcile the ledger — and quietly forgive a cabin debt.','Interest compounds; so does your patience.','You count coin all day and wash your hands twice.']},
+ tycoon:{n:'Tycoon',e:'💹',pay:2,sanity:3,cd:120000,stake:10,xp:2,karma:0,site:'Exchange corner, market',shift:['You corner the muscadine market by noon.','Buy low in the mud, sell high on the hill.','Risk, tells the pamphlet, is just labour that sweats.']},
+ sewer:{n:'Sewer cleaner',e:'🧹',pay:9,sanity:2,cd:90000,xp:1,karma:2,risk:0.1,site:'Drainage ditches, swamp edge',shift:['Night-soil and glory, carted out before dawn.','The ditches run clear. The fever bidra — retreats.','Nobody claps, but everybody breathes easier.']},
+ crier:{n:'Town cryer',e:'📯',pay:5,sanity:6,cd:60000,xp:1,karma:2,site:'Crier’s stone, market cross',shift:['“Hear ye!” The row gathers; the news is true for once.','You cry the lost, the found, and the price of bread.','Your lungs are the parish gazette.']},
+};
+function initWork(){if(!G.work)G.work={};for(const k in JOBS)if(!G.work[k])G.work[k]={xp:0,tier:0};}
+function workShift(st){const J=JOBS[st.job];if(!J)return;const w=G.work[st.job];
+ if(J.need&&!hasItem(J.need,1)){toast('Need 1 '+ITEMS[J.need].n+' to work this shift.','bad');return;}
+ if(J.stake&&G.coins<J.stake){toast('Need a '+J.stake+'-livre stake to speculate.','bad');return;}
+ if(J.need)takeItem(J.need,1);
+ if(J.stake)G.coins-=J.stake;
+ const mult=1+0.3*w.tier;
+ let pay=Math.round(J.pay*mult*rand(0.9,1.25));
+ if(J.stake)pay+=Math.round(J.stake*rand(1.15,1.6)*(1+0.1*w.tier));
+ G.coins+=pay;
+ if(J.make)addItem(J.make,J.makeN+(w.tier>=2?1:0));
+ if(J.table){const r=Math.random();let acc=0;for(const [id,n,ch] of J.table){acc+=ch;if(r<acc){addItem(id,n+(w.tier>=2?1:0));break;}}}
+ w.xp+=J.xp||1;G.shifts=(G.shifts||0)+1;
+ const nt=tierFor(w.xp);
+ if(nt>w.tier){w.tier=nt;toast('⚒ '+J.n+': now <b>'+TIER_NAMES[nt]+'</b>! Better pay, better peace.','good');AudioSys.sfx('quest');}
+ const sg=J.sanity+Math.min(6,w.tier*2);G.sanity=clamp(G.sanity+sg,0,100);
+ if(J.karma)addKarma(J.karma,J.n.toLowerCase()+'’s shift');
+ if(J.risk&&Math.random()<J.risk){G.infected=1;toast('🤢 The ditch air gets in. Miasma fever! Herb or tonic.','bad');}
+ st.cd=performance.now()+J.cd;AudioSys.sfx('craft');
+ toast(J.e+' '+choice(J.shift)+'<br>(+'+pay+' 🪙, +'+sg+' 🕯, '+TIER_NAMES[w.tier]+')','good');
+ workProgress(st.job);refreshHUD();refreshHotbar();refreshTracker();}
+function workProgress(job){for(const id of [...G.qactive]){const q=qdef(id);if(!q.obj.some(o=>o.t==='work'))continue;const s=G.quests[id];s.have['w_'+job]=(s.have['w_'+job]||0)+1;
+ let done=true;for(const o of q.obj){if(o.t==='work'&&(s.have['w_'+o.job]||0)<o.n)done=false;
+  if(o.t==='collect'){const h=o.item==='coin'?G.coins:(G.inv[o.item]||0);if(h<o.n)done=false;}
+  if(o.t==='kill'&&(s.have['k_'+o.foe]||0)<o.n)done=false;
+  if(o.t==='forage'&&(s.have.forage||0)<o.n)done=false;if(o.t==='hunt'&&(s.have.hunt||0)<o.n)done=false;
+  if(o.t==='bury'&&(s.have.bury||0)<o.n)done=false;if(o.t==='visit'&&!s.have['v_'+o.zone])done=false;
+  if(o.t==='tax'&&!G.taxPaid)done=false;if(o.t==='torch'&&(G.planted||0)<o.n)done=false;}
+ if(done)completeQuest(id);}refreshTracker();}
+function makeWorkMesh(job){const g=new THREE.Group();const J=JOBS[job];
+ const top=new THREE.Mesh(new THREE.BoxGeometry(1.6,0.18,0.9),mat(0x6a4a26));top.position.y=0.85;g.add(top);
+ for(const [lx,lz] of [[-0.6,0.3],[-0.6,-0.3],[0.6,0.3],[0.6,-0.3]]){const l=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.85,0.12),mat(0x4a3018));l.position.set(lx,0.42,lz);g.add(l);}
+ if(job==='smith'){const a=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.4,0.4),mat(0x2a2a2e));a.position.y=1.15;g.add(a);}
+ else if(job==='cook'){const p=new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.3,0.4,8),mat(0x1a1a1a));p.position.y=1.15;g.add(p);
+  const f=new THREE.Mesh(new THREE.ConeGeometry(0.25,0.5,6),new THREE.MeshBasicMaterial({color:0xff8a3a}));f.position.set(0.9,0.3,0);g.add(f);}
+ else if(job==='banker'||job==='tycoon'){const p=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.35,0.08),mat(0xe8e0cc));p.position.set(-0.3,1.2,0);p.rotation.y=0.4;g.add(p);
+  const c=new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.16,0.3,8),mat(0xc9a227));c.position.set(0.4,1.1,0);g.add(c);}
+ else if(job==='tavern'||job==='pirate'){const b=new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.35,0.7,9),mat(0x5a3a1a));b.position.set(0,1.3,0);g.add(b);}
+ else if(job==='fisherman'){const r=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,2.2,5),mat(0x6a4a26));r.position.set(0.3,1.4,0);r.rotation.z=0.5;g.add(r);}
+ else if(job==='crier'){const p=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.08,2.4,6),mat(0x4a3018));p.position.set(-0.7,1.2,0);g.add(p);
+  const b=new THREE.Mesh(new THREE.ConeGeometry(0.25,0.35,8),mat(0xc9a227));b.position.set(-0.7,2.5,0);g.add(b);}
+ else if(job==='farmer'){const s=new THREE.Mesh(new THREE.PlaneGeometry(2.2,1.4),mat(0x2e2018));s.rotation.x=-Math.PI/2;s.position.set(0,0.06,1.4);g.add(s);
+  for(let i=0;i<4;i++){const sp=new THREE.Mesh(new THREE.ConeGeometry(0.12,0.5,5),mat(0x4a7a2e));sp.position.set(-0.8+i*0.5,0.3,1.4);g.add(sp);}}
+ else if(job==='sewer'){const m=new THREE.Mesh(new THREE.SphereGeometry(0.4,7,5),mat(0x3a2e1e));m.position.set(0.9,0.2,0.6);m.scale.y=0.6;g.add(m);
+  const s=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,1.6,5),mat(0x6a4a26));s.position.set(-0.7,0.8,0);s.rotation.z=0.4;g.add(s);}
+ else if(job==='soldier'){const p=new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.07,1.8,5),mat(0x4a3018));p.position.set(-0.6,0.9,0);g.add(p);
+  const c=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.15,0.15),mat(0x4a3018));c.position.set(-0.6,1.5,0);g.add(c);}
+ else if(job==='sheriff'){const p=new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.07,2.2,5),mat(0x3a2a1a));p.position.set(-0.7,1.1,0);g.add(p);
+  const l=new THREE.Mesh(new THREE.SphereGeometry(0.16,7,5),new THREE.MeshBasicMaterial({color:0xffc46a}));l.position.set(-0.7,2.2,0);g.add(l);}
+ else if(job==='hunter'){for(const s of [-0.6,0.6]){const p=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,1.8,5),mat(0x4a3018));p.position.set(s,0.9,0);g.add(p);}
+  const b=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,1.5,5),mat(0x4a3018));b.rotation.z=Math.PI/2;b.position.set(0,1.6,0);g.add(b);}
+ else{const l=new THREE.Mesh(new THREE.BoxGeometry(1.1,0.25,0.25),mat(0x8a6a3a));l.position.set(0,1.1,0);g.add(l);}
+ const lb=makeLabel(J.e+' '+J.n,0.45);lb.position.set(0,2.4,0);g.add(lb);
+ return g;}
+function placeWorks(){[['carpenter',22,34],['cook',12,-11],['pirate',-46,56],['fisherman',-44,58],['fisherman',4,74],['hunter',48,8],['sheriff',-3,-34],['soldier',10,44],['tavern',24,-6],['smith',31,-20],['farmer',28,34],['farmer',16,32],['banker',12,-44],['tycoon',10,0],['sewer',0,60],['sewer',-20,44],['crier',16,1]].forEach(([job,x,z])=>{
+ const m=makeWorkMesh(job);m.position.set(x,0,z);scene.add(m);
+ interactables.push({kind:'work',job,name:JOBS[job].n+' — '+JOBS[job].site,x,z,r:3,txt:'⚒ Work: '+JOBS[job].n+' (E)'});});}
 /* ============ PEOPLE ============ */
 function makeHumanoid(coat,skin,hat){const g=new THREE.Group();
  const legs=new THREE.Mesh(new THREE.BoxGeometry(0.55,0.8,0.4),mat(0x3a2f24));legs.position.y=0.4;g.add(legs);
@@ -797,11 +889,12 @@ function refreshTracker(){const t=$('quest-tracker');t.innerHTML='';
    if(o.t==='forage')return (s.have.forage||0)+'/'+o.n+' '+o.label;
    if(o.t==='hunt')return (s.have.hunt||0)+'/'+o.n+' '+o.label;
    if(o.t==='torch')return (G.planted||0)+'/'+o.n+' '+o.label;
+   if(o.t==='work')return (s.have['w_'+o.job]||0)+'/'+o.n+' '+o.label;
    if(o.t==='tax')return G.taxPaid?'✔ settled':'○ unsettled';
    if(o.t==='visit')return (s.have['v_'+o.zone]?'✔ ':'○ ')+o.label;
    return o.label;}).join(' · ');
   d.innerHTML='<b>'+q.n+'</b><div class="obj">'+objs+'</div>';t.appendChild(d);});}
-function closePanels(){['panel-inventory','panel-craft','panel-quests','panel-char','panel-map'].forEach(p=>$(p).classList.add('hidden'));}
+function closePanels(){['panel-inventory','panel-craft','panel-quests','panel-char','panel-map','panel-work'].forEach(p=>$(p).classList.add('hidden'));}
 function togglePanel(id,render){const el=$(id);const was=el.classList.contains('hidden');closePanels();if(was){if(render)render();el.classList.remove('hidden');AudioSys.sfx('pickup');}}
 function renderInventory(){const g=$('inv-grid');g.innerHTML='';const ids=Object.keys(G.inv);
  if(!ids.length)g.innerHTML='<i>Empty satchel. The mud provides — search crates (E).</i>';
@@ -841,6 +934,12 @@ function renderChar(){$('char-body').innerHTML=
  '<div class="char-row"><span>⚰ Buried</span><b>'+G.buried+'</b></div>'+
  '<div class="char-row"><span>🤝 Companions</span><b>'+(G.companions.map(npcName).join(', ')||'none yet — karma 10+ recruits')+'</b></div>'+
  '<p style="font-style:italic;color:#a89a76">Saints get −20% prices, chapel sanctuary, and volunteers. Butchers pay +30%, are refused recruits, and the Bête hunts them first.</p>';}
+function renderWork(){const l=$('work-list');l.innerHTML='<p style="font-size:13px;color:#a89a76">Honest labour steadies the hands and the head: every shift pays coin, restores 🕯, and climbs its trade toward Grandmaster (better pay, better peace). Find the stations by their floating signs.</p>';
+ for(const k in JOBS){const J=JOBS[k],w=G.work[k]||{xp:0,tier:0};const next=w.tier<4?TIER_XP[w.tier+1]:null;
+  const d=document.createElement('div');d.className='craft-row';
+  d.innerHTML='<span>'+J.e+' <b>'+J.n+'</b> — '+TIER_NAMES[w.tier]+' ('+w.xp+(next?' / '+next+' XP':' XP,max')+')<br><small>~'+Math.round(J.pay*(1+0.3*w.tier))+' 🪙 · +'+(J.sanity+Math.min(6,w.tier*2))+' 🕯 · '+J.site+(J.need?' · needs 1 '+ITEMS[J.need].n:'')+(J.stake?' · '+J.stake+' stake':'')+'</small></span>';
+  l.appendChild(d);}
+ const t=document.createElement('div');t.style.cssText='font-size:13px;color:#c9a227;margin-top:8px;';t.textContent='Shifts worked in total: '+(G.shifts||0);l.appendChild(t);}
 /* ---- maps ---- */
 function drawMini(){const c=$('minimap'),x=c.getContext('2d');x.clearRect(0,0,168,168);
  x.fillStyle='#0d0b08';x.beginPath();x.arc(84,84,80,0,7);x.fill();
@@ -882,7 +981,7 @@ function mainPage(n){const disp=G.dispo[n.id]||0;
  const ch=[];
  questsHere.forEach(q=>{const s=G.quests[q.id];
   if(s.st==='open')ch.push({label:'📜 “'+q.n+'” — hear the need',cls:'good',fn:()=>{acceptQuest(q.id);showDlgPage('“'+q.desc+'”<br><br><i>Quest taken. The ledger remembers.</i>',[{label:'“Done. I’ll go.” (leave)',fn:closeDialogue}]);}});
-  else{let prog=q.obj.map(o=>{if(o.t==='collect'){const h=o.item==='coin'?G.coins:(G.inv[o.item]||0);return Math.min(h,o.n)+'/'+o.n+' '+o.label;}if(o.t==='kill')return (s.have['k_'+o.foe]||0)+'/'+o.n+' '+o.label;if(o.t==='bury')return (s.have.bury||0)+'/'+o.n;if(o.t==='forage')return (s.have.forage||0)+'/'+o.n+' '+o.label;if(o.t==='hunt')return (s.have.hunt||0)+'/'+o.n+' '+o.label;return o.label;}).join(' · ');
+  else{let prog=q.obj.map(o=>{if(o.t==='collect'){const h=o.item==='coin'?G.coins:(G.inv[o.item]||0);return Math.min(h,o.n)+'/'+o.n+' '+o.label;}if(o.t==='kill')return (s.have['k_'+o.foe]||0)+'/'+o.n+' '+o.label;if(o.t==='bury')return (s.have.bury||0)+'/'+o.n;if(o.t==='forage')return (s.have.forage||0)+'/'+o.n+' '+o.label;if(o.t==='hunt')return (s.have.hunt||0)+'/'+o.n+' '+o.label;if(o.t==='work')return (s.have['w_'+o.job]||0)+'/'+o.n+' '+o.label;return o.label;}).join(' · ');
    ch.push({label:'📜 “'+q.n+'” — progress: '+prog,fn:()=>showDlgPage('“'+q.desc+'”<br><br><i>'+prog+'</i>',[{label:'Back',fn:()=>openDialogue(n)}])});}});
  ch.push({label:'💬 “Talk — what is this place, truly?”',fn:()=>lorePage(n)});
  if(['baptiste','manon','doctor','odette','seraphine'].includes(n.id))ch.push({label:'⚖ “Trade.”',fn:()=>openTrade(n)});
@@ -971,6 +1070,7 @@ function doInteract(it){if(!it)return;AudioSys.sfx('pickup');
  if(it.kind==='cart'){mountCart(it.cart);return;}
  if(it.kind==='forage'){gatherForage(it);return;}
  if(it.kind==='bed'){doSleep(it);return;}
+ if(it.kind==='work'){workShift(it);return;}
  if(it.kind==='grave'){if(G.looted[it.id]){subtitle('A tended mound. Someone scratched: “PAID IN FULL.”');return;}
   G.looted[it.id]=1;buryAt();if(Math.random()<0.4){addItem('coin',2);toast('Among the roots: 2 forgotten livres.','good');}return;}
  if(it.kind==='fire'){G.hp=clamp(G.hp+8,0,G.maxhp);G.sanity=clamp(G.sanity+14,0,100);G.hunger=Math.max(0,G.hunger-4);
@@ -1025,7 +1125,7 @@ function bindInput(){window.addEventListener('keydown',e=>{const k=e.key.toLower
  if([' ','tab'].includes(k))e.preventDefault();keys[k]=true;
  if(!G.started||$('menu').offsetParent)return;
  if(k==='escape'||k==='p'){if(dlgOpen){closeDialogue();return;}if(!$('trade').classList.contains('hidden')){$('trade').classList.add('hidden');return;}
-  const anyPanel=['panel-inventory','panel-craft','panel-quests','panel-char','panel-map'].some(p=>!$(p).classList.contains('hidden'));
+  const anyPanel=['panel-inventory','panel-craft','panel-quests','panel-char','panel-map','panel-work'].some(p=>!$(p).classList.contains('hidden'));
   if(anyPanel){closePanels();return;}togglePause();return;}
  if(G.paused||G.dead)return;
  if(k==='e'){if(G.mounted){dismount();return;}doInteract(nearestInteract());}
@@ -1036,6 +1136,7 @@ function bindInput(){window.addEventListener('keydown',e=>{const k=e.key.toLower
  if(k==='j')togglePanel('panel-quests',renderQuests);
  if(k==='k')togglePanel('panel-char',renderChar);
  if(k==='m')togglePanel('panel-map',drawBig);
+ if(k==='b')togglePanel('panel-work',renderWork);
  if(k===' '){playerAttack();}
  if(k>='1'&&k<='6'){useItem(HOT[+k-1]);}});
  window.addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});
@@ -1050,11 +1151,12 @@ function togglePause(){G.paused=!G.paused;$('pause').classList.toggle('hidden',!
 function save(){try{const d={day:G.day,time:G.time,hp:G.hp,hunger:G.hunger,sanity:G.sanity,karma:G.karma,coins:G.coins,
  inv:G.inv,weapon:G.weapon,maxhp:G.maxhp,quests:Object.fromEntries(Object.entries(G.quests).map(([k,v])=>[k,v.st])),
  have:Object.fromEntries(Object.entries(G.quests).map(([k,v])=>[k,v.have])),qactive:G.qactive,buried:G.buried,kills:G.kills,
- looted:G.looted,npc:npcs.map(n=>({id:n.id,dead:n.dead,follow:n.follow}))};
+ looted:G.looted,work:G.work,shifts:G.shifts||0,npc:npcs.map(n=>({id:n.id,dead:n.dead,follow:n.follow}))};
  localStorage.setItem('bayou-requiem-save',JSON.stringify(d));toast('💾 Soul recorded in the parish register.','good');}catch(e){toast('Save failed: '+e,'bad');}}
 function load(){try{const raw=localStorage.getItem('bayou-requiem-save');if(!raw)return false;const d=JSON.parse(raw);
  Object.assign(G,{day:d.day,time:d.time,hp:d.hp,hunger:d.hunger,sanity:d.sanity,karma:d.karma,coins:d.coins,inv:d.inv,weapon:d.weapon,maxhp:d.maxhp,qactive:d.qactive||[],buried:d.buried||0,kills:d.kills||0,looted:d.looted||{}});
  for(const k in d.quests)if(G.quests[k])G.quests[k].st=d.quests[k];
+ initWork();if(d.work)for(const k in d.work)if(G.work[k])G.work[k]=d.work[k];G.shifts=d.shifts||0;
  for(const k in d.have)if(G.quests[k])G.quests[k].have=d.have[k];
  (d.npc||[]).forEach(s=>{const n=npcs.find(n=>n.id===s.id);if(n){n.dead=s.dead;n.follow=s.follow;if(n.dead)scene.remove(n.mesh);if(s.follow)G.companions.push(n.id);}});
  return true;}catch(e){return false;}}
@@ -1142,6 +1244,7 @@ function boot(){initThree();buildWorld();buildPlayer();spawnNPCs();bindInput();w
  spawnCritter('raccoon',24,32);spawnCritter('opossum',-20,20);spawnCritter('frog',4,72);spawnCritter('frog',-44,60);
  spawnCritter('heron',-40,56);spawnCritter('otter',14,80);
  spawnCritter('eagle',10,70);spawnCritter('eagle',-60,0);
+ initWork();
  unlockQuests();refreshHUD();refreshHotbar();
  $('loading').style.display='none';
  // expose for tests

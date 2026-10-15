@@ -41,7 +41,7 @@
     <div id="quest-tracker"></div>
     <div id="killfeed"></div>
     <div id="interact-prompt" class="hidden">[E] <span id="interact-text">Talk</span></div>
-    <div id="controls-hint">WASD move · Mouse-drag/Q/E camera · LMB/Space attack · E talk/loot/mount · V cart stash · Tab bag · J quests · C craft · K character · M map · F lantern · 1-6 wield · Esc pause</div>
+    <div id="controls-hint">WASD move · Mouse-drag/Q/E camera · LMB/Space attack · E talk/loot/mount · V cart stash · Tab bag · J quests · C craft · K character · B labours · M map · F lantern · 1-6 wield · Esc pause</div>
     <div id="boss-bar" class="hidden"><div id="boss-name">BÊTE DE L'ABÎME</div><div class="bar big"><div id="boss-fill"></div></div></div>
   </div>
 
@@ -110,6 +110,7 @@
         <div><h3>🩸 Project-Zomboid rules</h3><p>Eat before hunger empties or HP bleeds. Sleep? There is no sleep here — only the bell. Barricade doors with planks (C). Boiled herbs cure bites. <b>Forage</b> the October woods (E at green growth: pecans, muscadines, persimmons, groundnuts…), <b>hunt</b> rabbit, turkey and deer, beware alligators, cottonmouths, hogs and the old black bear — yaupon leaves steady the nerves. <b>Horses</b> can be mounted (E); <b>carts</b> driven (E) and used as a shared stash (V). Night is death: lantern, fire and chapel ground save you. Death drops your satchel where you fell.</p></div>
         <div><h3>⚖ Karma</h3><p>Share bread +3 · bury the dead +4 · free quests +5…+10 · murder −25 · theft −8 · lying −4 · eating the Seigneur's store in front of the poor +2. Saints get discounts, allies and chapel sanctuary. Butchers are hunted — and the Bête learns their name.</p></div>
         <div><h3>🕯 Reason (sanity)</h3><p>Every horror gnaws: Risen, Loups, Apparitions, Sang-Mêlé, the Bête itself — worse at night, worse wounded. Lanterns, fires and chapel ground halve the gnawing. Recover by <b>sleeping</b> in bunks/pews/hammocks (E, dusk to dawn), <b>drinking</b> wine & tafia, <b>smoking</b> pipe tobacco, <b>confessing</b> to Père Anselme, or <b>company</b> with Dame Séraphine. Below 30, the dark starts talking back; at 0 it starts collecting.</p></div>
+        <div><h3>⚒ Work & professions</h3><p>Fourteen honest (and-ish) trades: carpenter, cook, pirate, fisherman, hunter, sheriff, soldier, tavern keeper, smith, farmer, banker, tycoon, sewer cleaner, town cryer. Find their stations by floating signs, press <b>E</b> to work a shift: coin, trade goods, <b>+🕯 sanity</b>, and XP toward <b>Apprentice → Grandmaster</b> (better pay, deeper peace). Smiths need planks; tycoons need a stake; sewers risk the miasma. Press <b>B</b> for the ledger. Every trade has a quest.</p></div>
         <div><h3>🐺 The Five Plagues</h3><p><b>Risen</b> — slow, bite infects. <b>Loup-Garou</b> — fleet by moon, silver & fire. <b>Apparitions</b> — drain reason (sanity); blessed steel & lantern hurt them. <b>Sang-Mêlé (vampires)</b> — proud, parley at dusk, burn at dawn. <b>Bête de l'Abîme</b> — the demon of the drained swamp. Boss of the Leveling Night.</p></div>
       </div>
       <div class="row"><button class="btn btn-back" data-back="help">← Back</button></div>
@@ -151,6 +152,10 @@
     <h3>🗺 Chart of the Seigneurie, 1666 <span class="panel-hint">M closes</span></h3>
     <canvas id="bigmap" width="520" height="520"></canvas>
     <div class="map-legend">⚜ manor · ☩ chapel · ⚒ smith · 🌿 herbalist · ▤ cabins · ☠ cemetery · 🐊 swamp · ❖ you</div>
+  </div>
+  <div id="panel-work" class="panel hidden">
+    <h3>⚒ Labours & Trades <span class="panel-hint">B closes</span></h3>
+    <div id="work-list"></div>
   </div>
 
   <!-- Dialogue -->
