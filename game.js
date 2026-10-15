@@ -77,6 +77,14 @@ const ITEMS={
  duck:{n:'Duck',e:'🦆',d:'Bayou mallard. +20 hunger.',use:'eat',hunger:20,price:5},
  squirrel:{n:'Squirrel',e:'🐿',d:'Gray squirrel. +12 hunger.',use:'eat',hunger:12,price:3},
  gator:{n:'Gator tail',e:'🐊',d:'Tastes of chicken and bad decisions. +28 hunger.',use:'eat',hunger:28,price:7},
+ froglegs:{n:'Frog legs',e:'🐸',d:'Gigged at night, fried by morning. +16 hunger.',use:'eat',hunger:16,price:4},
+ turtle:{n:'Turtle meat',e:'🐢',d:'Snapper or box — seven meats in one. +22 hunger.',use:'eat',hunger:22,price:5},
+ pork:{n:'Feral pork',e:'🐗',d:'Spanish stock gone wild and mean. +26 hunger.',use:'eat',hunger:26,price:5},
+ bearmeat:{n:'Bear meat',e:'🐻',d:'The old man of the canebrake. +34 hunger.',use:'eat',hunger:34,price:8},
+ snakemeat:{n:'Cottonmouth (dressed)',e:'🐍',d:'Venom sacs removed, mostly. +18 hunger.',use:'eat',hunger:18,price:4},
+ venom:{n:'Venom sac',e:'☠',d:'Moccasin venom. Poison — or, doctored, cure.',price:6},
+ coon:{n:'Raccoon',e:'🦝',d:'Night-bandit, greasy and sweet. +16 hunger.',use:'eat',hunger:16,price:3},
+ possum:{n:'Opossum',e:'🐀',d:'Played dead; lost the argument. +14 hunger.',use:'eat',hunger:14,price:3},
 };
 const RECIPES=[
  {id:'bandage',n:'Linen bandage',need:{plank:0,herb:1},make:{bandage:1},txt:'herb → bandage (+25 HP)'},
@@ -87,6 +95,7 @@ const RECIPES=[
  {id:'silver',n:'Bless silver dirk',need:{bible:0},make:{silver:1},cost:20,txt:'blessing + 20 livres → silver dirk (loup-slayer)'},
  {id:'hstew',n:"Hunter's stew",need:{venison:1,onion:1},make:{stew:2},txt:'1 venison + 1 wild onion → 2 bayou stew'},
  {id:'trail',n:'Trail bread',need:{pecan:1,persimmon:1},make:{bread:2},txt:'pecan + persimmon → 2 travel bread'},
+ {id:'snakeoil',n:'Snake-oil cure',need:{venom:1,sassafras:1},make:{tonic:1},txt:'1 venom sac + 1 sassafras → 1 fever tonic (the one honest cure)'},
 ];
 const ZONES=[
  {id:'palisade',n:'The Palisade',x:0,z:0,r:58},{id:'manor',n:'Seigneur’s Manor',x:0,z:-46,r:16},
@@ -128,6 +137,8 @@ const QUESTS=[
  {id:'q_vamp',n:'An Invitation in Brocade',giver:'doctor',chain:'side',karma:7,desc:'The Chirurgien was invited to sup with the Sang-Mêlé at the Ruined Mission. Refuse for him: confront and destroy the vampire (1) — or parley, at your soul’s peril.',obj:[{t:'kill',foe:'vamp',n:1,label:'sang-mêlé destroyed'}],rw:{fang:0,coin:20,karma:7}},
  {id:'q_ward',n:'Lanterns for the Living',giver:'manon',chain:'side',karma:5,desc:'Craft or carry 2 torches and plant them (E) at the cabin fires so the night shift of gravediggers can see.',obj:[{t:'torch',n:2,label:'lanterns planted'}],rw:{herb:3,karma:5}},
  {id:'q_forage',n:'The Commons Provide',giver:'manon',chain:'side',karma:8,desc:'October, and the unenclosed woods are generous: pecans, muscadines, persimmons, groundnuts — all free to hands that know. Gather 5 wild foods (E at green growth) and take 2 head of game. The Seigneur cannot tithe what he never planted.',obj:[{t:'forage',n:5,label:'wild foods gathered'},{t:'hunt',n:2,label:'game taken'}],rw:{stew:1,coin:8,karma:8}},
+ {id:'q_gumbo',n:'A Gumbo for the Commune',giver:'odette',chain:'side',karma:7,desc:'The Widow means to feed the whole cabin row from one pot: 2 frog legs, 2 crawfish, 2 wild onions. “A gumbo is the commune in a kettle — everything in, everybody fed.”',obj:[{t:'collect',item:'froglegs',n:2,label:'frog legs'},{t:'collect',item:'crawfish',n:2,label:'crawfish'},{t:'collect',item:'onion',n:2,label:'wild onions'}],rw:{stew:2,karma:7}},
+ {id:'q_teeth',n:'Teeth of the Water',giver:'jean',chain:'side',karma:8,desc:'Gator, snapper, moccasin — the water charges rent in blood. Take 4 head of game anywhere, and Jean will call you square with the bayou. Mind the nests.',obj:[{t:'hunt',n:4,label:'game taken'}],rw:{ammo:4,coin:10,karma:8}},
  {id:'q_risen',n:'The Night Shift',giver:'baptiste',chain:'side',karma:7,desc:'The Risen walk in force after dark. Put 6 back into the mud. The commune defends itself.',obj:[{t:'kill',foe:'risen',n:6,label:'risen laid to rest'}],rw:{ammo:6,coin:10,karma:7}},
  {id:'q_seal',n:'Seal of the Drowned',giver:'jean',chain:'side',karma:9,desc:'A demon-stain festers in the swamp heart. Gather 2 consecrated ash from destroyed apparitions? No — from the chapel brazier after banishings. Then cleanse the stain (E) in the swamp.',obj:[{t:'collect',item:'ash',n:2,label:'consecrated ash'}],rw:{coin:16,karma:9}},
  {id:'q_manor',n:'What the Manor Owes',giver:'seamus',chain:'main',karma:14,desc:'Seamus found the manor’s debt-book: 60 souls bought for 12 livres the head. Steal it from the manor chest (glowing crate behind the manor) and bring it to the market cross.',obj:[{t:'collect',item:'deed',n:2,label:'pages of the debt-book'}],rw:{karma:14,coin:15}},
@@ -139,7 +150,7 @@ const CODEX={
  History:{t:'New Orleans, 1666 — that never was',b:`<h3>A fort that history forgot</h3><p>Real Nouvelle-Orléans was staked in 1718 by Bienville. Our 1666 is the <i>shadow-founding</i>: a private seigneurie of the Compagnie des Marais, fifty years early, built of cypress and debt. French <i>colombage</i> (half-timber), steep thatch, palisades, a chapel without consecration — all true to the 1660s. Justaucorps coats, tricornes not yet born (we wear broad cavalier hats), linen coifs, wool petticoats, wooden sabots in mud.</p><p>The anachronism is the point: primitive accumulation needed a swamp to rehearse in.</p>`},
  Thesis:{t:'Gothic Marxism in five graves',b:`<h3>The commune of the dead and the living</h3><p><b>1.</b> The dead work the night shift — unburied labour, unpaid, unquiet.<b> 2.</b> The Seigneur encloses the swamp and charges rent on rain.<b> 3.</b> The Church counts souls as tithes.<b> 4.</b> The Loup-Garou is the peasant who learned to bite back.<b> 5.</b> The Leveling Night is the general strike of the graveyard.</p><p>Karma is not heaven’s ledger. It is the commune’s memory of you.</p>`},
  Bestiary:{t:'The Five Plagues',b:`<h3>Field notes, Chirurgien Fauche</h3><p><b>🧟 Risen</b> — the plague-dead. Slow. Bite breeds fever (eat tonic/herb).<br><b>🐺 Loup-Garou</b> — by day a neighbour; by moon a wolf. Silver ×3, fire fears it.<br><b>👻 Apparition</b> — grief with a face. Wounds reason (sanity). Lantern-light + blessed steel.<br><b>🧛 Sang-Mêlé</b> — vampire gentry. Vain, parleyable at dusk, deadly always. Fangs worth coin.<br><b>😈 Bête de l’Abîme</b> — the swamp’s compound interest. Appears Night 3+ in the swamp. Bring friends, silver, and spite.</p>`},
- FloraFauna:{t:'Forage & game of the parish',b:`<h3>What the unenclosed woods give (October)</h3><p>Fall is the honest season. <b>🌰 Pecans & hickory</b> drop ripe in October; <b>🍇 muscadines</b> hang September–October; <b>🍑 persimmons</b> sweeten after frost; <b>🥭 pawpaws</b> and <b>🍈 maypops</b> finish; <b>🌰 acorns</b> mast (leach the bitterness, as the Houma do); <b>🥔 groundnuts</b> — Apios tubers the Choctaw dig in fall. Year-round: <b>🫚 sassafras</b> root-tea, <b>🍃 yaupon</b> cassina (the woods’ only caffeine — steadying to the nerves), <b>🧅 wild onion</b>, <b>🌾 cattail</b> root-flour, <b>🦞 crawfish</b> in the shallows.</p><p><b>Game:</b> cottontail 🐇, gray squirrel 🐿, fall-fat deer 🦌, turkey 🦃 in autumn flocks, mallards 🦆 on the water — and 🐊 the alligator, which hunts back. Feral hogs (Spanish stock) root the cane. Note the <i>absent</i>: no armadillos yet — they will not waddle in for another century.</p><p>Take only hunger’s share. The commune remembers greed the way the Seigneur remembers debts.</p>`},
+ FloraFauna:{t:'Forage & game of the parish',b:`<h3>What the unenclosed woods give (October)</h3><p>Fall is the honest season. <b>🌰 Pecans & hickory</b> drop ripe in October; <b>🍇 muscadines</b> hang September–October; <b>🍑 persimmons</b> sweeten after frost; <b>🥭 pawpaws</b> and <b>🍈 maypops</b> finish; <b>🌰 acorns</b> mast (leach the bitterness, as the Houma do); <b>🥔 groundnuts</b> — Apios tubers the Choctaw dig in fall. Year-round: <b>🫚 sassafras</b> root-tea, <b>🍃 yaupon</b> cassina (the woods’ only caffeine — steadying to the nerves), <b>🧅 wild onion</b>, <b>🌾 cattail</b> root-flour, <b>🦞 crawfish</b> in the shallows.</p><p><b>Game:</b> cottontail 🐇, gray squirrel 🐿, fall-fat deer 🦌, turkey 🦃 in autumn flocks, mallards 🦆 on the water — and 🐊 the alligator, which hunts back. Feral hogs (Spanish stock) root the cane. Note the <i>absent</i>: no armadillos yet — they will not waddle in for another century.</p><p><b>Teeth:</b> 🐊 alligator (rolls), 🐍 cottonmouth (venom = bite-fever; suck the wound, chew herb), 🐢 snapping turtle (slow, shears), 🐗 feral hogs — Spanish stock gone wild by 1666 — charge, 🐱 bobcats hunt at a run, 🐻 the black bear, old man of the canebrake, is a siege engine. <b>Small neighbours:</b> 🦝 raccoon (steals shine), 🐀 opossum (plays dead — convincingly), 🐸 bullfrog (gig for legs), 🐦 great heron, 🐢 box turtle, 🦦 otter, and 🦅 the bald eagle circling over it all, untouchable as a tax farmer.</p><p>Take only hunger’s share. The commune remembers greed the way the Seigneur remembers debts.</p>`},
  Music:{t:'A procedural dark score',b:`<h3>Five weathers of sound</h3><p>Menu drone, day Dorian harpsichord-plucks, night low Phrygian dread with wolf-howl synthesis, combat drums, chapel sine-choir. All synthesized live in WebAudio — no two nights identical, like grief.</p>`},
 };
 /* ============ WILD PARISH: forage, game, horses, carts ============ */
@@ -180,6 +191,18 @@ const CRITTER_DEFS={
  turkey:{n:'Wild turkey',e:'🦃',hp:20,spd:4.5,drops:[['turkey',1,1]]},
  duck:{n:'Mallard',e:'🦆',hp:12,spd:4.0,drops:[['duck',1,1]]},
  gator:{n:'Alligator',e:'🐊',hp:120,spd:4.2,hostile:true,dmg:16,drops:[['gator',2,1],['coin',5,0.6]]},
+ snake:{n:'Cottonmouth',e:'🐍',hp:25,spd:3.6,hostile:true,dmg:10,venom:true,drops:[['snakemeat',1,1],['venom',1,0.5]]},
+ snapper:{n:'Snapping turtle',e:'🐢',hp:60,spd:1.2,hostile:true,dmg:18,drops:[['turtle',2,1]]},
+ hog:{n:'Feral hog',e:'🐗',hp:70,spd:5.2,hostile:true,dmg:14,drops:[['pork',2,1]]},
+ bobcat:{n:'Bobcat',e:'🐱',hp:50,spd:6.2,hostile:true,dmg:12,drops:[['pelt',1,0.8],['coin',3,0.6]]},
+ bear:{n:'Black bear',e:'🐻',hp:230,spd:4.6,hostile:true,dmg:26,drops:[['bearmeat',3,1],['coin',8,0.8]]},
+ raccoon:{n:'Raccoon',e:'🦝',hp:15,spd:4.5,drops:[['coon',1,1],['coin',2,0.3]]},
+ opossum:{n:'Opossum',e:'🐀',hp:12,spd:3.5,drops:[['possum',1,1]]},
+ frog:{n:'Bullfrog',e:'🐸',hp:8,spd:3.0,drops:[['froglegs',1,1]]},
+ heron:{n:'Great heron',e:'🐦',hp:30,spd:7.0,drops:[['duck',1,1]]},
+ boxturtle:{n:'Box turtle',e:'🐢',hp:25,spd:0.8,drops:[['turtle',1,1]]},
+ otter:{n:'River otter',e:'🦦',hp:18,spd:4.8,drops:[['catfish',1,0.9]]},
+ eagle:{n:'Bald eagle',e:'🦅',hp:999,spd:0,flying:true,drops:[]},
 };
 function makeForageMesh(sp){const g=new THREE.Group();
  if(sp.build==='bush'){const b=new THREE.Mesh(new THREE.SphereGeometry(0.9,8,6),mat(sp.leaf||0x2e4a26));b.position.y=0.7;g.add(b);
@@ -213,6 +236,48 @@ function makeCritterMesh(type){const g=new THREE.Group();
   const h=new THREE.Mesh(new THREE.SphereGeometry(0.14,6,4),mat(0x2a4a6a));h.position.set(0.35,0.9,0);g.add(h);}
  else if(type==='duck'){const b=new THREE.Mesh(new THREE.SphereGeometry(0.32,8,6),mat(0x5a4a3a));b.position.y=0.3;g.add(b);
   const h=new THREE.Mesh(new THREE.SphereGeometry(0.14,6,4),mat(0x2a5a2a));h.position.set(0.3,0.55,0);g.add(h);}
+ else if(type==='snake'){for(let i=0;i<4;i++){const s=new THREE.Mesh(new THREE.BoxGeometry(0.4,0.18,0.18),mat(i%2?0x3a2a1a:0x5a3a2a));s.position.set(i*0.35,0.15,Math.sin(i)*0.15);g.add(s);}
+  const h=new THREE.Mesh(new THREE.BoxGeometry(0.3,0.22,0.24),mat(0x6a4a2a));h.position.set(1.5,0.25,0);g.add(h);
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(0.5,0.06),new THREE.MeshBasicMaterial({color:0xf0f0f0,side:THREE.DoubleSide}));m.position.set(1.5,0.28,0);m.rotation.y=Math.PI/2;g.add(m);}
+ else if(type==='snapper'){const s=new THREE.Mesh(new THREE.SphereGeometry(0.55,8,5,0,Math.PI*2,0,1.5),mat(0x3a3a26));s.position.y=0.25;g.add(s);
+  const h=new THREE.Mesh(new THREE.BoxGeometry(0.35,0.25,0.3),mat(0x4a4a30));h.position.set(0.6,0.25,0);g.add(h);
+  const t=new THREE.Mesh(new THREE.BoxGeometry(0.6,0.12,0.15),mat(0x3a3a26));t.position.set(-0.6,0.15,0);g.add(t);}
+ else if(type==='boxturtle'){const s=new THREE.Mesh(new THREE.SphereGeometry(0.32,8,5,0,Math.PI*2,0,1.5),mat(0x6a5a2a));s.position.y=0.12;g.add(s);
+  const h=new THREE.Mesh(new THREE.SphereGeometry(0.1,6,4),mat(0x7a6a3a));h.position.set(0.32,0.12,0);g.add(h);}
+ else if(type==='hog'){const b=new THREE.Mesh(new THREE.BoxGeometry(1.2,0.7,0.55),mat(0x4a3a2e));b.position.y=0.6;b.castShadow=true;g.add(b);
+  const s=new THREE.Mesh(new THREE.BoxGeometry(0.35,0.3,0.3),mat(0x4a3a2e));s.position.set(0.7,0.5,0);g.add(s);
+  const t1=new THREE.Mesh(new THREE.ConeGeometry(0.06,0.25,5),mat(0xe8e0cc));t1.position.set(0.85,0.35,0.15);t1.rotation.z=-1.2;g.add(t1);
+  const t2=t1.clone();t2.position.z=-0.15;g.add(t2);
+  for(const [lx,lz] of [[-0.4,0.18],[-0.4,-0.18],[0.4,0.18],[0.4,-0.18]]){const l=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.4,0.12),mat(0x3a2a20));l.position.set(lx,0.2,lz);g.add(l);}}
+ else if(type==='bobcat'){const b=new THREE.Mesh(new THREE.BoxGeometry(0.9,0.45,0.35),mat(0x8a6a4a));b.position.y=0.5;g.add(b);
+  const h=new THREE.Mesh(new THREE.BoxGeometry(0.3,0.3,0.28),mat(0x8a6a4a));h.position.set(0.55,0.75,0);g.add(h);
+  for(const s of [-0.1,0.1]){const e=new THREE.Mesh(new THREE.ConeGeometry(0.07,0.18,4),mat(0x6a4a30));e.position.set(0.55,0.95,s);g.add(e);}
+  const t=new THREE.Mesh(new THREE.BoxGeometry(0.25,0.12,0.12),mat(0x8a6a4a));t.position.set(-0.55,0.55,0);g.add(t);}
+ else if(type==='bear'){const b=new THREE.Mesh(new THREE.BoxGeometry(1.9,1.1,0.9),mat(0x2e2018));b.position.y=0.9;b.castShadow=true;g.add(b);
+  const hump=new THREE.Mesh(new THREE.SphereGeometry(0.5,7,6),mat(0x2e2018));hump.position.set(0.4,1.5,0);g.add(hump);
+  const h=new THREE.Mesh(new THREE.SphereGeometry(0.32,7,6),mat(0x2e2018));h.position.set(1.1,1.3,0);g.add(h);
+  const sn=new THREE.Mesh(new THREE.BoxGeometry(0.25,0.2,0.22),mat(0x5a4a3a));sn.position.set(1.35,1.2,0);g.add(sn);}
+ else if(type==='raccoon'){const b=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.4,0.3),mat(0x6a6a6a));b.position.y=0.35;g.add(b);
+  const h=new THREE.Mesh(new THREE.BoxGeometry(0.28,0.28,0.26),mat(0x6a6a6a));h.position.set(0.45,0.55,0);g.add(h);
+  const mk=new THREE.Mesh(new THREE.BoxGeometry(0.05,0.12,0.27),mat(0x1a1a1a));mk.position.set(0.5,0.58,0);g.add(mk);
+  for(let i=0;i<3;i++){const r=new THREE.Mesh(new THREE.BoxGeometry(0.16,0.24,0.24),mat(i%2?0x1a1a1a:0x6a6a6a));r.position.set(-0.45-i*0.16,0.35,0);g.add(r);}}
+ else if(type==='opossum'){const b=new THREE.Mesh(new THREE.BoxGeometry(0.65,0.35,0.28),mat(0x9a9a9a));b.position.y=0.3;g.add(b);
+  const h=new THREE.Mesh(new THREE.ConeGeometry(0.14,0.3,6),mat(0xd8c8c8));h.position.set(0.42,0.35,0);h.rotation.z=-1.2;g.add(h);
+  const t=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.06,0.06),mat(0xd8a8a8));t.position.set(-0.55,0.3,0);g.add(t);}
+ else if(type==='frog'){const b=new THREE.Mesh(new THREE.SphereGeometry(0.25,7,6),mat(0x3a7a2e));b.position.y=0.2;g.add(b);
+  const e1=new THREE.Mesh(new THREE.SphereGeometry(0.07,5,4),new THREE.MeshBasicMaterial({color:0x111111}));e1.position.set(0.15,0.38,0.12);g.add(e1);
+  const e2=e1.clone();e2.position.z=-0.12;g.add(e2);
+  for(const s of [-0.2,0.2]){const l=new THREE.Mesh(new THREE.BoxGeometry(0.35,0.1,0.1),mat(0x3a7a2e));l.position.set(-0.1,0.08,s);g.add(l);}}
+ else if(type==='heron'){for(const s of [-0.15,0.15]){const l=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,0.9,4),mat(0x1a1a1a));l.position.set(0,0.45,s);g.add(l);}
+  const b=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.3,0.25),mat(0x8a9aaa));b.position.y=1.0;g.add(b);
+  const n=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,0.6,5),mat(0x8a9aaa));n.position.set(0.25,1.35,0);g.add(n);
+  const h=new THREE.Mesh(new THREE.BoxGeometry(0.25,0.12,0.12),mat(0x8a9aaa));h.position.set(0.3,1.65,0);g.add(h);}
+ else if(type==='otter'){const b=new THREE.Mesh(new THREE.BoxGeometry(0.9,0.3,0.28),mat(0x4a3428));b.position.y=0.25;g.add(b);
+  const h=new THREE.Mesh(new THREE.SphereGeometry(0.16,6,5),mat(0x4a3428));h.position.set(0.5,0.35,0);g.add(h);
+  const t=new THREE.Mesh(new THREE.BoxGeometry(0.6,0.12,0.12),mat(0x4a3428));t.position.set(-0.7,0.25,0);g.add(t);}
+ else if(type==='eagle'){const b=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.25,0.3),mat(0x3a2a1a));g.add(b);
+  const h=new THREE.Mesh(new THREE.SphereGeometry(0.16,6,5),mat(0xf0f0f0));h.position.set(0.4,0.1,0);g.add(h);
+  for(const s of [-1,1]){const w=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.06,1.6),mat(0x2a1a10));w.position.set(-0.1,0.1,s*0.85);g.add(w);}}
  else{const b=new THREE.Mesh(new THREE.BoxGeometry(2.4,0.6,0.7),mat(0x2e4a2e));b.position.y=0.4;b.castShadow=true;g.add(b);
   const j=new THREE.Mesh(new THREE.BoxGeometry(0.8,0.25,0.5),mat(0x243a24));j.position.set(1.5,0.35,0);g.add(j);
   const t=new THREE.Mesh(new THREE.BoxGeometry(1.2,0.2,0.3),mat(0x2e4a2e));t.position.set(-1.7,0.35,0);g.add(t);
@@ -220,16 +285,19 @@ function makeCritterMesh(type){const g=new THREE.Group();
  return g;}
 function spawnCritter(type,x,z){const d=CRITTER_DEFS[type];const m=makeCritterMesh(type);m.position.set(x,0,z);scene.add(m);
  const c={type,d,mesh:m,hp:d.hp,tx:x,tz:z,wt:rand(0,3),cd:0,hx:x,hz:z};critters.push(c);return c;}
-function hurtCritter(c,dmg){c.hp-=dmg;blood(c.mesh.position.x,c.mesh.position.z);AudioSys.sfx('hit');
- if(c.hp<=0)killCritter(c);else{c.tx=c.mesh.position.x+(c.mesh.position.x-G.pos.x);c.tz=c.mesh.position.z+(c.mesh.position.z-G.pos.z);c.wt=3;}}
+function hurtCritter(c,dmg){if(c.d.flying)return;c.hp-=dmg;blood(c.mesh.position.x,c.mesh.position.z);AudioSys.sfx('hit');
+ if(c.hp<=0)killCritter(c);
+ else if(c.type==='opossum'&&!c.trick&&c.hp<c.d.hp*0.5){c.trick=true;c.mesh.rotation.z=1.4;toast('🐀 The opossum plays dead. It is very convincing. Sometimes mercy is the smarter tax.');}
+ else{c.tx=c.mesh.position.x+(c.mesh.position.x-G.pos.x);c.tz=c.mesh.position.z+(c.mesh.position.z-G.pos.z);c.wt=3;}}
 function killCritter(c){scene.remove(c.mesh);critters.splice(critters.indexOf(c),1);
  for(const [id,n,ch] of c.d.drops){if(Math.random()<ch)addItem(id,n);}
  toast(c.d.e+' '+c.d.n+' taken. The pot thanks you.');AudioSys.sfx('hurt');wildProgress('hunt');refreshHUD();refreshHotbar();}
 function critterUpdate(c,dt){const m=c.mesh;c.cd-=dt;
  const px=G.pos.x,pz=G.pos.z,d=dist2(m.position.x,m.position.z,px,pz);
- if(c.type==='gator'){
+ if(c.d.flying){c.a=(c.a||rand(0,6))+dt*0.3;const R=20;m.position.set(c.hx+Math.cos(c.a)*R,22,c.hz+Math.sin(c.a)*R);m.rotation.y=-c.a;return;}
+ if(c.d.hostile){
   if(d<14){const dx=(px-m.position.x)/d,dz=(pz-m.position.z)/d;const cc=collide(m.position.x+dx*c.d.spd*dt,m.position.z+dz*c.d.spd*dt,0.9);m.position.x=cc.x;m.position.z=cc.z;m.lookAt(px,0,pz);
-   if(d<2.2&&c.cd<=0){c.cd=1.6;hurtPlayer(c.d.dmg+rand(-3,3),'Alligator');toast('🐊 The alligator rolls! (−HP)','bad');}return;}
+   if(d<2.2&&c.cd<=0){c.cd=1.6;hurtPlayer(c.d.dmg+rand(-3,3),c.d.n);toast(c.d.e+' '+c.d.n+(c.type==='gator'?' rolls!':' strikes!')+' (−HP)','bad');if(c.d.venom&&G.infected<=0){G.infected=1;toast('☠ Venom in the blood! Herb or tonic, quickly!','bad');}}return;}
   c.wt-=dt;if(c.wt<=0){c.wt=rand(4,9);c.tx=c.hx+rand(-10,10);c.tz=c.hz+rand(-10,10);}
  }else{
   if(d<7&&!G.dead){const dx=(m.position.x-px)/d,dz=(m.position.z-pz)/d;const cc=collide(m.position.x+dx*c.d.spd*dt,m.position.z+dz*c.d.spd*dt,0.5);m.position.x=cc.x;m.position.z=cc.z;m.lookAt(m.position.x+dx,0,m.position.z+dz);return;}
@@ -240,9 +308,10 @@ function critterUpdate(c,dt){const m=c.mesh;c.cd-=dt;
 let critT=10;
 function critterSpawns(dt){critT-=dt;if(critT>0)return;critT=20;
  const passives=critters.filter(c=>c.type!=='gator').length;
- if(passives<12){const t=choice(['rabbit','rabbit','squirrel','squirrel','turkey','deer','duck','deer']);const a=rand(0,Math.PI*2);
+ if(passives<12){const t=choice(['rabbit','rabbit','squirrel','squirrel','turkey','deer','duck','deer','raccoon','opossum','frog','boxturtle','heron','otter','hog','snake']);const a=rand(0,Math.PI*2);
   spawnCritter(t,clamp(G.pos.x+Math.cos(a)*rand(25,50),-110,110),clamp(G.pos.z+Math.sin(a)*rand(25,50),-110,110));}
- if(critters.filter(c=>c.type==='gator').length<3&&Math.random()<0.5)spawnCritter('gator',rand(-5,25),rand(66,92));}
+ if(critters.filter(c=>c.type==='gator').length<3&&Math.random()<0.5)spawnCritter('gator',rand(-5,25),rand(66,92));
+ if(!critters.some(c=>c.type==='bear')&&Math.random()<0.12){const a=rand(0,Math.PI*2);spawnCritter('bear',clamp(G.pos.x+Math.cos(a)*rand(35,55),-110,110),clamp(G.pos.z+Math.sin(a)*rand(35,55),-110,110));toast('🐻 The old man of the canebrake is abroad. Give way.','bad');}}
 function wildProgress(kind){for(const id of [...G.qactive]){const q=qdef(id);if(!q.obj.some(o=>o.t===kind))continue;const s=G.quests[id];s.have[kind]=(s.have[kind]||0)+1;
  let done=true;for(const o of q.obj){if(o.t==='forage'&&(s.have.forage||0)<o.n)done=false;if(o.t==='hunt'&&(s.have.hunt||0)<o.n)done=false;
   if(o.t==='collect'){const h=o.item==='coin'?G.coins:(G.inv[o.item]||0);if(h<o.n)done=false;}
@@ -511,13 +580,12 @@ function playerAttack(){if(atkCd>0||G.dead||G.paused||!G.started)return;
   if(G.weapon==='musket')takeItem('ammo',1);
   let best=null,bd=28,bestC=null;
   for(const f of foes){const d=dist2(G.pos.x,G.pos.z,f.mesh.position.x,f.mesh.position.z);if(d<bd){bd=d;best=f;bestC=null;}}
-  for(const c of critters){const d=dist2(G.pos.x,G.pos.z,c.mesh.position.x,c.mesh.position.z);if(d<bd){bd=d;bestC=c;best=null;}}
-  if(best)hurtFoe(best,w.dmg+rand(0,10),true);else if(bestC)hurtCritter(bestC,w.dmg+rand(0,10));return;}
+  for(const c of critters){if(c.d.flying)continue;const d=dist2(G.pos.x,G.pos.z,c.mesh.position.x,c.mesh.position.z);if(d<bd){bd=d;bestC=c;best=null;}}  if(best)hurtFoe(best,w.dmg+rand(0,10),true);else if(bestC)hurtCritter(bestC,w.dmg+rand(0,10));return;}
  for(const f of foes){const d=dist2(G.pos.x,G.pos.z,f.mesh.position.x,f.mesh.position.z);
   if(d<3.0){let dmg=w.dmg+rand(-2,4);if(G.weapon==='silver'&&f.type==='wolf')dmg*=3;
    if(G.inv.bible&&['ghost','vamp'].includes(f.type))dmg*=1.6;
    hurtFoe(f,dmg,false);}}
- for(const c of [...critters]){const d=dist2(G.pos.x,G.pos.z,c.mesh.position.x,c.mesh.position.z);
+ for(const c of [...critters]){if(c.d.flying)continue;const d=dist2(G.pos.x,G.pos.z,c.mesh.position.x,c.mesh.position.z);
   if(d<3.0)hurtCritter(c,w.dmg+rand(-2,4));}}
 function hurtFoe(f,dmg,ranged){f.hp-=dmg;AudioSys.sfx('hit');blood(f.mesh.position.x,f.mesh.position.z);
  subtitle(f.d.n+': '+choice(['“Pay us.”','“The ledger bleeds.”','“Mud to mud, debt to debt.”','“Hssss.”','“You weigh nothing.”']));
@@ -596,8 +664,7 @@ function buryAt(){G.buried++;addKarma(4,'the dead rest easier');
   if(s.have.bury>=o.n)completeQuest(id);}}}
  AudioSys.sfx('pray');subtitle(choice(['“Dust you were, ledger you are not.”','“No rent in this grave.”','“Rest, worker. The strike continues.”']));refreshTracker();}
 function completeQuest(id){const q=qdef(id),s=G.quests[id];if(s.st==='done')return;
- for(const o of q.obj){if(o.t==='collect'&&!(id==='q_rosary'||id==='q_child'||id==='q_manor'||id==='q_seal'||id==='q_cure'||id==='q_fang')){/* keep relics except consumables */
-   if(['bread','herb','plank','nail','tonic','silver'].includes(o.item))takeItem(o.item,o.n);}}
+ for(const o of q.obj){if(o.t==='collect'&&ITEMS[o.item]&&!ITEMS[o.item].quest)takeItem(o.item,o.n);}
  s.st='done';G.qactive=G.qactive.filter(x=>x!==id);
  if(q.rw){for(const k in q.rw){if(k==='karma')addKarma(q.rw[k],q.n);else if(k==='coin'){G.coins+=q.rw[k];}else if(q.rw[k]>0)addItem(k,q.rw[k]);}}
  if(id==='q_tax')G.taxPaid=true;
@@ -1008,6 +1075,11 @@ function boot(){initThree();buildWorld();buildPlayer();spawnNPCs();bindInput();w
  spawnFoe('risen',40,10);spawnFoe('risen',-50,30);spawnFoe('ghost',-66,10);
  spawnCritter('rabbit',34,10);spawnCritter('rabbit',-44,30);spawnCritter('squirrel',50,-14);spawnCritter('deer',64,24);
  spawnCritter('turkey',40,36);spawnCritter('duck',-46,50);spawnCritter('gator',12,78);spawnCritter('gator',-38,60);
+ spawnCritter('snake',-40,58);spawnCritter('snake',20,74);spawnCritter('snapper',8,84);spawnCritter('boxturtle',44,8);
+ spawnCritter('hog',58,-20);spawnCritter('hog',-66,-8);spawnCritter('bobcat',70,30);spawnCritter('bear',-80,-30);
+ spawnCritter('raccoon',24,32);spawnCritter('opossum',-20,20);spawnCritter('frog',4,72);spawnCritter('frog',-44,60);
+ spawnCritter('heron',-40,56);spawnCritter('otter',14,80);
+ spawnCritter('eagle',10,70);spawnCritter('eagle',-60,0);
  unlockQuests();refreshHUD();refreshHotbar();
  $('loading').style.display='none';
  // expose for tests
