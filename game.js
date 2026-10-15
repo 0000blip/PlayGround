@@ -49,6 +49,8 @@ const ITEMS={
  silver:{n:'Silver dirk',e:'🔪',d:'Church silver. dmg 12, ×3 vs Loup-Garou.',use:'equip',dmg:12,silver:true,price:30},
  plank:{n:'Cypress plank',e:'🪵',d:'Barricade & craft material.',price:2},
  nail:{n:'Hand-forged nail',e:'📌',d:'Smith’s work. Craft material.',price:2},
+ barricade:{n:'Barricade bundle',e:'🚧',d:'Pre-cut planks, braces, spite. Use to raise a barricade that holds the dead (E mends, E tears down).',use:'place',price:5},
+ canoe:{n:'Dugout canoe',e:'🛶',d:'Cypress pirogue, adzed from one stubborn log. Use near water to launch; E boards and beaches.',use:'launch',price:25},
  powder_herb:{n:'Brimstone',e:'🧂',d:'Sulphur for cartridges.',price:4},
  coin:{n:'Livre tournois',e:'🪙',d:'The Seigneur’s coin. Spends everywhere, forgives nothing.',price:1},
  rosary:{n:'Bog-oak rosary',e:'📿',d:'Quest relic. Smells of rain.',price:0,quest:true},
@@ -92,13 +94,14 @@ const ITEMS={
 const RECIPES=[
  {id:'bandage',n:'Linen bandage',need:{plank:0,herb:1},make:{bandage:1},txt:'herb → bandage (+25 HP)'},
  {id:'torch',n:'Pine torch',need:{plank:2},make:{torch:1},txt:'2 plank → torch'},
- {id:'plankwall',n:'Barricade bundle',need:{plank:4,nail:2},make:{plank:0},heal:30,txt:'4 plank + 2 nail → repair & barricade (+30 max HP shelter bonus, +15 HP now)'},
+ {id:'plankwall',n:'Barricade bundle',need:{plank:4,nail:2},make:{barricade:1},heal:10,txt:'4 plank + 2 nail → 1 placeable barricade (holds the dead; carpenter tier toughens it)'},
  {id:'ammo',n:'Powder & ball ×3',need:{powder_herb:1,plank:1},make:{ammo:3},txt:'1 brimstone + 1 plank → 3 cartridges'},
  {id:'tonic',n:'Fever tonic',need:{herb:2,powder_herb:0},make:{tonic:1},txt:'2 herbs → tonic (cures bite)'},
  {id:'silver',n:'Bless silver dirk',need:{bible:0},make:{silver:1},cost:20,txt:'blessing + 20 livres → silver dirk (loup-slayer)'},
  {id:'hstew',n:"Hunter's stew",need:{venison:1,onion:1},make:{stew:2},txt:'1 venison + 1 wild onion → 2 bayou stew'},
  {id:'trail',n:'Trail bread',need:{pecan:1,persimmon:1},make:{bread:2},txt:'pecan + persimmon → 2 travel bread'},
  {id:'snakeoil',n:'Snake-oil cure',need:{venom:1,sassafras:1},make:{tonic:1},txt:'1 venom sac + 1 sassafras → 1 fever tonic (the one honest cure)'},
+ {id:'dugout',n:'Dugout canoe',need:{plank:6,nail:2},make:{canoe:1},txt:'6 plank + 2 nail → 1 launchable canoe (fast on water, drag on land)'},
 ];
 const ZONES=[
  {id:'palisade',n:'The Palisade',x:0,z:0,r:58},{id:'manor',n:'Seigneur’s Manor',x:0,z:-46,r:16},
@@ -106,7 +109,8 @@ const ZONES=[
  {id:'smith',n:'Smithy',x:26,z:-20,r:12},{id:'herb',n:'Herbalist Hut',x:-16,z:26,r:12},
  {id:'cabins',n:'Indenture Cabins',x:20,z:28,r:18},{id:'cemetery',n:'Cemetery of the Unpaid',x:-70,z:8,r:20},
  {id:'swamp',n:'The Drowned Swamp',x:10,z:80,r:34},{id:'ruins',n:'Ruined Mission',x:78,z:20,r:20},
- {id:'gallows',n:'Gallows Oak',x:-8,z:-34,r:10},{id:'bayou',n:'Bayou Landing',x:-52,z:52,r:18},
+ {id:'gallows',n:'Gallows Oak',x:-8,z:-34,r:10}, {id:'bayou',n:'Bayou Landing',x:-52,z:52,r:18},
+ {id:'forestmanor',n:'Maison Lament',x:88,z:-38,r:20},
 ];
 const NPC_DEFS=[
  {id:'anselme',n:'Père Anselme',role:'priest of the unconsecrated chapel',e:'☩',x:-30,z:-10,c:0x1a1a1a,d:'A Jesuit who lost his breviary and found a ledger. Buries the poor for free; dreads the Seigneur’s pew.'},
@@ -126,6 +130,7 @@ const FOE_DEFS={
  ghost:{n:'Apparition',e:'👻',hp:60,dmg:12,spd:3.0,xp:3,col:0x9ab0ff,txt:'Unpaid grief, semi-transparent. Drains reason. Blessed steel & lantern burn it.'},
  vamp:{n:'Sang-Mêlé',e:'🧛',hp:140,dmg:22,spd:4.4,xp:5,col:0x6a1a2e,txt:'Old-world hunger in a brocade coat. Parleys at dusk; ash at dawn.'},
  demon:{n:'Bête de l’Abîme',e:'😈',hp:520,dmg:30,spd:3.4,xp:25,col:0x8a1a00,txt:'The drained swamp’s interest, compounded. Boss of the Leveling Night.'},
+ skeleton:{n:'Hollow Levy',e:'💀',hp:55,dmg:12,spd:3.0,xp:2,col:0xe6dcc0,txt:'The Seigneur’s old wars, buried in formation and raised in formation. They still take orders — from the mud.'},
 };
 const QUESTS=[
  {id:'q_bread',n:'Bread for the Bound',giver:'seamus',chain:'main',karma:8,desc:'Seamus the Bound has eaten Seigneur’s promises for a week. Bring him 2 bread. The pamphlet says: from each according to hunger.',obj:[{t:'collect',item:'bread',n:2,label:'black bread'}],rw:{coin:6,karma:8}},
@@ -383,7 +388,7 @@ function dismount(){if(!G.mounted)return;const m=G.mounted;G.mounted=null;
  const a=rand(0,Math.PI*2);const cc=collide(G.pos.x+Math.cos(a)*2.2,G.pos.z+Math.sin(a)*2.2,0.7);
  G.pos.x=clamp(cc.x,-112,112);G.pos.z=clamp(cc.z,-112,112);
  playerMesh.position.set(G.pos.x,0,G.pos.z);playerMesh.position.y=0;
- toast(m.kind==='horse'?'🐎 Dismounted.':'🛒 Parked.');AudioSys.sfx('pickup');}
+ toast(m.kind==='horse'?'🐎 Dismounted.':(m.kind==='boat'?'🛶 Beached. Mind the mud.':'🛒 Parked.'));AudioSys.sfx('pickup');}
 let stashCart=null;
 function openStash(c){stashCart=c;$('trade').classList.remove('hidden');$('trade-with').textContent='— '+c.name+' stash';renderStash();}
 function renderStash(){const c=stashCart;if(!c)return;const T=$('trade-theirs'),Y=$('trade-yours');T.innerHTML='';Y.innerHTML='';
@@ -427,7 +432,7 @@ const G={started:false,paused:false,dead:false,ending:false,day:1,time:8.0,weath
  inv:{bread:2,torch:1,rapier:1,plank:1},ammo:0,quests:{},qactive:[],companions:[],dispo:{},looted:{},planted:0,
  killsByFoe:{},taxPaid:false,debtBook:0,shoeFound:0,bellRung:false,endingShown:false,pos:{x:6,z:10}};
 QUESTS.forEach(q=>G.quests[q.id]={st:'lock',have:{}});
-G.work={};G.shifts=0;
+G.work={};G.shifts=0;G.grave=null;G.mana=100;G.maxmana=100;G.haggle={xp:0,tier:0};
 function qdef(id){return QUESTS.find(q=>q.id===id);}
 function karmaTitle(k){if(k>=60)return 'Saint of the Bayou';if(k>=35)return 'Friend of the Commune';if(k>=12)return 'Trusted Neighbour';if(k>-12)return 'Wanderer of the Bayou';if(k>-35)return 'Suspect Soul';if(k>-60)return 'Hound of the Seigneur';return 'Butcher of the Mud';}
 function addKarma(n,why){G.karma=clamp(G.karma+n,-100,100);toast((n>0?'+':'')+n+' ⚖ '+(why||''),n>=0?'good':'bad');refreshHUD();}
@@ -438,7 +443,7 @@ function takeItem(id,n){n=n||1;if(id==='coin'){G.coins-=n;refreshHUD();return tr
 /* ============ THREE SETUP ============ */
 let renderer,scene,camera,sun,moon,hemi,torchLight,playerMesh,lanternLight;
 let camYaw=0.7,camDist=26,camH=20;
-const colliders=[],interactables=[],foes=[],npcs=[],fires=[],labels=[],torches=[],critters=[],horses=[],carts=[];
+const colliders=[],interactables=[],foes=[],npcs=[],fires=[],labels=[],torches=[],critters=[],horses=[],carts=[],barricades=[],boats=[],WATER=[];
 const WORLD=240;
 function mat(c){return new THREE.MeshLambertMaterial({color:c});}
 function initThree(){
@@ -483,7 +488,7 @@ function buildWorld(){
  const ground=new THREE.Mesh(gg,new THREE.MeshLambertMaterial({vertexColors:true}));ground.receiveShadow=true;scene.add(ground);
  // water ponds (swamp)
  const wmat=new THREE.MeshLambertMaterial({color:0x18242a,transparent:true,opacity:0.9});
- [[10,80,26,20],[-40,60,12,9],[40,66,14,10]].forEach(([x,z,w,d])=>{const p=new THREE.Mesh(new THREE.CircleGeometry(1,24),wmat);p.rotation.x=-Math.PI/2;p.position.set(x,0.06,z);p.scale.set(w,d,1);scene.add(p);});
+ [[10,80,26,20],[-40,60,12,9],[40,66,14,10]].forEach(([x,z,w,d])=>{WATER.push({x,z,rx:w,rz:d});const p=new THREE.Mesh(new THREE.CircleGeometry(1,24),wmat);p.rotation.x=-Math.PI/2;p.position.set(x,0.06,z);p.scale.set(w,d,1);scene.add(p);});
  // cypress + reeds + oaks
  for(let i=0;i<130;i++){const x=rand(-115,115),z=rand(-115,115);if(Math.abs(x)<62&&Math.abs(z)<62&&Math.random()<0.7)continue;
   const swampy=dist2(x,z,10,80)<36;
@@ -636,6 +641,67 @@ function makeWorkMesh(job){const g=new THREE.Group();const J=JOBS[job];
 function placeWorks(){[['carpenter',22,34],['cook',12,-11],['pirate',-46,56],['fisherman',-44,58],['fisherman',4,74],['hunter',48,8],['sheriff',-3,-34],['soldier',10,44],['tavern',24,-6],['smith',31,-20],['farmer',28,34],['farmer',16,32],['banker',12,-44],['tycoon',10,0],['sewer',0,60],['sewer',-20,44],['crier',16,1]].forEach(([job,x,z])=>{
  const m=makeWorkMesh(job);m.position.set(x,0,z);scene.add(m);
  interactables.push({kind:'work',job,name:JOBS[job].n+' — '+JOBS[job].site,x,z,r:3,txt:'⚒ Work: '+JOBS[job].n+' (E)'});});}
+/* ============ BARRICADES & DEATH-DROPS ============ */
+function placeBarricade(){const ry=playerMesh?playerMesh.rotation.y:0;
+ const x=clamp(G.pos.x+Math.sin(ry)*2.2,-112,112),z=clamp(G.pos.z+Math.cos(ry)*2.2,-112,112);
+ const g=new THREE.Group();
+ for(let i=0;i<3;i++){const p=new THREE.Mesh(new THREE.BoxGeometry(2.4,0.28,0.18),mat(0x6a4a26));p.position.set(0,0.5+i*0.45,0);p.rotation.z=(i-1)*0.18;g.add(p);}
+ for(const s of [-1,1]){const post=new THREE.Mesh(new THREE.BoxGeometry(0.22,1.7,0.22),mat(0x4a3018));post.position.set(s*1.1,0.85,0);g.add(post);}
+ g.position.set(x,0,z);g.rotation.y=ry+Math.PI/2;scene.add(g);
+ const coll={x0:x-1.2,x1:x+1.2,z0:z-1.2,z1:z+1.2};colliders.push(coll);
+ const maxhp=60+((G.work&&G.work.carpenter?G.work.carpenter.tier:0)*15);
+ const it={kind:'barr',name:'Barricade',x,z,r:2.6,txt:'Mend (plank) / tear down (E)',node:g};
+ const b={x,z,hp:maxhp,maxhp,mesh:g,coll,inter:it};it.ref=b;
+ interactables.push(it);barricades.push(b);
+ AudioSys.sfx('craft');toast('🚧 Barricade raised ('+maxhp+' HP). The commune holds. (E: mend · E at full: tear down)','good');}
+function breakBarricade(b){scene.remove(b.mesh);b.coll.dead=true;if(b.inter)b.inter.gone=true;
+ barricades.splice(barricades.indexOf(b),1);AudioSys.sfx('hit');
+ toast('🪵 A barricade gives way! The line is breached.','bad');}
+function mendBarricade(b){if(b.hp>=b.maxhp){
+  // tear down, refund
+  scene.remove(b.mesh);b.coll.dead=true;if(b.inter)b.inter.gone=true;barricades.splice(barricades.indexOf(b),1);
+  addItem('plank',2);toast('🪵 Torn down. 2 planks reclaimed.','good');return;}
+ if(!hasItem('plank',1)){toast('Need 1 plank to mend.','bad');return;}
+ takeItem('plank',1);b.hp=Math.min(b.maxhp,b.hp+25);AudioSys.sfx('craft');
+ toast('🔨 Mended ('+Math.round(b.hp)+'/'+b.maxhp+' HP).','good');refreshHotbar();}
+function graveMarker(g){const m=new THREE.Group();
+ const mound=new THREE.Mesh(new THREE.SphereGeometry(0.9,8,5),mat(0x3a2c1c));mound.scale.y=0.4;mound.position.y=0.1;m.add(mound);
+ const post=new THREE.Mesh(new THREE.BoxGeometry(0.18,1.3,0.18),mat(0x4a3018));post.position.y=0.65;m.add(post);
+ const cross=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.16,0.16),mat(0x4a3018));cross.position.set(0,1.0,0);m.add(cross);
+ m.position.set(g.x,0,g.z);scene.add(m);
+ const lb=makeLabel('⚰ your satchel',0.5);lb.position.set(0,2.2,0);m.add(lb);return m;}
+function linkGrave(){interactables.push({kind:'grave2',name:'Muddy grave',x:G.grave.x,z:G.grave.z,r:3,txt:'Recover your satchel (E)',grave:G.grave});}
+function dropSatchel(){const ids=Object.keys(G.inv);
+ if(!ids.length&&G.coins<=0){toast('Nothing to lose but chains.','good');return;}
+ const dropCoins=Math.floor(G.coins/2);G.coins-=dropCoins;
+ G.grave={x:G.pos.x,z:G.pos.z,inv:{...G.inv},coins:dropCoins};G.inv={};
+ G.grave.mesh=graveMarker(G.grave);linkGrave();
+ refreshHUD();refreshHotbar();}
+function recoverGrave(it){const gr=it.grave||G.grave;if(!gr){toast('Only mud.','bad');return;}
+ for(const k in gr.inv)addItem(k,gr.inv[k]);G.coins+=gr.coins||0;
+ if(gr.mesh)scene.remove(gr.mesh);it.gone=true;G.grave=null;
+ AudioSys.sfx('quest');toast('🎒 Satchel recovered. The mud returns what it borrowed.','good');
+ refreshHUD();refreshHotbar();refreshTracker();}
+/* ============ CANOES ============ */
+function isWater(x,z){for(const w of WATER){const dx=(x-w.x)/w.rx,dz=(z-w.z)/w.rz;if(dx*dx+dz*dz<1)return true;}return false;}
+function makeCanoeMesh(){const g=new THREE.Group();
+ const hull=new THREE.Mesh(new THREE.BoxGeometry(3.4,0.5,1.1),mat(0x5a3a20));hull.position.y=0.35;hull.castShadow=true;g.add(hull);
+ for(const s of [-1.9,1.9]){const tip=new THREE.Mesh(new THREE.ConeGeometry(0.55,0.9,4),mat(0x5a3a20));tip.rotation.z=s>0?-Math.PI/2:Math.PI/2;tip.position.set(s,0.4,0);g.add(tip);}
+ const rim=new THREE.Mesh(new THREE.BoxGeometry(3.0,0.12,0.9),mat(0x2a1a08));rim.position.y=0.62;g.add(rim);
+ for(const s of [-0.8,0.8]){const bench=new THREE.Mesh(new THREE.BoxGeometry(0.4,0.1,0.8),mat(0x8a6a3a));bench.position.set(s,0.5,0);g.add(bench);}
+ const pole=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,2.4,5),mat(0x6a4a26));pole.position.set(-1.2,0.9,0.3);pole.rotation.z=0.9;g.add(pole);
+ return g;}
+function launchCanoe(){const ry=playerMesh?playerMesh.rotation.y:0;
+ let lx=G.pos.x,lz=G.pos.z;
+ if(!isWater(lx,lz)){lx=clamp(G.pos.x+Math.sin(ry)*3,-112,112);lz=clamp(G.pos.z+Math.cos(ry)*3,-112,112);}
+ if(!isWater(lx,lz)){toast('🛶 Needs water within a pole’s length to launch.','bad');addItem('canoe',1);return;}
+ const m=makeCanoeMesh();m.position.set(lx,0,lz);m.rotation.y=ry;scene.add(m);
+ const lb=makeLabel('🛶 pirogue',0.45);lb.position.set(0,1.8,0);m.add(lb);
+ boats.push({kind:'boat',name:'pirogue',mesh:m});
+ AudioSys.sfx('craft');toast('🛶 Launched! E boards; water flies, mud drags.','good');
+ G.pos.x=lx;G.pos.z=lz;}
+function boardBoat(b){G.mounted={kind:'boat',ref:b};G.pos.x=b.mesh.position.x;G.pos.z=b.mesh.position.z;
+ toast('🛶 Aboard. Pole deep, mind the gators. (E to beach)','good');AudioSys.sfx('pickup');}
 /* ============ PEOPLE ============ */
 function makeHumanoid(coat,skin,hat){const g=new THREE.Group();
  const legs=new THREE.Mesh(new THREE.BoxGeometry(0.55,0.8,0.4),mat(0x3a2f24));legs.position.y=0.4;g.add(legs);
@@ -684,7 +750,7 @@ function bossSpawn(){const f=spawnFoe('demon',14,70);toast('😈 The mud splits.
  $('boss-bar').classList.remove('hidden');subtitle('The swamp’s compound interest, come to collect. Bring silver, fire, and friends.');}
 let spawnT=5;
 function isNight(){return G.time>=20||G.time<5;}
-function collide(x,z,r){for(const c of colliders){const nx=clamp(x,c.x0,c.x1),nz=clamp(z,c.z0,c.z1);
+function collide(x,z,r){for(const c of colliders){if(c.dead)continue;const nx=clamp(x,c.x0,c.x1),nz=clamp(z,c.z0,c.z1);
   const dx=x-nx,dz=z-nz,d=Math.hypot(dx,dz);if(d<r){if(d<0.001){return{x:x+(r),z};}return{x:nx+dx/d*r,z:nz+dz/d*r};}}return{x,z};}
 
 /* ---- combat ---- */
@@ -737,7 +803,10 @@ function foeUpdate(f,dt){const m=f.mesh;f.cd-=dt;
  if(d<26||f.hp<f.maxhp){ // aggro
   const dx=(px-m.position.x)/d,dz=(pz-m.position.z)/d;
   let nx=m.position.x+dx*spd*dt,nz=m.position.z+dz*spd*dt;
-  const c=collide(nx,nz,0.6);m.position.x=c.x;m.position.z=c.z;
+  let bar=null,bd=2.6;for(const b of barricades){if(b.hp<=0)continue;const dd=dist2(m.position.x,m.position.z,b.x,b.z);if(dd<bd){bd=dd;bar=b;}}
+  if(bar){if(f.cd<=0){f.cd=1.4;bar.hp-=f.d.dmg+rand(0,4);AudioSys.sfx('hit');bar.mesh.rotation.y+=0.2;bar.mesh.position.y=Math.max(-0.4,(bar.mesh.position.y||0)-0.06);
+   if(bar.hp<=0)breakBarricade(bar);else toast('🚧 The dead gnaw the barricade ('+Math.round(bar.hp)+'/'+bar.maxhp+').');}}
+  else{const c=collide(nx,nz,0.6);m.position.x=c.x;m.position.z=c.z;}
   m.lookAt(px,0,pz);
   if(f.type==='ghost')m.position.y=0.4+Math.sin(performance.now()/400)*0.3;
   if(f.type==='demon'&&Math.random()<dt*0.8){hurtPlayer(12,'demon-fire');toast('🔥 The Bête breathes furnace-air!','bad');}
@@ -850,12 +919,34 @@ function updateSky(){const t=G.time;let dayAmt=clamp(1-Math.abs(t-13)/8,0,1);
 }
 function die(why){if(G.dead)return;G.dead=true;AudioSys.sfx('hurt');AudioSys.setMode('menu');
  document.exitPointerLock&&document.exitPointerLock();
- $('death-text').textContent='“'+why+'.” Day '+G.day+', '+fmtT(G.time)+'. The swamp keeps your satchel where you fell; your soul wakes at the chapel. Karma: '+G.karma+' ('+karmaTitle(G.karma)+'). Kills: '+G.kills+'. Buried: '+G.buried+'.';
+ dropSatchel();
+ $('death-text').textContent='“'+why+'.” Day '+G.day+', '+fmtT(G.time)+'. '+(G.grave?'Your satchel lies where you fell — marked ⚰ on the ring.':'')+' Karma: '+G.karma+' ('+karmaTitle(G.karma)+'). Kills: '+G.kills+'. Buried: '+G.buried+'.';
  $('death-stats').innerHTML='The Risen get +1 coworker. The commune gets +1 martyr. Press wake to continue the Requiem.';
  $('death').classList.remove('hidden');}
 /* ============ UI helpers ============ */
-function toast(msg,cls){const t=document.createElement('div');t.className='toast '+(cls||'');t.innerHTML=msg;$('toasts').appendChild(t);
- while($('toasts').children.length>3)$('toasts').firstChild.remove();setTimeout(()=>{t.style.opacity=0;setTimeout(()=>t.remove(),500);},3600);}
+/* CK3-style notifications: right-side court feed, majors persist, minors fade */
+function notify(icon,title,body,opts){opts=opts||{};const feed=$('ck3-feed');if(!feed)return null;
+ const d=document.createElement('div');d.className='notif '+(opts.tone||'info')+(opts.major?' major':'');
+ const b=document.createElement('span');b.className='nbody';b.innerHTML='<b>'+title+'</b><span>'+body+'</span>';
+ d.innerHTML='<span class="nicon">'+icon+'</span>';d.appendChild(b);
+ if(opts.action){const a=document.createElement('button');a.className='nact';a.textContent=opts.action.label;
+  a.onclick=e=>{e.stopPropagation();opts.action.fn();if(!opts.major)d.remove();};d.appendChild(a);}
+ if(opts.major){const x=document.createElement('span');x.className='nx';x.textContent='✕';x.title='dismiss';
+  x.onclick=e=>{e.stopPropagation();d.remove();};d.appendChild(x);AudioSys.bell();}
+ else setTimeout(()=>{d.style.opacity=0;setTimeout(()=>d.remove(),600);},9000);
+ feed.prepend(d);
+ while(feed.children.length>7){const kids=[...feed.children].reverse();(kids.find(k=>!k.classList.contains('major'))||kids[0]).remove();}
+ return d;}
+function toast(msg,cls,major){const m={bad:['⚠','Peril','war'],good:['⚜','Good news','good'],lore:['📜','Chronicle','lore']}[cls]||['🔔','Notice','info'];
+ notify(m[0],m[1],msg,{tone:m[2],major:!!major});}
+const AL={};
+function alertOnce(key,triggered,cleared,make){if(triggered&&!AL[key]){AL[key]=true;make();}else if(cleared&&AL[key]){AL[key]=false;}}
+function ck3alerts(){alertOnce('starve',G.hunger<=10,G.hunger>30,()=>notify('🍖','The belly rebels','Starvation gnaws. Eat, or the mud eats you.',{tone:'war',major:true,action:{label:'Satchel',fn:()=>togglePanel('panel-inventory',renderInventory)}}));
+ alertOnce('bleed',G.hp<=G.maxhp*0.25,G.hp>G.maxhp*0.6,()=>notify('🩸','Bleeding out','Bind it, brew it, or pray over it.',{tone:'war',major:true,action:{label:'Satchel',fn:()=>togglePanel('panel-inventory',renderInventory)}}));
+ alertOnce('fever',G.infected>0,G.infected<=0,()=>notify('🤢','Fever in the blood','Wormwood or tonic. Now.',{tone:'war',major:true}));
+ alertOnce('mind',G.sanity<=15,G.sanity>40,()=>notify('🕯','The mind frays','Whispers, then teeth. Wine, smoke, sleep, confession.',{tone:'war',major:true,action:{label:'Soul',fn:()=>togglePanel('panel-char',renderChar)}}));
+ alertOnce('dusk'+G.day,G.time>=19&&G.time<20.5,G.time<12,()=>notify('🌙','The dead shift approaches','Bar the doors. Trim the lantern. The bell counts down.',{tone:'war',major:true}));
+ alertOnce('boss'+G.day,G.day>=3&&foes.some(f=>f.boss),G.day<3,()=>notify('😈','THE BÊTE IS ABROAD','The swamp’s interest, come to collect.',{tone:'war',major:true}));}
 let subT=null;function subtitle(msg,ms){const s=$('subtitle');s.innerHTML=msg;s.classList.remove('hidden');
  if(subT)clearTimeout(subT);subT=setTimeout(()=>s.classList.add('hidden'),ms||4200);}
 function refreshHUD(){$('bar-hp').style.width=clamp(100*G.hp/G.maxhp,0,100)+'%';$('txt-hp').textContent=Math.max(0,Math.ceil(G.hp));
@@ -880,6 +971,8 @@ function useItem(id){const it=ITEMS[id];if(!it)return;if(!hasItem(id,1)){toast('
  else if(it.use==='bless'){toast('📖 The Geneva bible rides in your pocket. Apparitions & vampires fear its margins.','good');}
  else if(it.use==='drink'){takeItem(id,1);G.hunger=clamp(G.hunger+(it.hunger||0),0,100);G.sanity=clamp(G.sanity+(it.sanity||10),0,100);if(it.hp)G.hp=clamp(G.hp+it.hp,1,G.maxhp);AudioSys.sfx('eat');toast(it.e+' '+it.n+' (+'+(it.sanity||10)+' 🕯)'+(id==='tafia'?' — fire all the way down.':''),'good');}
  else if(it.use==='smoke'){takeItem(id,1);G.sanity=clamp(G.sanity+(it.sanity||10),0,100);G.hp=clamp(G.hp+it.hp,1,G.maxhp);AudioSys.sfx('pray');toast('🚬 You smoke a slow bowl. The mist keeps its distance. (+'+(it.sanity||10)+' 🕯)','good');}
+ else if(it.use==='place'){if(!takeItem(id,1))return;placeBarricade();refreshHotbar();}
+ else if(it.use==='launch'){if(!takeItem(id,1))return;launchCanoe();refreshHotbar();}
  else toast(it.d);refreshHUD();}
 function refreshTracker(){const t=$('quest-tracker');t.innerHTML='';
  G.qactive.slice(0,4).forEach(id=>{const q=qdef(id),s=G.quests[id];const d=document.createElement('div');d.className='qtask';
@@ -910,7 +1003,7 @@ function renderCraft(){const l=$('craft-list');l.innerHTML='';
   d.innerHTML='<span>🔨 <b>'+r.n+'</b><br><small>'+r.txt+'</small></span>';
   const b=document.createElement('button');b.className='btn';b.textContent=can?'Make':'—';b.disabled=!can;
   b.onclick=()=>{for(const [k,n] of Object.entries(r.need)){if(n>0)takeItem(k,n);}if(r.cost)G.coins-=r.cost;
-   if(r.id==='plankwall'){G.hp=clamp(G.hp+15,0,G.maxhp);G.maxhp=Math.min(140,G.maxhp+2);toast('🪵 Barricade raised. The commune holds. (+HP)','good');}
+   if(r.id==='plankwall'){addItem('barricade',1);G.hp=clamp(G.hp+10,0,G.maxhp);toast('🪵 Barricade bundled. Use it from your satchel to raise it. (+10 ❤)','good');}
    else for(const k in r.make)if(r.make[k]>0)addItem(k,r.make[k]);
    if(r.id==='silver')toast('🔪 Blessed silver dirk. Loups, beware.','good');
    AudioSys.sfx('craft');addKarma(1,'honest labour');renderCraft();renderInventory();refreshHUD();refreshHotbar();};
@@ -925,6 +1018,7 @@ function qCard(q,cls,title){const d=document.createElement('div');d.className='q
 function npcName(id){const n=NPC_DEFS.find(n=>n.id===id);return n?n.n:id;}
 function renderChar(){$('char-body').innerHTML=
  '<div class="char-row"><span>⚖ Karma</span><b>'+G.karma+' — '+karmaTitle(G.karma)+'</b></div>'+
+ '<div class="char-row"><span>🪙 Haggling</span><b>'+HAGGLE_NAMES[(G.haggle&&G.haggle.tier)||0]+' ('+((G.haggle&&G.haggle.xp)||0)+' deals)</b></div>'+
  '<div class="char-row"><span>❤ Health</span><b>'+Math.ceil(G.hp)+' / '+G.maxhp+'</b></div>'+
  '<div class="char-row"><span>🍖 Belly</span><b>'+Math.ceil(G.hunger)+'</b></div>'+
  '<div class="char-row"><span>🕯 Reason</span><b>'+Math.ceil(Math.max(0,G.sanity))+' — '+sanityDesc(G.sanity)+'</b></div>'+
@@ -950,8 +1044,11 @@ function drawMini(){const c=$('minimap'),x=c.getContext('2d');x.clearRect(0,0,16
  critters.forEach(c=>{x.fillStyle=c.type==='gator'?'#ff8833':'#8a6a4a';x.fillRect(px(c.mesh.position.x)-1,px(c.mesh.position.z)-1,2,2);});
  horses.forEach(h=>{x.fillStyle='#7db8ff';x.fillRect(px(h.mesh.position.x)-1.5,px(h.mesh.position.z)-1.5,3,3);});
  carts.forEach(c=>{x.fillStyle='#c98a3a';x.fillRect(px(c.mesh.position.x)-1.5,px(c.mesh.position.z)-1.5,3,3);});
+ boats.forEach(b=>{x.fillStyle='#7db8ff';x.fillRect(px(b.mesh.position.x)-1.5,px(b.mesh.position.z)-1.5,3,3);});
  for(const it of interactables){if(it.kind!=='forage')continue;if(it.cd&&performance.now()<it.cd)continue;
   x.fillStyle='#5fd06f';x.fillRect(px(it.x)-1,px(it.z)-1,2,2);}
+ barricades.forEach(b=>{x.fillStyle='#c98a3a';x.fillRect(px(b.x)-1.5,px(b.z)-1.5,3,3);});
+ if(G.grave){x.fillStyle='#fff';x.fillRect(px(G.grave.x)-2,px(G.grave.z)-2,4,4);}
  npcs.forEach(n=>{if(n.dead)return;x.fillStyle='#c9a227';x.beginPath();x.arc(px(n.mesh.position.x),px(n.mesh.position.z),2.4,0,7);x.fill();});
  x.fillStyle='#fff';x.beginPath();x.arc(px(G.pos.x),px(G.pos.z),3.4,0,7);x.fill();}
 function drawBig(){const c=$('bigmap'),x=c.getContext('2d');x.fillStyle='#0d0b08';x.fillRect(0,0,520,520);
@@ -1034,17 +1131,22 @@ function fightTax(n){n.dead=true;scene.remove(n.mesh);G.taxPaid=true;addKarma(-6
 /* trade */
 const STOCKS={baptiste:['rapier','axe','ammo','nail','plank','tobacco'],manon:['herb','tonic','bandage','stew'],doctor:['tonic','bandage','fang','tafia','wine'],odette:['bread','stew','herb','plank','wine','tobacco'],seraphine:['tobacco','wine','stew']};
 let tradeNPC=null;
+const HAGGLE_NAMES=['Stranger','Known Face','Haggler','Merchant','Factor of the Bayou'];
+function gainHaggle(){if(!G.haggle)G.haggle={xp:0,tier:0};G.haggle.xp++;const nt=tierFor(G.haggle.xp);
+ if(nt>G.haggle.tier){G.haggle.tier=nt;toast('⚖ Trading skill: now <b>'+HAGGLE_NAMES[nt]+'</b>! Better prices everywhere.','good');AudioSys.sfx('gold');}}
 function priceOf(n,buying){const base=(ITEMS[n]||{price:5}).price||5;let p=base*(buying?1.3:0.6);
- if(G.karma>=35)p*=buying?0.8:1.2;else if(G.karma<=-12)p*=buying?1.3:0.8;return Math.max(1,Math.round(p));}
+ if(G.karma>=35)p*=buying?0.8:1.2;else if(G.karma<=-12)p*=buying?1.3:0.8;
+ const hg=(G.haggle&&G.haggle.tier)||0;p*=buying?(1-0.05*hg):(1+0.08*hg);
+ return Math.max(1,Math.round(p));}
 function openTrade(n){tradeNPC=n;$('trade').classList.remove('hidden');$('trade-with').textContent='— '+n.n;renderTrade();}
 function renderTrade(){const n=tradeNPC;const T=$('trade-theirs'),Y=$('trade-yours');T.innerHTML='';Y.innerHTML='';
  (STOCKS[n.id]||['bread','herb']).forEach(id=>{const it=ITEMS[id];const d=document.createElement('div');d.className='trade-item';
   d.innerHTML='<span>'+it.e+' '+it.n+'</span><span>'+priceOf(id,true)+' 🪙</span>';
-  d.onclick=()=>{const p=priceOf(id,true);if(G.coins<p){toast('Not enough livres.','bad');return;}G.coins-=p;addItem(id,1);AudioSys.sfx('gold');renderTrade();refreshHUD();refreshHotbar();};
+  d.onclick=()=>{const p=priceOf(id,true);if(G.coins<p){toast('Not enough livres.','bad');return;}G.coins-=p;addItem(id,1);gainHaggle();AudioSys.sfx('gold');renderTrade();refreshHUD();refreshHotbar();};
   T.appendChild(d);});
  Object.keys(G.inv).forEach(id=>{const it=ITEMS[id];if(!it||it.quest)return;const d=document.createElement('div');d.className='trade-item';
   d.innerHTML='<span>'+it.e+' '+it.n+' ×'+G.inv[id]+'</span><span>+'+priceOf(id,false)+' 🪙</span>';
-  d.onclick=()=>{if(!takeItem(id,1))return;G.coins+=priceOf(id,false);AudioSys.sfx('gold');renderTrade();refreshHUD();refreshHotbar();};
+  d.onclick=()=>{if(!takeItem(id,1))return;G.coins+=priceOf(id,false);gainHaggle();AudioSys.sfx('gold');renderTrade();refreshHUD();refreshHotbar();};
   Y.appendChild(d);});
  $('trade-info').textContent='Your purse: '+G.coins+' livres · '+(G.karma>=35?'Saint’s discount 20%':G.karma<=-12?'Butcher’s surcharge +30%':'fair parish prices');}
 function showEnding(){G.ending=true;AudioSys.bell();AudioSys.setMode('chapel');
@@ -1061,16 +1163,20 @@ function nearestInteract(){let best=null,bd=1e9;
  if(!G.mounted){
   for(const h of horses){const d=dist2(G.pos.x,G.pos.z,h.mesh.position.x,h.mesh.position.z);if(d<3.2&&d<bd){bd=d;best={kind:'horse',horse:h,txt:'🐎 Mount '+h.name+' (E)'};}}
   for(const c of carts){const d=dist2(G.pos.x,G.pos.z,c.mesh.position.x,c.mesh.position.z);if(d<3.6&&d<bd){bd=d;best={kind:'cart',cart:c,txt:'🛒 Drive '+c.name+' (E) · stash (V)'};}}
+  for(const b of boats){const d=dist2(G.pos.x,G.pos.z,b.mesh.position.x,b.mesh.position.z);if(d<3.2&&d<bd){bd=d;best={kind:'boat',boat:b,txt:'🛶 Board pirogue (E)'};}}
  }
- for(const it of interactables){if(it.cd&&performance.now()<it.cd)continue;const d=dist2(G.pos.x,G.pos.z,it.x,it.z);if(d<(it.r||3)&&d<bd){bd=d;best=it;}}
+ for(const it of interactables){if(it.gone)continue;if(it.cd&&performance.now()<it.cd)continue;const d=dist2(G.pos.x,G.pos.z,it.x,it.z);if(d<(it.r||3)&&d<bd){bd=d;best=it;}}
  return best;}
 function doInteract(it){if(!it)return;AudioSys.sfx('pickup');
  if(it.kind==='npc'){openDialogue(it.npc);return;}
  if(it.kind==='horse'){mountHorse(it.horse);return;}
  if(it.kind==='cart'){mountCart(it.cart);return;}
+ if(it.kind==='boat'){boardBoat(it.boat);return;}
  if(it.kind==='forage'){gatherForage(it);return;}
  if(it.kind==='bed'){doSleep(it);return;}
  if(it.kind==='work'){workShift(it);return;}
+ if(it.kind==='barr'&&it.ref){mendBarricade(it.ref);return;}
+ if(it.kind==='grave2'){recoverGrave(it);return;}
  if(it.kind==='grave'){if(G.looted[it.id]){subtitle('A tended mound. Someone scratched: “PAID IN FULL.”');return;}
   G.looted[it.id]=1;buryAt();if(Math.random()<0.4){addItem('coin',2);toast('Among the roots: 2 forgotten livres.','good');}return;}
  if(it.kind==='fire'){G.hp=clamp(G.hp+8,0,G.maxhp);G.sanity=clamp(G.sanity+14,0,100);G.hunger=Math.max(0,G.hunger-4);
@@ -1151,12 +1257,13 @@ function togglePause(){G.paused=!G.paused;$('pause').classList.toggle('hidden',!
 function save(){try{const d={day:G.day,time:G.time,hp:G.hp,hunger:G.hunger,sanity:G.sanity,karma:G.karma,coins:G.coins,
  inv:G.inv,weapon:G.weapon,maxhp:G.maxhp,quests:Object.fromEntries(Object.entries(G.quests).map(([k,v])=>[k,v.st])),
  have:Object.fromEntries(Object.entries(G.quests).map(([k,v])=>[k,v.have])),qactive:G.qactive,buried:G.buried,kills:G.kills,
- looted:G.looted,work:G.work,shifts:G.shifts||0,npc:npcs.map(n=>({id:n.id,dead:n.dead,follow:n.follow}))};
+ looted:G.looted,work:G.work,shifts:G.shifts||0,haggle:G.haggle||{xp:0,tier:0},grave:G.grave?{x:G.grave.x,z:G.grave.z,inv:G.grave.inv,coins:G.grave.coins}:null,npc:npcs.map(n=>({id:n.id,dead:n.dead,follow:n.follow}))};
  localStorage.setItem('bayou-requiem-save',JSON.stringify(d));toast('💾 Soul recorded in the parish register.','good');}catch(e){toast('Save failed: '+e,'bad');}}
 function load(){try{const raw=localStorage.getItem('bayou-requiem-save');if(!raw)return false;const d=JSON.parse(raw);
  Object.assign(G,{day:d.day,time:d.time,hp:d.hp,hunger:d.hunger,sanity:d.sanity,karma:d.karma,coins:d.coins,inv:d.inv,weapon:d.weapon,maxhp:d.maxhp,qactive:d.qactive||[],buried:d.buried||0,kills:d.kills||0,looted:d.looted||{}});
  for(const k in d.quests)if(G.quests[k])G.quests[k].st=d.quests[k];
- initWork();if(d.work)for(const k in d.work)if(G.work[k])G.work[k]=d.work[k];G.shifts=d.shifts||0;
+ initWork();if(d.work)for(const k in d.work)if(G.work[k])G.work[k]=d.work[k];G.shifts=d.shifts||0;if(d.haggle)G.haggle=d.haggle;
+ if(d.grave){G.grave={x:d.grave.x,z:d.grave.z,inv:d.grave.inv||{},coins:d.grave.coins||0};G.grave.mesh=graveMarker(G.grave);linkGrave();}
  for(const k in d.have)if(G.quests[k])G.quests[k].have=d.have[k];
  (d.npc||[]).forEach(s=>{const n=npcs.find(n=>n.id===s.id);if(n){n.dead=s.dead;n.follow=s.follow;if(n.dead)scene.remove(n.mesh);if(s.follow)G.companions.push(n.id);}});
  return true;}catch(e){return false;}}
@@ -1180,7 +1287,8 @@ function wireButtons(){
  $('btn-quit').onclick=()=>{save();location.reload();};
  $('btn-respawn').onclick=()=>{G.dead=false;G.hp=G.maxhp*0.6;G.hunger=60;G.sanity=60;G.infected=0;G.coins=Math.floor(G.coins*0.7);
   G.pos={x:-30,z:-6};playerMesh.position.set(-30,0,-6);$('death').classList.add('hidden');
-  subtitle('You wake on the chapel steps. Someone left bread. Someone left a pamphlet.');addItem('bread',1);refreshHUD();};
+  subtitle('You wake on the chapel steps. Someone left bread. Someone left a pamphlet.');addItem('bread',1);
+  if(G.grave)toast('⚰ Your satchel waits where you fell — find the ⚰ mark on the ring.','good');refreshHUD();};
  $('btn-dead-menu').onclick=()=>location.reload();
  $('btn-ending-menu').onclick=()=>{$('ending').classList.add('hidden');G.ending=false;};
  $('trade-x').onclick=()=>$('trade').classList.add('hidden');}
@@ -1202,6 +1310,7 @@ function animate(t){requestAnimationFrame(animate);const dt=Math.min(0.05,(t-las
  const sprint=(keys['shift'])&&G.stam>1&&(mx||mz);
  let sp=sprint?6.4:3.8,rad=0.7;
  if(mount)sp=mount.kind==='cart'?(sprint?8:6):(sprint?11:8);
+ if(mount&&mount.kind==='boat')sp=isWater(G.pos.x,G.pos.z)?(sprint?10:7):1.6;
  if(mount)rad=mount.kind==='cart'?1.5:1.0;
  if(mx||mz){const l=Math.hypot(mx,mz);mx/=l;mz/=l;
   const s=Math.sin(camYaw),c=Math.cos(camYaw);const wx=mx*c-mz*s,wz=mx*s+mz*c;
@@ -1209,7 +1318,7 @@ function animate(t){requestAnimationFrame(animate);const dt=Math.min(0.05,(t-las
   nx=clamp(nx,-112,112);nz=clamp(nz,-112,112);
   const cc=collide(nx,nz,rad);G.pos.x=cc.x;G.pos.z=cc.z;
   if(mount){mount.ref.mesh.position.set(G.pos.x,0,G.pos.z);mount.ref.mesh.rotation.y=Math.atan2(wx,wz);
-   playerMesh.position.set(G.pos.x,0,G.pos.z);playerMesh.position.y=mount.kind==='cart'?1.35:2.0;playerMesh.rotation.y=Math.atan2(wx,wz);}
+   playerMesh.position.set(G.pos.x,0,G.pos.z);playerMesh.position.y=mount.kind==='cart'?1.35:(mount.kind==='boat'?1.0:2.0);playerMesh.rotation.y=Math.atan2(wx,wz);}
   else{playerMesh.position.set(G.pos.x,0,G.pos.z);playerMesh.rotation.y=Math.atan2(wx,wz);
    playerMesh.position.y=Math.abs(Math.sin(t/130))*(sprint?0.12:0.06);}
   if(sprint){G.stam=Math.max(0,G.stam-dt*16);}else G.stam=Math.min(100,G.stam+dt*10);
@@ -1227,7 +1336,8 @@ function animate(t){requestAnimationFrame(animate);const dt=Math.min(0.05,(t-las
  fires.forEach(f=>{f.flame.rotation.y+=dt*3;});forageUpdate();
  // interact prompt
  const ni=nearestInteract();const ip=$('interact-prompt');
- if(G.mounted&&!G.dead&&!dlgOpen){ip.classList.remove('hidden');$('interact-text').textContent=G.mounted.kind==='horse'?'🐎 Riding '+G.mounted.ref.name+' — E dismount':'🛒 Driving '+G.mounted.ref.name+' — E park · V stash';}
+ if(G.mounted&&!G.dead&&!dlgOpen){ip.classList.remove('hidden');
+  $('interact-text').textContent=G.mounted.kind==='horse'?'🐎 Riding '+G.mounted.ref.name+' — E dismount':(G.mounted.kind==='boat'?'🛶 Pirogue — E beach'+(isWater(G.pos.x,G.pos.z)?'':' (dragging mud)'):'🛒 Driving '+G.mounted.ref.name+' — E park · V stash');}
  else if(ni&&!G.dead&&!dlgOpen){ip.classList.remove('hidden');$('interact-text').textContent=ni.txt||ni.name;}
  else ip.classList.add('hidden');
  if(keys['e']&&dlgOpen==null){/* camera handled above; interact on keydown event */}
@@ -1248,7 +1358,7 @@ function boot(){initThree();buildWorld();buildPlayer();spawnNPCs();bindInput();w
  unlockQuests();refreshHUD();refreshHotbar();
  $('loading').style.display='none';
  // expose for tests
- window.__game={G,foes,npcs,critters,horses,carts,interactables,spawnFoe,spawnCritter,acceptQuest,completeQuest,addItem,useItem,startGame,mountHorse,mountCart,dismount,openStash};
+ window.__game={G,foes,npcs,critters,horses,carts,boats,barricades,interactables,spawnFoe,spawnCritter,acceptQuest,completeQuest,addItem,useItem,startGame,mountHorse,mountCart,dismount,openStash,boardBoat};
  requestAnimationFrame(animate);}
 boot();
 
