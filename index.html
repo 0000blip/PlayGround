@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bloodfield Manager — Fantasy Football Manager with Blood Bowl Mechanics</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏈</text></svg>">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header id="topbar">
+  <div class="brand">
+    <div class="logo">🏈</div>
+    <div>
+      <h1>BLOODFIELD <span>MANAGER</span></h1>
+      <p class="tagline">Fantasy football management × brutal turn-based gridiron tactics</p>
+    </div>
+  </div>
+  <div class="club-chip">
+    <div class="club-name" id="hudTeamName">—</div>
+    <div class="club-sub"><span id="hudRace">—</span> · <span id="hudRecord">0-0-0</span> · Week <span id="hudWeek">1</span></div>
+  </div>
+  <div class="wallet">
+    <div class="gold" title="Treasury">💰 <span id="hudGold">0</span>k</div>
+    <div class="fans" title="Fan Factor">📣 <span id="hudFans">0</span></div>
+    <div class="rerolls" title="Re-rolls">🎲 <span id="hudRerolls">0</span> <button id="btnBuyReroll" class="mini-btn" title="Buy re-roll (50k)">+</button></div>
+    <button id="btnMusic" class="mini-btn" title="Toggle heroic metal">🎸 Music: on</button>
+  </div>
+</header>
+
+<nav id="tabs">
+  <button class="tab" data-tab="inbox">📥 Inbox <span id="inboxBadge" class="badge" style="display:none"></span></button>
+  <button class="tab active" data-tab="squad">🛡️ Squad</button>
+  <button class="tab" data-tab="tactics">📋 Tactics</button>
+  <button class="tab" data-tab="league">🏆 League</button>
+  <button class="tab" data-tab="match">⚔️ Match</button>
+  <button class="tab" data-tab="help">📖 Rules</button>
+  <div class="tab-actions">
+    <button id="btnNewSeason" class="ghost-btn">↺ New season</button>
+    <button id="btnSave" class="ghost-btn">💾 Save</button>
+  </div>
+</nav>
+
+<main>
+  <!-- INBOX -->
+  <section id="tab-inbox" class="panel">
+    <div class="card">
+      <h2>📥 Inbox — board, results &amp; gossip</h2>
+      <p class="hint">Click a message to mark it read. The board writes often. Fear the board.</p>
+      <div id="inboxList"></div>
+    </div>
+  </section>
+
+  <!-- TACTICS -->
+  <section id="tab-tactics" class="panel">
+    <div class="grid-2">
+      <div class="card">
+        <h2>📋 Team mentality</h2>
+        <p class="hint">Set before match day. It reshapes your whole squad for the next match.</p>
+        <div class="btn-row" id="mentalityBtns">
+          <button data-m="Cautious" class="ghost-btn">🛡️ Cautious</button>
+          <button data-m="Balanced" class="ghost-btn">⚖️ Balanced</button>
+          <button data-m="Attacking" class="ghost-btn">⚔️ Attacking</button>
+        </div>
+        <div id="mentalityFx" class="fixture-big">—</div>
+      </div>
+      <div class="card">
+        <h2>☎️ Dugout notes</h2>
+        <div id="tacticsBoard" class="log" style="height:auto;min-height:120px">—</div>
+        <p class="hint">Cage the carrier with Attacking. Grind with Cautious. Nuffle decides anyway.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SQUAD -->
+  <section id="tab-squad" class="panel active">
+    <div class="grid-2">
+      <div class="card">
+        <h2>Your roster <span id="rosterCount" class="muted"></span></h2>
+        <p class="hint">Pick <b>7</b> healthy players for match day. Injured / dead players can't play. Train players with SPP.</p>
+        <div id="rosterList" class="roster"></div>
+      </div>
+      <div>
+        <div class="card">
+          <h2>Transfer market</h2>
+          <p class="hint">Shop by crew. Rigs and brutes hit hard but cost plenty. Fast gangs break easy.</p>
+          <div class="market-filters">
+            <label>Race
+              <select id="marketRace">
+                <option value="Corpo">Corpo (insured)</option>
+                <option value="Venom">Venom (fast)</option>
+                <option value="Forge">Forge (strong)</option>
+                <option value="Ash">Ash (balanced)</option>
+                <option value="Static">Static (shielded)</option>
+                <option value="Rust">Rust (zealous)</option>
+                <option value="Ghost">Ghost (sneaky)</option>
+                <option value="Khorne">Khorne (frenzied)</option>
+                <option value="Nurgle">Nurgle (unkillable)</option>
+                <option value="Tzeentch">Tzeentch (scheming)</option>
+                <option value="Slaanesh">Slaanesh (decadent)</option>
+                <option value="Skaven">Horned Rat Skaven (swarming)</option>
+                <option value="Kraken">Kraken (grapplers)</option>
+                <option value="Guild">Guild (renderers)</option>
+                <option value="Volt">Volt (jury-rigged)</option>
+                <option value="Choir">Choir (adored)</option>
+              </select>
+            </label>
+            <button id="btnHealAll" class="primary-btn">💊 Physio: heal all bruises (20k)</button>
+          </div>
+          <div id="marketList" class="market"></div>
+        </div>
+        <div class="card">
+          <h2>💼 Front office — staff, wages &amp; loans</h2>
+          <p class="hint">Wages leave every week. Lenders always collect. Credit unlocks bigger sharks.</p>
+          <div id="frontOffice">—</div>
+        </div>
+        <div class="card">
+          <h2>Next fixture</h2>
+          <div id="nextFixture" class="fixture-big">—</div>
+          <div class="btn-row">
+            <button id="btnToMatch" class="primary-btn big">▶ Go to match day</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LEAGUE -->
+  <section id="tab-league" class="panel">
+    <div class="card" id="boardCard">—</div>
+    <div class="grid-2">
+      <div class="card">
+        <h2>League table — Bloodfield Division</h2>
+        <table id="leagueTable" class="table"><thead><tr><th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>TD</th><th>Pts</th></tr></thead><tbody></tbody></table>
+        <h2 style="margin-top:18px">Fixtures &amp; results</h2>
+        <div id="fixtureList"></div>
+      </div>
+      <div class="card">
+        <h2>Season report</h2>
+        <div id="seasonReport" class="log"></div>
+        <h2 style="margin-top:14px">Team stats</h2>
+        <div id="teamStats" class="stat-grid"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MATCH -->
+  <section id="tab-match" class="panel">
+    <div id="preMatch" class="card">
+      <h2>Match day setup</h2>
+      <p class="hint">Sevens rules: <b>7 vs 7</b>, <b>8 turns per half</b>, 2 halves. Weather, kickoff omens, assists and all-out sprints included. Turnovers on failed dodges, sprints, dropped balls &amp; fumbles. Push the ball into the red endzone to score.</p>
+      <div id="preMatchInfo" class="fixture-big">—</div>
+      <div class="setup-grid">
+        <div>
+          <h3>Your starting 7 (auto = fittest 7)</h3>
+          <div id="setupList" class="setup-list"></div>
+        </div>
+        <div>
+          <h3>Kickoff options</h3>
+          <label class="opt"><input type="checkbox" id="optReceive" checked> Receive first (recommended for beginners)</label>
+          <label class="opt">Difficulty
+            <select id="optDiff">
+              <option value="rookie">Rookie AI (gentle dice)</option>
+              <option value="pro" selected>Pro AI (fair dice)</option>
+              <option value="brutal">Brutal AI (hungry blocks)</option>
+            </select>
+          </label>
+          <div class="btn-row">
+            <button id="btnKickoff" class="primary-btn big">🏈 KICK OFF</button>
+          </div>
+          <p class="hint">Tip: cage the ball carrier, screen with linemen, blitz with your strongest, throw only when you must.</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="matchUI" class="hidden">
+      <div class="scorebar">
+        <div class="score home"><span id="scoreHome">YOU 0</span><small id="turnHome">Turn 1/6 · H1</small></div>
+        <div class="score-mid">
+          <div id="matchStatus">Your turn</div>
+          <div class="btn-row center">
+            <button id="btnEndTurn" class="primary-btn">⏭ End turn (Space)</button>
+            <button id="btnConcede" class="ghost-btn">🏳 Concede</button>
+          </div>
+        </div>
+        <div class="score away"><span id="scoreAway">OPP 0</span><small id="turnAway">AI thinking…</small></div>
+      </div>
+
+      <div class="match-grid">
+        <div class="pitch-wrap">
+          <canvas id="pitch" width="1040" height="600"></canvas>
+          <div id="pitchHint" class="pitch-hint">Click a blue player → green = move, yellow = sprint (GFI fails on 1!) · red = block · purple = shoot · mate = pass/hand off</div>
+        </div>
+        <aside class=" Dugout">
+          <div class="card tight">
+            <h3>Selected</h3>
+            <div id="selInfo">No player selected.</div>
+            <div id="actionBar" class="btn-row wrap"></div>
+          </div>
+          <div class="card tight">
+            <h3>Dice &amp; events <button id="btnReroll" class="mini-btn" title="Use a team re-roll">🎲 re-roll</button></h3>
+            <div id="diceLog" class="log small"></div>
+          </div>
+          <div class="card tight">
+            <h3>Match stats</h3>
+            <div id="matchStats" class="stat-grid"></div>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <div id="postMatch" class="card hidden">
+      <h2 id="pmTitle">Full time</h2>
+      <div id="pmScore" class="fixture-big">—</div>
+      <div id="pmAnalysis" class="card tight">—</div>
+      <div id="pmDetails" class="log"></div>
+      <div class="btn-row">
+        <button id="btnContinue" class="primary-btn big">📋 Continue to management</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- HELP -->
+  <section id="tab-help" class="panel">
+    <div class="grid-2">
+      <div class="card">
+        <h2>How to play (60 seconds)</h2>
+        <ol class="rules">
+          <li><b>Manager layer:</b> hire up to 12 players, keep 7 fit. Big Guys cost more. Heal bruises, buy re-rolls, train with SPP.</li>
+          <li><b>Match layer:</b> turn-based. Each of your 7 players acts once per team-turn: <b>move</b> up to MA squares, plus one <b>action</b> (block / blitz / pass / handoff).</li>
+          <li><b>Turnover:</b> if you fail a dodge, drop the ball, fumble a pass or fall over — your turn ends immediately. That's Blood Bowl.</li>
+          <li><b>Blocking:</b> compare Strength. More ST = more block dice. Results: 💥POW (down), ✨Stumble (down unless Dodge), ➡️Push, 🔄Both Down, 💀Skull (you fall).</li>
+          <li><b>Ball:</b> run it into the <span class="red">red endzone</span> to score. Pick up (AG roll), pass (AG roll by range), catch (AG roll).</li>
+          <li><b>Injuries:</b> beaten armour (2D6 ≥ AV) → injury roll: Stun / KO / Badly Hurt / Miss Next Game / ☠ Dead.</li>
+          <li><b>Season:</b> 3 games vs AI + table. Win = 3pts, Draw = 1pt. Earn gold + fans, get MVP &amp; SPP, buy stars.</li>
+          <li><b>Like FM:</b> check your <b>Inbox</b>, set <b>Tactics</b> mentality (Attacking +1 MA / −1 AV, Cautious the reverse), and keep board <b>confidence</b> above zero — or get sacked.</li>
+          <li><b>Mega-corps:</b> Corpo crews are insured (<b>+50k</b> per death) and sponsored (<b>+15k</b> gate every match).</li>
+          <li><b>Chaos gods:</b> Khorne (<b>+1 ST</b> on blitzes), Nurgle (KOs become <b>stuns</b>), Tzeentch (<b>+5k</b> per completed pass), Slaanesh (<b>+5k &amp; +1 fan</b> per TD), Horned Rat Skaven (<b>+1 MA</b> for all).</li>
+          <li><b>Economy:</b> players draw weekly <b>wages</b>, as do hired <b>staff</b> (Ripperdoc heals, Coach trains). Broke? Borrow from <b>loan sharks</b> — mind the interest and your <b>credit rating</b>.</li>
+          <li><b>Guns:</b> every ganger can <b>shoot</b> instead of acting — 4+ short, 5+ long, pinned on any hit, standing blockers stop bullets, prone bodies give cover. Rolling a 1 on ammo <b>jams</b> the gun for the match. No turnovers from gunfire.</li>
+          <li><b>Match depth:</b> <b>8 turns</b>/half, <b>weather</b> (heat/blizzard sap MA, sun ruins long passes, rain soaks catches), <b>kickoff omens</b> (invasions, free re-rolls), <b>assists</b> (+ST per unmarked helper, max 2), <b>sprints</b> (+2 squares, fall on a 1), and the ball <b>never rests on a downed player</b>.</li>
+          <li><b>New houses:</b> Krakens salvage armour (<b>+3k</b>/break), Guild renders the dead (<b>+25k</b>/death), Volt re-rolls cost <b>40k</b>, Choir gains <b>+2 fans</b> per win.</li>
+          <li><b>Hive gangs:</b> Venom bounties (<b>+5k</b>/casualty), Ash (<b>+10k</b>/TD), Ghost (<b>+10k</b>/match), Forge (<b>+10k</b>/win), Static (free <b>re-roll</b> each match), Rust (<b>+2 fans</b> per death).</li>
+        </ol>
+      </div>
+      <div class="card">
+        <h2>Controls (desktop)</h2>
+        <ul class="rules">
+          <li>🖱️ <b>Left click</b> — select player / confirm move / block / pass target</li>
+          <li>⎋ <b>Esc</b> — cancel / deselect</li>
+          <li>⏭ <b>Space</b> — end turn</li>
+          <li>⇥ <b>Tab</b> — cycle players</li>
+          <li>🎲 Re-rolls rescue one failed D6 per team-turn (not armour/injury).</li>
+        </ul>
+        <h2>Player stats</h2>
+        <p class="hint"><b>MA</b> speed · <b>ST</b> strength · <b>AG</b> agility (pass/catch/dodge/pickup target, e.g. 3+ means 3..6 succeeds) · <b>AV</b> armour (2D6 must reach it to hurt) · <b>SPP</b> star points (5 = level up).</p>
+        <div class="stat-grid" id="helpRaces"></div>
+        <h2 style="margin-top:18px">📖 Gang codex — lore &amp; abilities</h2>
+        <div id="codexList"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="toast" class="toast hidden"></div>
+
+<!-- Team creation modal -->
+<div id="newTeamModal" class="modal hidden">
+  <div class="modal-box">
+    <h2>Found your club</h2>
+    <p class="hint">Choose a race and name. You start with 1,000k gold, 7 rookie players auto-signed, 2 re-rolls and a dream.</p>
+    <label>Club name <input id="inpTeamName" maxlength="24" value="Neon Vultures"></label>
+    <div class="race-pick" id="racePick">
+      <button data-race="Corpo" class="race-card active"><b>💼 Corps</b><small>Insured · sponsored</small></button>
+      <button data-race="Venom" class="race-card"><b>🧪 Venom Blades</b><small>Fast · toxic bounties</small></button>
+      <button data-race="Forge" class="race-card"><b>🏋️ Forge-Bound</b><small>Strong · pit bonuses</small></button>
+      <button data-race="Ash" class="race-card"><b>🌵 Ash Riders</b><small>Balanced · TD bonuses</small></button>
+      <button data-race="Static" class="race-card"><b>🔌 Static Veil</b><small>Shielded · free re-roll</small></button>
+      <button data-race="Rust" class="race-card"><b>🕯️ Rust Preachers</b><small>Zealous · martyrs</small></button>
+      <button data-race="Ghost" class="race-card"><b>🌑 Ghost Wire</b><small>Sneaky · appearance fees</small></button>
+      <button data-race="Khorne" class="race-card"><b>🩸 Khorne</b><small>Frenzied · blitz bonus</small></button>
+      <button data-race="Nurgle" class="race-card"><b>🦠 Nurgle</b><small>Rotten · KO-proof</small></button>
+      <button data-race="Tzeentch" class="race-card"><b>🔮 Tzeentch</b><small>Scheming · pass bounties</small></button>
+      <button data-race="Slaanesh" class="race-card"><b>🪩 Slaanesh</b><small>Decadent · TD worship</small></button>
+      <button data-race="Skaven" class="race-card"><b>🐀 Horned Rat Skaven</b><small>Swarming · +1 MA</small></button>
+      <button data-race="Kraken" class="race-card"><b>🌊 Sump Krakens</b><small>Grapplers · salvage</small></button>
+      <button data-race="Guild" class="race-card"><b>🍖 Corpse Guild</b><small>Renderers · death pays</small></button>
+      <button data-race="Volt" class="race-card"><b>✨ Volt Hounds</b><small>Fast · cheap re-rolls</small></button>
+      <button data-race="Choir" class="race-card"><b>👁️ Pale Choir</b><small>Faithful · adored</small></button>
+    </div>
+    <button id="btnCreateTeam" class="primary-btn big">⚒ Found club</button>
+  </div>
+</div>
+
+<script src="game.js"></script>
+</body>
+</html>
