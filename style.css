@@ -67,11 +67,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 .game-title::after{color:var(--teal);opacity:.25;transform:translate(5px,1px)}
 #menu{overflow-y:auto;justify-content:flex-start;padding-top:3vh;background:linear-gradient(rgba(7,13,11,.87),rgba(7,13,11,.92)),url('textures/props/mississippi.jpg') center 30%/cover no-repeat,repeating-linear-gradient(45deg,rgba(216,169,60,.06) 0 2px,transparent 2px 9px),repeating-linear-gradient(-45deg,rgba(154,127,240,.05) 0 2px,transparent 2px 9px),radial-gradient(ellipse at 50% 30%,#1a241c 0%,#0e1410 60%,#060a08 100%)}
 #menu::after{content:'';position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.24) 0 1px,transparent 1px 3px);z-index:60}
-.menu-buttons .btn:nth-child(2n){animation:none}
-.menu-buttons .btn:nth-child(3n){animation:none}
 @keyframes flick{0%,100%{opacity:.85}50%{opacity:.65}}
-.menu-buttons .btn{animation:none}
-.menu-buttons .btn:hover{background:linear-gradient(180deg,#4a4234,#241d14);border-color:#8a7648;color:#f4e8cc}
 @keyframes candle{0%,100%{opacity:1}8%{opacity:.93}9%{opacity:1}36%{opacity:.96}37%{opacity:1}71%{opacity:.94}72%{opacity:1}}
 .game-sub{font-size:19px}
 .iron-rule{display:flex;align-items:center;gap:12px;color:var(--violet);margin:10px auto;max-width:640px;text-shadow:0 0 12px rgba(154,127,240,.6)}
@@ -167,24 +163,22 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 @keyframes drift2{0%,100%{transform:translate(0,0) rotate(-4deg)}50%{transform:translate(6px,-10px) rotate(5deg)}}
 @keyframes glint{0%,100%{filter:brightness(1)}50%{filter:brightness(1.7) drop-shadow(0 0 12px rgba(255,240,200,.9))}}
 @media (max-width:1100px){#curios{display:none}}
-@media (prefers-reduced-motion:reduce){.veve,.bloodline i,.curio{animation:none!important}}
-.menu-buttons{display:grid;grid-template-columns:1fr 1fr;gap:16px 30px;width:min(920px,94vw);min-width:0;align-items:start}
-/* odd twisted configuration: spread across the screen, every button its own weird */
-.menu-buttons .btn{border-radius:4px;width:100%;animation:none}
-.menu-buttons .btn:nth-child(odd){grid-column:1;justify-self:start}
-.menu-buttons .btn:nth-child(even){grid-column:2;justify-self:end}
-.menu-buttons .btn:nth-child(1){grid-column:1/-1;justify-self:center;width:min(580px,92%);font-size:21px;padding:15px 32px;border-radius:6px 34px 6px 34px;rotate:-.8deg;animation:floaty 4s ease-in-out infinite}
-.menu-buttons .btn:nth-child(2){max-width:280px;font-size:13px;padding:8px 16px;border-radius:30px 6px 30px 6px;rotate:.9deg;margin-top:18px;animation:jit 2.3s steps(4) infinite}
-.menu-buttons .btn:nth-child(3){max-width:380px;font-size:16px;padding:12px 24px;border-radius:6px 6px 30px 6px;rotate:-.6deg;margin-top:2px;animation:wob 5.2s ease-in-out infinite}
-.menu-buttons .btn:nth-child(4){max-width:330px;font-size:15px;padding:12px 20px;border-radius:30px 6px 6px 30px;rotate:.5deg;margin-top:14px;animation:pulse 3.4s ease-in-out infinite}
-.menu-buttons .btn:nth-child(5){max-width:390px;font-size:14px;padding:9px 22px;letter-spacing:3px;border-radius:6px 30px 30px 6px;rotate:-.4deg;margin-top:2px;animation:drift 4.6s ease-in-out infinite}
-.menu-buttons .btn:nth-child(6){grid-column:1/-1;justify-self:center;max-width:300px;font-size:13px;padding:8px 18px;border-radius:30px 6px 30px 6px;rotate:.7deg;margin-top:6px;animation:none}
-@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
-@keyframes jit{0%,100%{transform:translate(0,0)}25%{transform:translate(1px,-1px)}50%{transform:translate(-1px,1px)}75%{transform:translate(1px,1px)}}
-@keyframes wob{0%,100%{transform:rotate(-.6deg)}50%{transform:rotate(.8deg) translateY(-2px)}}
-@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
-@keyframes drift{0%,100%{transform:translateX(0)}50%{transform:translateX(5px)}}
-@media (max-width:640px){.menu-buttons{grid-template-columns:1fr;width:min(420px,92vw)}.menu-buttons .btn:nth-child(n){grid-column:1;justify-self:stretch;max-width:none;margin-top:0;rotate:0deg}}
+@media (prefers-reduced-motion:reduce){.veve,.bloodline i,.curio,.mpoint .mp-ico{animation:none!important}}
+@media (prefers-reduced-motion:reduce){.mpoint .mp-ico,.game-title,.menu-bg-orn{animation:none!important}}
+/* five animated menu points along the bottom middle */
+.menu-points{display:flex;gap:26px;justify-content:center;align-items:flex-start;margin:14px auto 4px;flex-wrap:wrap;max-width:94vw}
+.mpoint{display:flex;flex-direction:column;align-items:center;gap:6px;background:none;border:0;cursor:pointer;padding:6px;color:var(--ink);font-family:inherit}
+.mpoint .mp-ico{display:flex;align-items:center;justify-content:center;width:64px;height:64px;border-radius:50%;font-size:30px;background:radial-gradient(circle at 35% 30%,#4a4442,#1a1512 70%);border:2px solid #6b5626;box-shadow:0 0 0 2px #141009,0 2px 10px #000}
+.mpoint .mp-label{font-size:13px;letter-spacing:1px;color:var(--dim);text-align:center;max-width:110px}
+.mpoint:hover .mp-ico{border-color:var(--teal)}
+.mpoint:hover .mp-label{color:#eafffb}
+.mpoint:focus-visible{outline:2px solid var(--teal);outline-offset:4px;border-radius:8px}
+.mpoint.m1 .mp-ico{animation:floaty 4s ease-in-out infinite}
+.mpoint.m2 .mp-ico{animation:jit 2.3s steps(4) infinite}
+.mpoint.m3 .mp-ico{animation:wob 5.2s ease-in-out infinite}
+.mpoint.m4 .mp-ico{animation:pulse 3.4s ease-in-out infinite}
+.mpoint.m5 .mp-ico{animation:drift 4.6s ease-in-out infinite}
+@media (max-width:640px){.menu-points{gap:14px}.mpoint .mp-ico{width:54px;height:54px;font-size:25px}}
 @media (prefers-reduced-motion:reduce){.menu-buttons .btn,.game-title,.menu-bg-orn{animation:none!important}}
 .btn{background:linear-gradient(180deg,#33302a,#1a1712);border:1px solid #6b5626;color:var(--ink);padding:10px 22px;border-radius:6px;font-family:inherit;font-size:15px;cursor:pointer;letter-spacing:1px}
 .btn:hover{border-color:var(--teal);background:linear-gradient(180deg,#2c3440,#141a20);box-shadow:0 0 14px rgba(102,242,219,.3);text-shadow:0 0 8px rgba(102,242,219,.6)}
@@ -229,9 +223,9 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #craft-detail{margin-top:10px;background:rgba(0,0,0,.3);border:1px solid #4a3a22;border-radius:6px;padding:10px 14px;font-size:13.5px;line-height:1.6}
 #panel-inventory{width:640px}
 #panel-craft{width:640px}
-.inv-item{background:#1a1410;border:1px solid #4a3a22;border-radius:6px;padding:8px;cursor:pointer;font-size:13px;text-align:center}
+.inv-item{background:radial-gradient(circle at 50% 32%,#2c2418,#1a1410 70%);border:1px solid #4a3a22;border-radius:6px;padding:8px;cursor:pointer;font-size:13px;text-align:center}
 .inv-item:hover{border-color:var(--teal)}.inv-item.equipped{border-color:var(--gold);box-shadow:0 0 8px rgba(201,162,39,.5)}
-.inv-item .em{font-size:26px}#inv-detail{margin-top:10px;font-size:13px;font-style:italic;color:#cbbb92;min-height:44px}
+.inv-item .em{font-size:34px;text-shadow:0 2px 6px #000,0 0 14px rgba(216,169,60,.35);line-height:1.25}#inv-detail{margin-top:10px;font-size:13px;font-style:italic;color:#cbbb92;min-height:44px}
 #panel-craft,#panel-quests,#panel-char{left:50%;top:50%;transform:translate(-50%,-50%);width:600px;max-height:80vh;overflow:auto}
 .craft-row{display:flex;justify-content:space-between;align-items:center;background:#1a1410;border:1px solid #4a3a22;border-radius:6px;padding:8px 12px;margin:6px 0;font-size:13px}
 .craft-row button{cursor:pointer}
@@ -293,7 +287,8 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #trait-points b{color:var(--gold);font-size:19px}
 #traits .paper p{font-size:16px}
 /* music control window */
-#music-win{position:absolute;left:14px;bottom:52px;z-index:70;background:linear-gradient(rgba(26,21,30,.94),rgba(26,21,30,.96)),url('textures/props/tapestry.jpg') center/cover no-repeat;border:2px solid #6b5626;border-radius:22px 22px 50% 50%/22px 22px 100% 100%;padding:10px 14px 34px;width:210px;pointer-events:auto;box-shadow:0 0 24px #000,inset 0 0 40px rgba(0,0,0,.5)}
+#music-win{position:absolute;left:14px;bottom:52px;z-index:70;background:linear-gradient(rgba(26,21,30,.94),rgba(26,21,30,.96)),url('textures/props/tapestry.jpg') center/cover no-repeat;border:2px solid #6b5626;border-radius:50%;padding:8px 10px;width:210px;aspect-ratio:1/1;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:auto;box-shadow:0 0 24px #000,inset 0 0 40px rgba(0,0,0,.5);overflow:hidden}
+#music-win .mus-row,#music-win .mus-deck,#music-win .mus-auto,#music-win #mus-title{max-width:470px}
 #mus-title{font-size:17px;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:8px;cursor:move;touch-action:none;user-select:none}
 .mus-row{display:flex;gap:8px;align-items:center;font-size:15px}
 .mus-row button{background:#221a10;border:1px solid #4a3a22;color:var(--ink);border-radius:5px;padding:7px 15px;cursor:pointer;font-size:17px}
@@ -301,7 +296,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #mus-vol{flex:1;accent-color:var(--teal);cursor:pointer}
 #mus-speed{flex:1;accent-color:var(--gold);cursor:pointer}
 /* Fallout-style brass deck */
-#music-win{width:min(940px,94vw)}
+#music-win{width:min(560px,94vw)}
 .mus-deck{display:flex;gap:12px;align-items:center;justify-content:space-between;margin:12px 0 6px}
 .deck-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px 12px}
 .deck-grid>div{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:12px;color:var(--dim);letter-spacing:1px}
