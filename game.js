@@ -1468,6 +1468,7 @@ function refreshTracker(){const t=$('quest-tracker');t.innerHTML='';
    if(o.t==='torch')return (G.planted||0)+'/'+o.n+' '+o.label;
    if(o.t==='work')return (s.have['w_'+o.job]||0)+'/'+o.n+' '+o.label;
    if(o.t==='ritual')return (s.have.ritual||0)+'/'+o.n+' '+o.label;
+   if(o.t==='wife')return o.label;
    if(o.t==='tax')return G.taxPaid?'✔ settled':'○ unsettled';
    if(o.t==='visit')return (s.have['v_'+o.zone]?'✔ ':'○ ')+o.label;
    return o.label;}).join(' · ');
@@ -1580,12 +1581,16 @@ function mainPage(n){const disp=G.dispo[n.id]||0;
  const ch=[];
  questsHere.forEach(q=>{const s=G.quests[q.id];
   if(s.st==='open')ch.push({label:'📜 “'+q.n+'” — hear the need',cls:'good',fn:()=>{acceptQuest(q.id);showDlgPage('“'+q.desc+'”<br><br><i>Quest taken. The ledger remembers.</i>',[{label:'“Done. I’ll go.” (leave)',fn:closeDialogue}]);}});
-  else{let prog=q.obj.map(o=>{if(o.t==='collect'){const h=o.item==='coin'?G.coins:(G.inv[o.item]||0);return Math.min(h,o.n)+'/'+o.n+' '+o.label;}if(o.t==='kill')return (s.have['k_'+o.foe]||0)+'/'+o.n+' '+o.label;if(o.t==='bury')return (s.have.bury||0)+'/'+o.n;if(o.t==='forage')return (s.have.forage||0)+'/'+o.n+' '+o.label;if(o.t==='hunt')return (s.have.hunt||0)+'/'+o.n+' '+o.label;if(o.t==='work')return (s.have['w_'+o.job]||0)+'/'+o.n+' '+o.label;if(o.t==='ritual')return (s.have.ritual||0)+'/'+o.n+' '+o.label;return o.label;}).join(' · ');
+  else{let prog=q.obj.map(o=>{if(o.t==='collect'){const h=o.item==='coin'?G.coins:(G.inv[o.item]||0);return Math.min(h,o.n)+'/'+o.n+' '+o.label;}if(o.t==='kill')return (s.have['k_'+o.foe]||0)+'/'+o.n+' '+o.label;if(o.t==='bury')return (s.have.bury||0)+'/'+o.n;if(o.t==='forage')return (s.have.forage||0)+'/'+o.n+' '+o.label;if(o.t==='hunt')return (s.have.hunt||0)+'/'+o.n+' '+o.label;if(o.t==='work')return (s.have['w_'+o.job]||0)+'/'+o.n+' '+o.label;if(o.t==='ritual')return (s.have.ritual||0)+'/'+o.n+' '+o.label;if(o.t==='wife')return o.label;return o.label;}).join(' · ');
    ch.push({label:'📜 “'+q.n+'” — progress: '+prog,fn:()=>showDlgPage('“'+q.desc+'”<br><br><i>'+prog+'</i>',[{label:'Back',fn:()=>openDialogue(n)}])});}});
  ch.push({label:'💬 “Talk — what is this place, truly?”',fn:()=>lorePage(n)});
  if(['baptiste','manon','doctor','odette','seraphine','jeanluc'].includes(n.id))ch.push({label:'⚖ “Trade.”',fn:()=>openTrade(n)});
  if(n.id!=='taxman'&&!n.follow)ch.push({label:'🤝 “Walk with me. The commune defends itself.” (recruit)',cls:'good',fn:()=>recruit(n)});
  if(n.id==='anselme')ch.push({label:'🕯 “Bless me, Father — the dark gets in.” (confess, +reason)',cls:'good',fn:()=>shrive(n)});
+ if(n.id==='jeanluc'){const wqs=G.quests['q_pig_wife'];
+  if(wqs&&wqs.st==='active'&&wqs.have['v_bayou']){
+   ch.push({label:'💔 “Babette lives free at the Landing. Let her.” (settle, kindly)',cls:'good',fn:()=>{wqs.have.wife=1;addKarma(4,'her freedom, his grief');completeQuest('q_pig_wife');showDlgPage('Jean-Luc stares into the trough a long while. “Free,” he says at last. “Aye. She always did hate fences worse than I did.” He pays, and does not meet your eye.<br><i>(+4 ⚖)</i>',[{label:'Leave him to the pigs.',fn:closeDialogue}]);}});
+   ch.push({label:'💍 “She misses the pigs. Fetch her home.” (settle, practically)',fn:()=>{wqs.have.wife=1;completeQuest('q_pig_wife');showDlgPage('“The pigs!” Jean-Luc brightens. “She does love the pigs.” Whether Babette agrees is left, delicately, unexamined. He pays in full.<br><i>Settled, after a fashion.</i>',[{label:'Leave them to it.',fn:closeDialogue}]);}});}}
  if(n.id==='seraphine')ch.push({label:'💋 “Company, conversation, forgetfulness.” (4 livres, +peace)',fn:()=>comfort(n)});
  if(!n.dead&&n.id!=='taxman')ch.push({label:'🤏 Lift something ('+Math.round((0.5+0.07*skillLvl('pick')+0.03*skillLvl('sneak'))*100)+'% — pickpocket)',fn:()=>pickpocket(n)});
  ch.push({label:'🎭 “Surely you can bend the truth, for a friend…” (deceive)',fn:()=>deceive(n)});
@@ -1599,6 +1604,7 @@ function lorePage(n){const L={
  manon:'“1666 clothes? Look at us: Baptiste in a leather apron over a linen shirt, me in a headwrap and wool petticoat, you in a patched justaucorps and cavalier hat. Timber colombage, thatch, palisade — French poor building with swamp timber. The style is Southern Gothic because the damp never lets the past dry.”',
  baptiste:'“Iron doesn’t lie. A musket ball is a vote. Bring me planks and nails and I’ll bar every chapel door in the seigneurie. The Seigneur taxes iron because he fears what it builds.”',
  jean:'“The swamp is a commons the Seigneur cannot drain — he tries, with your backs. I know the high roots. Walk the water with respect and it carries you. The Bête lives where they tried to survey the un-surveyable.”',
+ jeanluc:'“Pigs is honest. Pigs don’t sign, pigs don’t tithe, pigs don’t read the notices nailed to the cross. My Babette — she married down, marrying me, and up, marrying out of the Seigneur’s arithmetic. If you see her at the Landing, tell her the trough is full and the gate is open.”',
  taxman:'“You mistake me for cruel. I am merely <i>accurate</i>. Sixty souls at twelve livres the head, passage plus interest, minus Sundays. The arithmetic is Gothic; the swamp is merely the margin.”'};
  showDlgPage('“'+(L[n.id]||'“Live kindly, die loudly, and never sign anything by candlelight.”')+'”',[{label:'Back',fn:()=>openDialogue(n)}]);}
 function recruit(n){if(n.follow){closeDialogue();return;}
