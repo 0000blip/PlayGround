@@ -87,6 +87,7 @@ const ITEMS={
  venom:{n:'Venom sac',e:'☠',d:'Moccasin venom. Poison — or, doctored, cure.',price:6},
  coon:{n:'Raccoon',e:'🦝',d:'Night-bandit, greasy and sweet. +16 hunger.',use:'eat',hunger:16,price:3},
  possum:{n:'Opossum',e:'🐀',d:'Played dead; lost the argument. +14 hunger.',use:'eat',hunger:14,price:3},
+ bone:{n:'Old bones',e:'☠',d:'Levy-issue, long discharged. Apothecaries and priests pay.',price:2},
  wine:{n:'Claret',e:'🍷',d:'French wine, cellared through the crossing. +6 hunger, +12 reason.',use:'drink',hunger:6,sanity:12,price:6},
  tafia:{n:'Tafia',e:'🥃',d:'Raw cane spirit. Burns clean through grief. +2 hunger, +18 reason, −5 HP.',use:'drink',hunger:2,sanity:18,hp:-5,price:8},
  tobacco:{n:'Pipe tobacco',e:'🚬',d:'Virginia leaf. Smoke a bowl and watch the mist. +10 reason, −2 HP.',use:'smoke',sanity:10,hp:-2,price:3},
@@ -715,6 +716,11 @@ function makeHumanoid(coat,skin,hat){const g=new THREE.Group();
  return g;}
 function buildPlayer(){playerMesh=makeHumanoid(0x4a3a5a,0xd9b48f,'tricorn');playerMesh.position.set(G.pos.x,0,G.pos.z);scene.add(playerMesh);
  const sw=new THREE.Mesh(new THREE.BoxGeometry(0.1,1.1,0.2),mat(0xb0b0b0));sw.position.set(0.5,1.3,0.5);playerMesh.add(sw);playerMesh.userData.sword=sw;}
+function spawnSkelFarmers(){[['Brother Rattle',22,35],['Sister Clatter',24,33],['Old Marrow',32,35]].forEach(([nm,x,z])=>{
+ const m=makeHumanoid(0xe6dcc0,0xe6dcc0,'coif');m.position.set(x,0,z);scene.add(m);
+ const hoe=new THREE.Mesh(new THREE.BoxGeometry(0.08,1.4,0.08),mat(0x5a4630));hoe.position.set(0.5,1.0,0.3);hoe.rotation.x=0.3;m.add(hoe);
+ const lb=makeLabel('💀 '+nm,0.5);lb.position.set(0,2.9,0);m.add(lb);
+ npcs.push({id:'skel_'+nm,n:nm,role:'freed farmer, deceased — the union dead',e:'💀',x,z,c:0xe6dcc0,d:'Freed by shovel and solidarity. “We died in the Seigneur’s furrows, so we kept the furrows. No wages, no rest? No — we voted. We keep the harvest and we keep the hours. The living work beside us, or the dead work without them.” (Recruitable. Killable. The commune will remember either.)',mesh:m,wx:x,wz:z,tx:x,tz:z,wt:0,dead:false,follow:false,skeleton:true});});}
 function spawnNPCs(){NPC_DEFS.forEach(d=>{const g=makeHumanoid(d.c,0xd9b48f,d.id==='taxman'?'wig':(d.id==='anselme'?'hood':((d.id==='odette'||d.id==='lucile'||d.id==='seraphine')?'coif':'tricorn')));
   g.position.set(d.x,0,d.z);scene.add(g);
   const lb=makeLabel(d.e+' '+d.n,0.55);lb.position.set(0,2.9,0);g.add(lb);
@@ -732,6 +738,10 @@ function spawnFoe(type,x,z){const d=FOE_DEFS[type];let g;
   const h1=new THREE.Mesh(new THREE.ConeGeometry(0.25,0.9,6),mat(0x1a0a00));h1.position.set(-0.5,4.5,0);g.add(h1);const h2=h1.clone();h2.position.x=0.5;g.add(h2);
   const e1=new THREE.Mesh(new THREE.SphereGeometry(0.12,6,4),new THREE.MeshBasicMaterial({color:0xffee00}));e1.position.set(-0.25,3.9,0.6);g.add(e1);const e2=e1.clone();e2.position.x=0.25;g.add(e2);
   const fl=new THREE.PointLight(0xff3a00,2,20);fl.position.y=3;g.add(fl);}
+ else if(type==='skeleton'){g=makeHumanoid(0xe6dcc0,0xe6dcc0,null);
+  const e1=new THREE.Mesh(new THREE.SphereGeometry(0.05,6,4),new THREE.MeshBasicMaterial({color:0xff2222}));e1.position.set(-0.1,2.02,0.24);g.add(e1);
+  const e2=e1.clone();e2.position.x=0.1;g.add(e2);
+  const ribs=new THREE.Mesh(new THREE.BoxGeometry(0.6,0.3,0.4),mat(0xcabf9f));ribs.position.y=1.35;g.add(ribs);}
  else{g=makeHumanoid(0x5a6a4a,0x9aaa7a,null);g.rotation.z=0.08;}
  g.position.set(x,0,z);scene.add(g);
  const f={type,d:FOE_DEFS[type],mesh:g,hp:d.hp,maxhp:d.hp,cd:0,tx:x,tz:z,wt:rand(0,2),boss:type==='demon'};
@@ -742,8 +752,8 @@ function nightSpawns(dt){spawnT-=dt;if(spawnT>0)return;const night=isNight();
  const a=rand(0,Math.PI*2),r=rand(30,70);const x=clamp(G.pos.x+Math.cos(a)*r,-110,110),z=clamp(G.pos.z+Math.sin(a)*r,-110,110);
  let t='risen';const roll=Math.random();
  if(isNight()){if(G.day>=3&&foes.filter(f=>f.boss).length===0&&Math.random()<0.06){bossSpawn();return;}
-  if(roll<0.3)t='wolf';else if(roll<0.5)t='ghost';else if(roll<0.62)t='vamp';}
- else if(roll<0.12)t='ghost';
+  if(roll<0.3)t='wolf';else if(roll<0.5)t='ghost';else if(roll<0.62)t='vamp';else if(roll<0.72)t='skeleton';}
+ else if(roll<0.12)t='ghost';else if(roll<0.2)t='skeleton';
  if(t==='vamp'&&!isNight()&&Math.random()<0.7)t='risen';
  spawnFoe(t,x,z);}
 function bossSpawn(){const f=spawnFoe('demon',14,70);toast('😈 The mud splits. THE BÊTE DE L’ABÎME rises in the swamp!','bad');AudioSys.sfx('wolf');AudioSys.setMode('combat');
@@ -783,6 +793,7 @@ function killFoe(f){scene.remove(f.mesh);foes.splice(foes.indexOf(f),1);
  setTimeout(()=>div.remove(),6000);
  if(f.type==='wolf'&&Math.random()<0.8)dropLoot(f,'pelt',1);
  if(f.type==='vamp'){dropLoot(f,'fang',1);if(Math.random()<0.5)dropLoot(f,'coin',8);}
+ if(f.type==='skeleton'){dropLoot(f,'bone',1);if(Math.random()<0.4)dropLoot(f,'coin',4);}
  if(f.type==='ghost'&&Math.random()<0.5)dropLoot(f,'ash',1);
  if(f.type==='risen'&&Math.random()<0.4)dropLoot(f,'bread',1);
  if(f.type==='demon'){onBossDead();}
@@ -813,7 +824,7 @@ function foeUpdate(f,dt){const m=f.mesh;f.cd-=dt;
   if(d<(f.boss?3.2:1.8)&&f.cd<=0){f.cd=f.boss?1.2:1.5;
    let dmg=f.d.dmg+rand(-3,4);if(f.type==='ghost')dmg=8+G.infected*2;
    hurtPlayer(dmg,f.d.n);
-   const fright={risen:3,wolf:5,ghost:8,vamp:6,demon:10}[f.type]||3;
+   const fright={risen:3,wolf:5,ghost:8,vamp:6,demon:10,skeleton:5}[f.type]||3;
    G.sanity=Math.max(0,G.sanity-fright);if(G.sanity<=10)subtitle('🕯 Your hands will not stop shaking.');
    toast(f.d.e+' '+f.d.n+' wounds you (−'+Math.round(dmg)+' HP, −'+fright+' 🕯)','bad');}
  } else {f.wt-=dt;if(f.wt<=0){f.wt=rand(2,5);f.tx=m.position.x+rand(-14,14);f.tz=m.position.z+rand(-14,14);}
@@ -891,6 +902,7 @@ function sanityAura(dt){if(G.dead||!G.started||G.paused)return;
   if(f.type==='risen'){rate=1.0;r=8;}else if(f.type==='wolf'){rate=isNight()?3.0:1.6;r=12;}
   else if(f.type==='ghost'){rate=3.5;r=14;if(chap)rate*=0.4;}
   else if(f.type==='vamp'){rate=2.5;r=12;}else if(f.type==='demon'){rate=4.0;r=24;}
+  else if(f.type==='skeleton'){rate=1.4;r=9;}
   if(rate>0&&d<r)G.sanity=Math.max(0,G.sanity-rate*ward*(1-d/(r*1.5))*dt*1.5);}}
 function advanceTime(dt){const prev=G.time;G.time+=dt*(24/480);
  if(G.time>=24){G.time-=24;G.day++;AudioSys.bell();toast('☀ Day '+G.day+' — the bell counts what the Seigneur cannot.','good');
@@ -1015,7 +1027,7 @@ function renderQuests(){const l=$('quest-list');l.innerHTML='';
  open.forEach(q=>{const d=qCard(q,'','○ AVAILABLE — '+q.n+' (from '+npcName(q.giver)+')');const b=document.createElement('button');b.className='btn';b.textContent='Take up';b.onclick=()=>{acceptQuest(q.id);renderQuests();};d.appendChild(b);l.appendChild(d);});
  done.forEach(q=>{l.appendChild(qCard(q,'done-q','✔ DONE — '+q.n));});}
 function qCard(q,cls,title){const d=document.createElement('div');d.className='q '+cls;const s=G.quests[q.id]; d.innerHTML='<h4>'+title+'</h4><p>'+q.desc+'</p><p><small>Reward: '+Object.entries(q.rw||{}).map(([k,v])=>k==='karma'?v+' karma':(ITEMS[k]?ITEMS[k].n+(v>1?' ×'+v:''):v+' '+k)).join(', ')+'</small></p>';return d;}
-function npcName(id){const n=NPC_DEFS.find(n=>n.id===id);return n?n.n:id;}
+function npcName(id){const n=NPC_DEFS.find(n=>n.id===id)||npcs.find(n=>n.id===id);return n?n.n:id;}
 function renderChar(){$('char-body').innerHTML=
  '<div class="char-row"><span>⚖ Karma</span><b>'+G.karma+' — '+karmaTitle(G.karma)+'</b></div>'+
  '<div class="char-row"><span>🪙 Haggling</span><b>'+HAGGLE_NAMES[(G.haggle&&G.haggle.tier)||0]+' ('+((G.haggle&&G.haggle.xp)||0)+' deals)</b></div>'+
@@ -1354,6 +1366,7 @@ function boot(){initThree();buildWorld();buildPlayer();spawnNPCs();bindInput();w
  spawnCritter('raccoon',24,32);spawnCritter('opossum',-20,20);spawnCritter('frog',4,72);spawnCritter('frog',-44,60);
  spawnCritter('heron',-40,56);spawnCritter('otter',14,80);
  spawnCritter('eagle',10,70);spawnCritter('eagle',-60,0);
+ spawnSkelFarmers();spawnFoe('skeleton',-64,16);
  initWork();
  unlockQuests();refreshHUD();refreshHotbar();
  $('loading').style.display='none';
