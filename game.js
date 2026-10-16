@@ -93,11 +93,22 @@ tick(){if(!this.ctx||this.muted||!this.modes||(typeof G!=='undefined'&&G.musicHo
 drum(){const c=this.ctx,t=c.currentTime,o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.setValueAtTime(120,t);o.frequency.exponentialRampToValueAtTime(38,t+.25);g.gain.setValueAtTime(.22,t);g.gain.exponentialRampToValueAtTime(.001,t+.3);o.connect(g);g.connect(this.master);o.start(t);o.stop(t+.35);},
 howl(){const c=this.ctx,t=c.currentTime,o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.setValueAtTime(600,t);o.frequency.linearRampToValueAtTime(880,t+.5);o.frequency.linearRampToValueAtTime(520,t+1.4);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.05,t+.3);g.gain.linearRampToValueAtTime(0,t+1.6);o.connect(g);g.connect(this.musicGain);o.start(t);o.stop(t+1.7);},
 bell(){if(!this.ctx||this.muted)return;const c=this.ctx,t=c.currentTime;[523,392,659].forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(.12,t+i*.5);g.gain.exponentialRampToValueAtTime(.0001,t+i*.5+2);o.connect(g);g.connect(this.master);o.start(t+i*.5);o.stop(t+i*.5+2.1);});},
-sfx(n){if(!this.ctx||this.muted)return;const c=this.ctx,t=c.currentTime;
+sfx(n){if(!this.ctx||this.muted)return;if(playSample(n))return;const c=this.ctx,t=c.currentTime;
  const mk=(type,f0,f1,dur,vol)=>{const o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(20,f1),t+dur);g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);o.connect(g);g.connect(this.master);o.start(t);o.stop(t+dur+.02);};
  const nz=(dur,vol,ff)=>{const b=c.createBuffer(1,c.sampleRate*dur,c.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*(1-i/d.length);const s=c.createBufferSource();s.buffer=b;const f=c.createBiquadFilter();f.type='lowpass';f.frequency.value=ff||1200;const g=c.createGain();g.gain.value=vol;s.connect(f);f.connect(g);g.connect(this.master);s.start(t);};
- if(n==='swing')nz(.15,.25,2500);else if(n==='hit'){mk('square',180,60,.18,.2);nz(.12,.2,900);}else if(n==='shot'){nz(.5,.5,4000);mk('sine',150,30,.4,.4);}else if(n==='hurt')mk('sawtooth',300,90,.3,.25);else if(n==='pickup')mk('sine',500,900,.12,.15);else if(n==='eat'){nz(.2,.2,800);mk('sine',200,350,.15,.12);}else if(n==='quest'){mk('sine',523,523,.15,.15);setTimeout(()=>mk('sine',659,659,.2,.15),140);}else if(n==='gold')mk('sine',880,1320,.15,.14);else if(n==='craft'){nz(.2,.2,1500);mk('sine',300,500,.2,.15);}else if(n==='pray')mk('sine',261,523,.8,.12);else if(n==='wolf')this.howl();else nz(.1,.15,2000);}
+ if(n==='swing')nz(.15,.25,2500);else if(n==='hit'){mk('square',180,60,.18,.2);nz(.12,.2,900);}else if(n==='shot'){nz(.5,.5,4000);mk('sine',150,30,.4,.4);}else if(n==='hurt')mk('sawtooth',300,90,.3,.25);else if(n==='pickup')mk('sine',500,900,.12,.15);else if(n==='eat'){nz(.2,.2,800);mk('sine',200,350,.15,.12);}else if(n==='quest'){mk('sine',523,523,.15,.15);setTimeout(()=>mk('sine',659,659,.2,.15),140);}else if(n==='gold')mk('sine',880,1320,.15,.14);else if(n==='craft'){nz(.2,.2,1500);mk('sine',300,500,.2,.15);} else if(n==='pray')mk('sine',261,523,.8,.12);else if(n==='wolf')this.howl();else nz(.1,.15,2000);}
 };
+/* ---- CC0 sample SFX (Kenney RPG/UI Audio, CC0-1.0) with synth fallback ---- */
+const SFX_FILES={swing:'sfx_drawKnife1.ogg',hit:'sfx_chop.ogg',hurt:'sfx_dropLeather.ogg',pickup:'sfx_handleCoins.ogg',gold:'sfx_handleCoins.ogg',quest:'sfx_bookOpen.ogg',craft:'sfx_metalClick.ogg',pray:'sfx_creak1.ogg',eat:'sfx_knifeSlice.ogg',cloth:'sfx_cloth1.ogg',latch:'sfx_metalLatch.ogg',pot:'sfx_metalPot1.ogg',door:'sfx_doorOpen_1.ogg',click:'sfx_click1.ogg',over:'sfx_rollover1.ogg',switch:'sfx_switch1.ogg',knife:'sfx_knifeSlice.ogg',step1:'sfx_footstep00.ogg',step2:'sfx_footstep01.ogg'};
+const SFX_POOL={};
+function sfxEl(n){const f=SFX_FILES[n];if(!f)return null;SFX_POOL[n]=SFX_POOL[n]||[];
+ let a=SFX_POOL[n].find(a=>a.paused||a.ended);
+ if(!a){if(SFX_POOL[n].length>=3)return null;a=new Audio('lib/sfx/'+f);a.preload='auto';
+  a.onerror=()=>{const i=(SFX_POOL[n]||[]).indexOf(a);if(i>=0)SFX_POOL[n].splice(i,1);SFX_FILES[n]=null;};
+  SFX_POOL[n].push(a);}
+ return a;}
+function playSample(n){const a=sfxEl(n);if(!a)return false;
+ try{a.volume=(AudioSys.muted||(typeof G!=='undefined'&&G.deafT>0))?0:Math.min(1,(AudioSys.vol||0.6)+0.15);a.currentTime=0;const p=a.play();if(p&&p.catch)p.catch(()=>{});return true;}catch(e){return false;}}
 
 /* ============ DATA ============ */
 const ITEMS={
@@ -360,6 +371,7 @@ const CODEX={
  FloraFauna:{t:'Forage & game of the parish',b:`<h3>What the unenclosed woods give (October)</h3><p>Fall is the honest season. <b>🌰 Pecans & hickory</b> drop ripe in October; <b>🍇 muscadines</b> hang September–October; <b>🍑 persimmons</b> sweeten after frost; <b>🥭 pawpaws</b> and <b>🍈 maypops</b> finish; <b>🌰 acorns</b> mast (leach the bitterness, as the Houma do); <b>🥔 groundnuts</b> — Apios tubers the Choctaw dig in fall. Year-round: <b>🫚 sassafras</b> root-tea, <b>🍃 yaupon</b> cassina (the woods’ only caffeine — steadying to the nerves), <b>🧅 wild onion</b>, <b>🌾 cattail</b> root-flour, <b>🦞 crawfish</b> in the shallows.</p><p><b>Game:</b> cottontail 🐇, gray squirrel 🐿, fall-fat deer 🦌, turkey 🦃 in autumn flocks, mallards 🦆 on the water — and 🐊 the alligator, which hunts back. Feral hogs (Spanish stock) root the cane. Note the <i>absent</i>: no armadillos yet — they will not waddle in for another century.</p><p><b>Teeth:</b> 🐊 alligator (rolls), 🐍 cottonmouth (venom = bite-fever; suck the wound, chew herb), 🐢 snapping turtle (slow, shears), 🐗 feral hogs — Spanish stock gone wild by 1666 — charge, 🐱 bobcats hunt at a run, 🐻 the black bear, old man of the canebrake, is a siege engine. <b>Small neighbours:</b> 🦝 raccoon (steals shine), 🐀 opossum (plays dead — convincingly), 🐸 bullfrog (gig for legs), 🐦 great heron, 🐢 box turtle, 🦦 otter, and 🦅 the bald eagle circling over it all, untouchable as a tax farmer.</p><p>Take only hunger’s share. The commune remembers greed the way the Seigneur remembers debts.</p>`},
  Voodoo:{t:'Voodoo, hoodoo & rootwork',b:`<h3>The old ways</h3><p>Louisiana Voodoo braids West African religion with Catholic saints; hoodoo and rootwork are the practical magic of herbs, candles, dusts and deals. Here it runs on <b>🌀 spirit</b>: cast from the conjure-book (<b>R</b>, or keys 7–0,–), and restore it at four altars — ✝ crossroads, cemetery, bayou, chapel — with offerings of coin, candle, bread, tafia and herb. Carry a gris-gris for +20 max. Manon teaches; the mud provides.</p>`},
  Seasons:{t:'The wheel of the year',b:`<h3>Five days a season, twenty a year</h3><p>Autumn 🍂 (mast season, fast regrowth), Winter ❄ (cold nights bite — fire is life, orchards picked over), Spring 🌸 (storms with lightning, mosquitoes), Summer ☀ (white heat drains runners at noon). The canopy turns with the wheel. Years tick over past 1666; the Seigneur charges rent on all of them.</p>`},
+ Credits:{t:'Debts & sources',b:`<h3>What the parish is built on</h3><p><b>ambientCG</b> — wood, plaster, roof, dirt and brick photo-textures (CC0-1.0). <b>Kenney (kenney.nl)</b> — RPG/UI Audio samples and Tiny Dungeon pixel portraits (CC0-1.0, credit appreciated, given gladly). Manuscripts and weaves via the Cleveland Museum of Art on archive.org (public domain). Music by A. Ricki and the Gonzo cassette. Freesound.org hosts thousands more CC0 sounds — download with a free account, drop the .ogg files into <i>lib/sfx/</i>, and add a line to SFX_FILES. Nothing here belongs to Project Zomboid or The Indie Stone; the resemblance is admiration, not appropriation.</p>`},
  Music:{t:'A gothic-Americana score',b:`<h3>Five songs for the parish (16-Horsepower weather)</h3><p>Menu brush-drums, day train-beat with banjo rolls, night dirge with reeds, combat war-drums at 132, chapel hymn at 60 — all in brooding minor keys. The strings are Karplus-Strong physical models through a tube-amp waveshaper into a dark analog echo; the accordion is detuned reeds with bellows swell; the drums are synthesized kick, snare, toms and steel ticks. No recordings — only mathematics, which in the bayou amounts to the same haunting.</p>`},
 };
 /* ============ WILD PARISH: forage, game, horses, carts ============ */
@@ -655,7 +667,10 @@ let camYaw=0,camDist=26,camH=20; // fixed isometric, Zomboid-style: W walks scre
 const colliders=[],interactables=[],foes=[],npcs=[],fires=[],labels=[],torches=[],critters=[],horses=[],carts=[],barricades=[],boats=[],kegs=[],traps=[],barrels=[],WATER=[],FOLIAGE=[];
 function regLeaf(m){FOLIAGE.push({m,base:m.material.color.clone()});}
 const CUTAWAYS=[];
+const INTERIORS=[];
 function regCut(m,r){CUTAWAYS.push({m,r,faded:false});}
+function updateInteriors(){for(const h of INTERIORS){const inside=G.pos.x>h.x0&&G.pos.x<h.x1&&G.pos.z>h.z0&&G.pos.z<h.z1;
+ for(const r of h.roofs){if(r.visible===!inside)continue;r.visible=!inside;}}}
 function updateCutaway(){for(const c of CUTAWAYS){const near=dist2(G.pos.x,G.pos.z,c.m.position.x,c.m.position.z)<c.r;
  if(near===c.faded)continue;c.faded=near;const mt=c.m.material;
  if(near){mt.transparent=true;mt.opacity=0.14;}else{mt.opacity=1;if(mt.map)mt.transparent=false;else mt.transparent=false;}}}
@@ -679,6 +694,8 @@ const TEX={
 };
 function texed(c,t){return new THREE.MeshLambertMaterial({color:c,map:t});}
 let waterTex=TEX.water;
+/* ---- CC0 photo textures (ambientCG, CC0-1.0) swapped over procedural grain ---- */
+for(const [key,file] of [['wood','textures/cc/wood.jpg'],['daub','textures/cc/plaster.jpg'],['shingle','textures/cc/roof.jpg'],['stone','textures/cc/brick.jpg'],['mud','textures/cc/dirt.jpg']]){new THREE.TextureLoader().load(file,t=>{t.wrapS=t.wrapT=THREE.RepeatWrapping;const o=TEX[key];if(!o)return;t.repeat.copy(o.repeat);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=4;o.image=t.image;o.needsUpdate=true;},undefined,()=>{});}
 function glowAt(x,y,z,s,op){const m=new THREE.SpriteMaterial({map:TEX.glow,transparent:true,opacity:op||0.7,depthWrite:false,blending:THREE.AdditiveBlending});const sp=new THREE.Sprite(m);sp.position.set(x,y,z);sp.scale.set(s,s,1);scene.add(sp);return sp;}
 /* ---- particles: embers, rain, blood ---- */
 const PMAX=360;let pGeo=null,pPts=null;const pData=[];
@@ -791,7 +808,7 @@ function buildWorld(){
   ['Maroon Cabin',-72,62,6,5,0x5a4a38,0x3a4a2a,'Free-built, debt-free. Drums after dark, work before dawn.'],
  ];
  B.forEach(([nm,x,z,w,d,wall,roof])=>{
-  addBox(x,1.7,z,w,3.4,d,wall,0,texed(wall,TEX.daub));addRoof(x,5.1,z,w+1.4,d+1.4,roof,texed(roof,((roof&0x303030)<0x202020)?TEX.shingle:TEX.thatch));
+  addBox(x,1.7,z,w,3.4,d,wall,0,texed(wall,TEX.daub));const brf=addRoof(x,5.1,z,w+1.4,d+1.4,roof,texed(roof,((roof&0x303030)<0x202020)?TEX.shingle:TEX.thatch));INTERIORS.push({x0:x-w/2-0.7,x1:x+w/2+0.7,z0:z-d/2-0.7,z1:z+d/2+0.7,roofs:[brf]});
   // timber frame stripes
   addBox(x,1.7,z+d/2+0.06,w,3.2,0.12,0x2a2018);addBox(x-w/2-0.06,1.7,z,0.12,3.2,d,0x2a2018);
   // door glow
@@ -918,16 +935,17 @@ function buildGraveyard(){
  addBox(-70,1.3,-8,32,0.12,0.12,0x2a2a2e);addBox(-70,1.3,24,32,0.12,0.12,0x2a2a2e);addBox(-86,1.3,8,0.12,0.12,32,0x2a2a2e);
  [[-80,-2],[-80,16],[-60,-4]].forEach(([x,z],i)=>{addBox(x,1.2,z,4,2.4,3,0x8a8072);addBox(x,2.7,z,4.6,0.5,3.6,0x6a6a6a);solid(x,z,4.4,3.4);
   if(i===0)interactables.push({kind:'loot',name:'Vault cache',x:x,z:z+2.6,r:2.6,txt:'Search Vault cache'});});
- addBox(-66,1.7,20,6,3.4,5,0x7a7a72);addRoof(-66,5.1,20,7.4,6.4,0x2a2a2a);solid(-66,20,6.6,5.6);
+ addBox(-66,1.7,20,6,3.4,5,0x7a7a72);const vrf=addRoof(-66,5.1,20,7.4,6.4,0x2a2a2a);solid(-66,20,6.6,5.6);INTERIORS.push({x0:-69.5,x1:-62.5,z0:16.5,z1:23.5,roofs:[vrf]});
  const lb=makeLabel('Vault of the Unpaid',0.8);lb.position.set(-66,8,20);scene.add(lb);
  for(let i=0;i<14;i++){const x=rand(-84,-56),z=rand(-6,22);addBox(x,0.7,z,0.18,1.4,0.18,0x8a8072);addBox(x,1,z,0.8,0.18,0.18,0x8a8072);}
  const gl=makeLabel('☠ Graveyard of the Unpaid',1.1);gl.position.set(-70,9.5,8);scene.add(gl);}
 function buildMansion(){
  const X=88,Z=-38;
  addBox(X,2.5,Z,20,5,12,0x9a8a6a);addBox(X,6.2,Z,18,2.4,10,0x8a7a5a);
- addRoof(X,9.0,Z,21.4,13.4,0x3a2018);
- addBox(X-14,1.7,Z,8,3.4,9,0x8a7a5a);addRoof(X-14,4.8,Z,9.4,10.4,0x3a2018);
- addBox(X+14,1.7,Z,8,3.4,9,0x8a7a5a);addRoof(X+14,4.8,Z,9.4,10.4,0x3a2018);
+ const mrf1=addRoof(X,9.0,Z,21.4,13.4,0x3a2018);
+ addBox(X-14,1.7,Z,8,3.4,9,0x8a7a5a);const mrf2=addRoof(X-14,4.8,Z,9.4,10.4,0x3a2018);
+ addBox(X+14,1.7,Z,8,3.4,9,0x8a7a5a);const mrf3=addRoof(X+14,4.8,Z,9.4,10.4,0x3a2018);
+ INTERIORS.push({x0:X-18.7,x1:X+18.7,z0:Z-7.2,z1:Z+7.2,roofs:[mrf1,mrf2,mrf3]});
  for(let i=-3;i<=3;i++)addBox(X+i*2.4,1.5,Z+7,0.5,3,0.5,0xd8d0b8);
  addBox(X,3.4,Z+7,18,0.5,2,0x8a7a5a);
  solid(X,Z,20.6,12.6);solid(X-14,Z,8.6,9.6);solid(X+14,Z,8.6,9.6);
@@ -995,7 +1013,7 @@ function recoverGrave(it){const gr=it.grave||G.grave;if(!gr){toast('Only mud.','
 /* ============ LIVEABLE HOUSES ============ */
 function claimHouse(it){const h=it.home;
  if(G.homeId!==h.id){G.homeId=h.id;G.home={x:h.x,z:h.z};
-  notify('⌂','Safehouse claimed: '+h.nm,'You will wake here. Store goods inside. Bar the doorway with bundles.',{major:true});AudioSys.sfx('quest');}
+  notify('⌂','Safehouse claimed: '+h.nm,'You will wake here. Store goods inside. Bar the doorway with bundles.',{major:true});AudioSys.sfx('quest');try{playSample('door');}catch(e){}}
  else{G.sanity=clamp(G.sanity+3,0,100);subtitle('Home. The walls know your name. (+3 🕯)');}refreshHUD();}
 function buildCottage(x,z,nm,id){
  const W=0x9a8a68,WM=texed(W,TEX.daub);
@@ -1008,7 +1026,8 @@ function buildCottage(x,z,nm,id){
  solid(x-2.5,z-1.1,0.3,1.8);solid(x-2.5,z+1.1,0.3,1.8);
  addBox(x+2.5,1.3,z-1.1,0.3,2.6,1.8,W,0,WM);addBox(x+2.5,1.3,z+1.1,0.3,2.6,1.8,W,0,WM);
  solid(x+2.5,z-1.1,0.3,1.8);solid(x+2.5,z+1.1,0.3,1.8);
- addRoof(x,4.3,z,6.4,5.4,0x5a4a2a,texed(0x5a4a2a,TEX.thatch));
+ const crf=addRoof(x,4.3,z,6.4,5.4,0x5a4a2a,texed(0x5a4a2a,TEX.thatch));
+ INTERIORS.push({x0:x-3.2,x1:x+3.2,z0:z-2.7,z1:z+2.7,roofs:[crf]});
  glowAt(x,3.0,z+2.4,3,0.4);
  const lb=makeLabel('⌂ '+nm,0.6);lb.position.set(x,6.4,z);scene.add(lb);
  interactables.push({kind:'hdoor',name:nm+' door',home:{id,x,z,nm},x:x,z:z+2.6,r:2.8,txt:'Claim cottage / rest (E)'});
@@ -1055,7 +1074,8 @@ function buildTavern(){
  solid(X-6,Z-1.1,0.35,3.8);solid(X-6,Z+2.6,0.35,1.0);
  addBox(X+6,1.5,Z-1.1,0.35,3,3.8,W,0,WM);addBox(X+6,1.5,Z+2.6,0.35,3,1.0,W,0,WM);
  solid(X+6,Z-1.1,0.35,3.8);solid(X+6,Z+2.6,0.35,1.0);
- addRoof(X,6.2,Z,13.4,9.4,0x4a2e18,texed(0x4a2e18,TEX.thatch));
+ const trf=addRoof(X,6.2,Z,13.4,9.4,0x4a2e18,texed(0x4a2e18,TEX.thatch));
+ INTERIORS.push({x0:X-6.7,x1:X+6.7,z0:Z-4.7,z1:Z+4.7,roofs:[trf]});
  const lb=makeLabel('⚓ L’Ancre Noyée — tavern',1.0);lb.position.set(X,9.5,Z);scene.add(lb);
  interactables.push({kind:'door',name:'L’Ancre Noyée',x:X,z:Z+4.6,r:3,txt:'Enter the tavern'});
  addBox(X,0.55,Z-2.5,6,0.9,0.7,0x4a3018);solid(X,Z-2.5,6,0.7);
@@ -1443,7 +1463,7 @@ function lightKeg(k){if(k.fuse>=0){toast('Already hissing! RUN!','bad');return;}
 function openLock(it){const L=it.lock;if(!L||L.opened)return;
  if(!hasItem('lockpick',1)){toast('🗝 Locked tight. A lockpick would sing here (craft: nail).','bad');return;}
  const ch=0.4+0.08*skillLvl('pick')+(T('dextrous')?0.05:0);
- if(Math.random()<ch){L.opened=true;it.gone=true;gainXp('pick',5);
+ if(Math.random()<ch){L.opened=true;it.gone=true;gainXp('pick',5);try{playSample('latch');}catch(e){}
   for(const [id,n] of L.loot)addItem(id,n);if(L.coins)G.coins+=L.coins;
   if(L.karma)addKarma(L.karma,L.karma>0?'liberated':'desecrated');
   AudioSys.sfx('gold');toast('🗝 Click! The '+it.name+' gives up its ghosts.','good');}
@@ -1892,20 +1912,20 @@ function updateSky(){const t=G.time;let dayAmt=clamp(1-Math.abs(t-13)/8,0,1);
  const night=isNight();
  const dawnAmt=clamp(1-Math.abs(t-6.5)/1.8,0,1),duskAmt=clamp(1-Math.abs(t-18.8)/1.8,0,1);
  const lowSun=Math.max(dawnAmt,duskAmt);
- const sky=new THREE.Color().setHSL(0.58,0.32,night?0.035:0.24+dayAmt*0.32);
+ const sky=new THREE.Color().setHSL(0.58,0.32,night?0.035:0.3+dayAmt*0.34);
  if(!night&&lowSun>0)sky.lerp(new THREE.Color(0xd86a2a),lowSun*0.55);
  if(G.weather==='rain')sky.multiplyScalar(0.7);
  scene.background=sky;scene.fog.color.copy(sky).multiplyScalar(0.95);
  // Project-Zomboid-style light: pitch nights with warm pools, flat desaturated days
  if(night){scene.background.setHex(0x070a12);scene.fog.color.setHex(0x070a12);scene.fog.density=0.0095+Math.min(0.002,(G.erosion||0)*0.0001);
-  sun.intensity=0;moon.intensity=G.weather==='rain'?0.12:0.3;moon.color.setHex(0x8a9aff);
-  hemi.intensity=0.16;if(scene.userData.amb)scene.userData.amb.intensity=0.12;
-  renderer.toneMappingExposure=0.95;}
+  sun.intensity=0;moon.intensity=G.weather==='rain'?0.12:0.4;moon.color.setHex(0x8a9aff);
+  hemi.intensity=0.22;if(scene.userData.amb)scene.userData.amb.intensity=0.18;
+  renderer.toneMappingExposure=1.0;}
  else{scene.fog.density=0.0035+Math.min(0.002,(G.erosion||0)*0.0001);
-  sun.intensity=(0.9+dayAmt*1.3)*(G.weather==='rain'?0.6:1);
-  moon.intensity=0;hemi.intensity=1.0;
-  if(scene.userData.amb)scene.userData.amb.intensity=0.42;
-  renderer.toneMappingExposure=1.15;}
+  sun.intensity=(1.1+dayAmt*1.4)*(G.weather==='rain'?0.65:1);
+  moon.intensity=0;hemi.intensity=1.15;
+  if(scene.userData.amb)scene.userData.amb.intensity=0.55;
+  renderer.toneMappingExposure=1.3;}
  sun.color.setHex(lowSun>0.25?0xff9a5a:(dayAmt>0.5?0xfff4e0:0xffd9a0));
  // sun rides highest near 13:00, in step with the daylight curve
  const dang=(t-6)/12*Math.PI;
@@ -1916,7 +1936,7 @@ function updateSky(){const t=G.time;let dayAmt=clamp(1-Math.abs(t-13)/8,0,1);
  lanternLight.intensity=night?0.9:0;lanternLight.position.set(G.pos.x,6,G.pos.z);
  fires.forEach(f=>{f.light.intensity=((night?2.2:0.9)*(1+Math.sin(performance.now()/110+(f.x+f.z))*0.15));f.flame.scale.setScalar(night?1.2:0.8);});
  for(const L of torches)L.intensity=night?1.1:0.5;
- const vg=$('vignette');if(vg)vg.style.opacity=night?0.85:0.45;
+ const vg=$('vignette');if(vg)vg.style.opacity=night?0.85:0.35;
  if(G.flash>0){scene.background.setHex(0x8a90b0);hemi.intensity+=2.5;}
  // rain visual: simple particles skip; tint
 }
@@ -2012,7 +2032,7 @@ function useItem(id){const it=ITEMS[id];if(!it)return;if(!hasItem(id,1)){toast('
  else if(it.use==='wear'){const slot=it.slot;G.worn=G.worn||{};G.worn[slot]=G.worn[slot]||[];
   if(!hasItem(id,1)){toast('Not carrying it.','bad');return;}
   takeItem(id,1);const old=G.worn[slot][0];if(old)addItem(old,1);G.worn[slot]=[id];
-  AudioSys.sfx('pickup');toast('Wearing: '+it.e+' '+it.n+' ('+slot+(it.def?', '+it.def+' ward':'')+').','good');refreshHotbar();}
+  AudioSys.sfx('pickup');try{playSample('cloth');}catch(e){}toast('Wearing: '+it.e+' '+it.n+' ('+slot+(it.def?', '+it.def+' ward':'')+').','good');refreshHotbar();}
  else if(it.use==='bomb'){let tgt=null,bd=22;for(const f of foes){const d=dist2(G.pos.x,G.pos.z,f.mesh.position.x,f.mesh.position.z);if(d<bd){bd=d;tgt=f;}}
   if(!tgt){toast('💣 No horror in throw — hold it.','bad');return;}
   if(!takeItem(id,1))return;AudioSys.sfx('swing');
@@ -2154,9 +2174,14 @@ function drawBig(){const c=$('bigmap'),x=c.getContext('2d');x.fillStyle='#0d0b08
  x.fillStyle='#7dff7d';x.font='bold 16px Georgia';x.fillText('❖ YOU',px(G.pos.x)-22,px(G.pos.z)-10);}
 /* ============ DIALOGUE + TRADE ============ */
 let dlgOpen=null;
+/* Kenney Tiny Dungeon (CC0-1.0) dialogue portraits: [col,row] on the 12x11 packed sheet */
+const PORTRAITS={anselme:[4,7],manon:[3,7],baptiste:[2,6],odette:[0,6],jean:[4,6],seamus:[1,6],taxman:[0,7],doctor:[1,7],lucile:[2,7],seraphine:[3,6],pelle:[1,9],jeanluc:[1,8],mama:[2,8],nine:[4,8],celestin:[0,8],eustache:[0,9],brigitte:[3,8],gedeon:[2,9]};
 function openDialogue(n){dlgOpen=n;$('dialogue').classList.remove('hidden');
  if(G.sanity<60){G.sanity=Math.min(100,G.sanity+2);refreshHUD();} // a human voice steadies
- $('dlg-portrait').textContent=n.e;$('dlg-name').textContent=n.n;$('dlg-role').textContent=n.role;
+ const pp=$('dlg-portrait'),pc=PORTRAITS[n.id];
+ if(pc){pp.textContent='';pp.innerHTML='<div class="pixel-portrait" style="background-position:-'+(pc[0]*48)+'px -'+(pc[1]*48)+'px"></div>';}
+ else pp.textContent=n.e;
+ $('dlg-name').textContent=n.n;$('dlg-role').textContent=n.role;
  $('dlg-karma').textContent='⚖ '+G.karma+' · '+(G.dispo[n.id]||0)+' ♥';const [pg,ch]=mainPage(n);showDlgPage(pg,ch);}
 function showDlgPage(text,choices){$('dlg-text').innerHTML=text;const c=$('dlg-choices');c.innerHTML='';
  choices.forEach(ch=>{const b=document.createElement('button');b.className='choice '+(ch.cls||'');b.innerHTML=ch.label;
@@ -2827,7 +2852,8 @@ function animate(t){requestAnimationFrame(animate);const dt=Math.min(0.05,(t-las
   else{playerMesh.position.set(G.pos.x,0,G.pos.z);playerMesh.rotation.y=Math.atan2(wx,wz);
    animHumanoid(playerMesh,t,sprint?11:7,true,sprint);}
   if(sprint){G.stam=Math.max(0,G.stam-dt*16*(T('packmule')?0.75:1)*(T('athletic')?0.8:1));runAcc+=dt;if(runAcc>4){runAcc=0;gainXp('run',1);gainXp('vigor',1);if(mount&&mount.kind==='boat')gainXp('sail',2);}}else G.stam=Math.min(100,G.stam+dt*10*(T('maroon')?1.3:1)*(1+0.1*skillLvl('vigor')));
-  G.hunger=Math.max(0,G.hunger-dt*(sprint?0.5:0.2));}
+  G.hunger=Math.max(0,G.hunger-dt*(sprint?0.5:0.2));
+  if(!mount){G.stepT=(G.stepT||0)-dt*(sprint?1.8:1.2);if(G.stepT<=0){G.stepT=0.42;try{playSample(G.stepN===1?'step2':'step1');G.stepN=G.stepN===1?2:1;}catch(e){}}}}
  else G.stam=Math.min(100,G.stam+dt*14*(T('maroon')?1.3:1)*(1+0.1*skillLvl('vigor')));
  if(!mount&&!mx&&!mz)animHumanoid(playerMesh,t,2,false,false);
  playerMesh.scale.y=G.sneaking?0.78:1;
@@ -2845,7 +2871,7 @@ function animate(t){requestAnimationFrame(animate);const dt=Math.min(0.05,(t-las
   const moving=Math.hypot(dx,dz)>0.0008;u.lx=o.position.x;u.lz=o.position.z;
   if(!G.paused)animHumanoid(o,t||performance.now(),6,moving,false);}
  critters.forEach(c=>critterUpdate(c,dt));critterSpawns(dt);horses.forEach(h=>horseUpdate(h,dt));
- fires.forEach(f=>{f.flame.rotation.y+=dt*3;});forageUpdate();updateParticles(dt);updateTargetRing();updateCutaway();updateCorpses(dt);updateBarrels(dt);
+ fires.forEach(f=>{f.flame.rotation.y+=dt*3;});forageUpdate();updateParticles(dt);updateTargetRing();updateCutaway();updateInteriors();updateCorpses(dt);updateBarrels(dt);
  if(buildSel&&ghostMesh){let gx=aimX,gz=aimZ;const dd=dist2(G.pos.x,G.pos.z,gx,gz);
   if(dd>7){const a=Math.atan2(gx-G.pos.x,gz-G.pos.z);gx=G.pos.x+Math.sin(a)*7;gz=G.pos.z+Math.cos(a)*7;}
   ghostMesh.position.set(gx,(buildSel.flat?0.2:buildSel.h/2),gz);
