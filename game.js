@@ -99,9 +99,9 @@ sfx(n){if(!this.ctx||this.muted)return;if(playSample(n))return;const c=this.ctx,
  if(n==='swing')nz(.15,.25,2500);else if(n==='hit'){mk('square',180,60,.18,.2);nz(.12,.2,900);}else if(n==='shot'){nz(.5,.5,4000);mk('sine',150,30,.4,.4);}else if(n==='hurt')mk('sawtooth',300,90,.3,.25);else if(n==='pickup')mk('sine',500,900,.12,.15);else if(n==='eat'){nz(.2,.2,800);mk('sine',200,350,.15,.12);}else if(n==='quest'){mk('sine',523,523,.15,.15);setTimeout(()=>mk('sine',659,659,.2,.15),140);}else if(n==='gold')mk('sine',880,1320,.15,.14);else if(n==='craft'){nz(.2,.2,1500);mk('sine',300,500,.2,.15);} else if(n==='pray')mk('sine',261,523,.8,.12);else if(n==='wolf')this.howl();else nz(.1,.15,2000);}
 };
 /* ---- CC0 sample SFX (Kenney RPG/UI Audio, CC0-1.0) with synth fallback ---- */
-const SFX_FILES={swing:'sfx_drawKnife1.ogg',hit:'sfx_chop.ogg',hurt:'sfx_dropLeather.ogg',pickup:'sfx_handleCoins.ogg',gold:'sfx_handleCoins.ogg',quest:'sfx_bookOpen.ogg',craft:'sfx_metalClick.ogg',pray:'sfx_creak1.ogg',eat:'sfx_knifeSlice.ogg',cloth:'sfx_cloth1.ogg',latch:'sfx_metalLatch.ogg',pot:'sfx_metalPot1.ogg',door:'sfx_doorOpen_1.ogg',click:'sfx_click1.ogg',over:'sfx_rollover1.ogg',switch:'sfx_switch1.ogg',knife:'sfx_knifeSlice.ogg',step1:'sfx_footstep00.ogg',step2:'sfx_footstep01.ogg'};
+const SFX_FILES={swing:['sfx_drawKnife1.ogg','sfx_drawKnife2.ogg'],hit:'sfx_chop.ogg',hurt:['sfx_dropLeather.ogg','sfx_cloth2.ogg'],pickup:'sfx_handleCoins.ogg',gold:'sfx_handleCoins.ogg',quest:'sfx_bookOpen.ogg',craft:'sfx_metalClick.ogg',pray:['sfx_creak1.ogg','sfx_creak2.ogg'],eat:'sfx_knifeSlice.ogg',cloth:'sfx_cloth1.ogg',latch:'sfx_metalLatch.ogg',pot:'sfx_metalPot1.ogg',door:'sfx_doorOpen_1.ogg',doorClose:'sfx_doorClose_1.ogg',click:'sfx_click1.ogg',over:'sfx_rollover1.ogg',switch:'sfx_switch1.ogg',knife:'sfx_knifeSlice.ogg',page:['sfx_bookFlip1.ogg','sfx_bookFlip2.ogg'],slap:'dc_punch.mp3',bonk:'dc_bonk.mp3',hithead:'dc_hithead.mp3',bellBig:'dc_bell.mp3',step1:'sfx_footstep00.ogg',step2:'sfx_footstep01.ogg'};
 const SFX_POOL={};
-function sfxEl(n){const f=SFX_FILES[n];if(!f)return null;SFX_POOL[n]=SFX_POOL[n]||[];
+function sfxEl(n){let f=SFX_FILES[n];if(!f)return null;if(Array.isArray(f))f=choice(f);SFX_POOL[n]=SFX_POOL[n]||[];
  let a=SFX_POOL[n].find(a=>a.paused||a.ended);
  if(!a){if(SFX_POOL[n].length>=3)return null;a=new Audio('lib/sfx/'+f);a.preload='auto';
   a.onerror=()=>{const i=(SFX_POOL[n]||[]).indexOf(a);if(i>=0)SFX_POOL[n].splice(i,1);SFX_FILES[n]=null;};
@@ -365,13 +365,13 @@ const QUESTS=[
  {id:'q_level',n:'THE LEVELING NIGHT',giver:'anselme',chain:'main',karma:25,desc:'The bell will toll thirteen on Night 3. The Bête de l’Abîme rises in the swamp with its court. Gather the commune (2 companions), face the Bête, and live to write the pamphlet. ⚜ ENDING QUEST.',obj:[{t:'kill',foe:'demon',n:1,label:'the Bête, leveled'}],rw:{karma:25}},
 ];
 const CODEX={
- History:{t:'New Orleans, 1666 — that never was',b:`<h3>A fort that history forgot</h3><p>Real Nouvelle-Orléans was staked in 1718 by Bienville. Our 1666 is the <i>shadow-founding</i>: a private seigneurie of the Compagnie des Marais, fifty years early, built of cypress and debt. French <i>colombage</i> (half-timber), steep thatch, palisades, a chapel without consecration — all true to the 1660s. Justaucorps coats, tricornes not yet born (we wear broad cavalier hats), linen coifs, wool petticoats, wooden sabots in mud.</p><p>The anachronism is the point: primitive accumulation needed a swamp to rehearse in.</p>`},
+ History:{t:'New Orleans, 1666 — that never was',b:`<h3>A fort that history forgot</h3><p><img src="textures/props/illinois1718.jpg" style="width:100%;border:1px solid #6b6a72"></p><p>Real Nouvelle-Orléans was staked in 1718 by Bienville. Our 1666 is the <i>shadow-founding</i>: a private seigneurie of the Compagnie des Marais, fifty years early, built of cypress and debt. French <i>colombage</i> (half-timber), steep thatch, palisades, a chapel without consecration — all true to the 1660s. Justaucorps coats, tricornes not yet born (we wear broad cavalier hats), linen coifs, wool petticoats, wooden sabots in mud.</p><p>The anachronism is the point: primitive accumulation needed a swamp to rehearse in.</p>`},
  Thesis:{t:'Gothic Marxism in five graves',b:`<h3>The commune of the dead and the living</h3><p><b>1.</b> The dead work the night shift — unburied labour, unpaid, unquiet.<b> 2.</b> The Seigneur encloses the swamp and charges rent on rain.<b> 3.</b> The Church counts souls as tithes.<b> 4.</b> The Loup-Garou is the peasant who learned to bite back.<b> 5.</b> The Leveling Night is the general strike of the graveyard.</p><p>Karma is not heaven’s ledger. It is the commune’s memory of you.</p>`},
- Bestiary:{t:'The Five Plagues',b:`<h3>Field notes, Chirurgien Fauche</h3><p><b>🧟 Risen</b> — the plague-dead. Slow. Bite breeds fever (eat tonic/herb).<br><b>🐺 Loup-Garou</b> — by day a neighbour; by moon a wolf. Silver ×3, fire fears it.<br><b>👻 Apparition</b> — grief with a face. Wounds reason (sanity). Lantern-light + blessed steel.<br><b>🧛 Sang-Mêlé</b> — vampire gentry. Vain, parleyable at dusk, deadly always. Fangs worth coin.<br><b>😈 Bête de l’Abîme</b> — the swamp’s compound interest. Appears Night 3+ in the swamp. Bring friends, silver, and spite.</p>`},
+ Bestiary:{t:'The Five Plagues',b:`<h3>Field notes, Chirurgien Fauche</h3><p><img src="textures/props/grave/character-zombie.png" style="height:64px;image-rendering:pixelated"> <img src="textures/props/grave/character-skeleton.png" style="height:64px;image-rendering:pixelated"> <img src="textures/props/grave/character-ghost.png" style="height:64px;image-rendering:pixelated"></p><p><b>🧟 Risen</b> — the plague-dead. Slow. Bite breeds fever (eat tonic/herb).<br><b>🐺 Loup-Garou</b> — by day a neighbour; by moon a wolf. Silver ×3, fire fears it.<br><b>👻 Apparition</b> — grief with a face. Wounds reason (sanity). Lantern-light + blessed steel.<br><b>🧛 Sang-Mêlé</b> — vampire gentry. Vain, parleyable at dusk, deadly always. Fangs worth coin.<br><b>😈 Bête de l’Abîme</b> — the swamp’s compound interest. Appears Night 3+ in the swamp. Bring friends, silver, and spite.</p>`},
  FloraFauna:{t:'Forage & game of the parish',b:`<h3>What the unenclosed woods give (October)</h3><p>Fall is the honest season. <b>🌰 Pecans & hickory</b> drop ripe in October; <b>🍇 muscadines</b> hang September–October; <b>🍑 persimmons</b> sweeten after frost; <b>🥭 pawpaws</b> and <b>🍈 maypops</b> finish; <b>🌰 acorns</b> mast (leach the bitterness, as the Houma do); <b>🥔 groundnuts</b> — Apios tubers the Choctaw dig in fall. Year-round: <b>🫚 sassafras</b> root-tea, <b>🍃 yaupon</b> cassina (the woods’ only caffeine — steadying to the nerves), <b>🧅 wild onion</b>, <b>🌾 cattail</b> root-flour, <b>🦞 crawfish</b> in the shallows.</p><p><b>Game:</b> cottontail 🐇, gray squirrel 🐿, fall-fat deer 🦌, turkey 🦃 in autumn flocks, mallards 🦆 on the water — and 🐊 the alligator, which hunts back. Feral hogs (Spanish stock) root the cane. Note the <i>absent</i>: no armadillos yet — they will not waddle in for another century.</p><p><b>Teeth:</b> 🐊 alligator (rolls), 🐍 cottonmouth (venom = bite-fever; suck the wound, chew herb), 🐢 snapping turtle (slow, shears), 🐗 feral hogs — Spanish stock gone wild by 1666 — charge, 🐱 bobcats hunt at a run, 🐻 the black bear, old man of the canebrake, is a siege engine. <b>Small neighbours:</b> 🦝 raccoon (steals shine), 🐀 opossum (plays dead — convincingly), 🐸 bullfrog (gig for legs), 🐦 great heron, 🐢 box turtle, 🦦 otter, and 🦅 the bald eagle circling over it all, untouchable as a tax farmer.</p><p>Take only hunger’s share. The commune remembers greed the way the Seigneur remembers debts.</p>`},
  Voodoo:{t:'Voodoo, hoodoo & rootwork',b:`<h3>The old ways</h3><p>Louisiana Voodoo braids West African religion with Catholic saints; hoodoo and rootwork are the practical magic of herbs, candles, dusts and deals. Here it runs on <b>🌀 spirit</b>: cast from the conjure-book (<b>R</b>, or keys 7–0,–), and restore it at four altars — ✝ crossroads, cemetery, bayou, chapel — with offerings of coin, candle, bread, tafia and herb. Carry a gris-gris for +20 max. Manon teaches; the mud provides.</p>`},
  Seasons:{t:'The wheel of the year',b:`<h3>Five days a season, twenty a year</h3><p>Autumn 🍂 (mast season, fast regrowth), Winter ❄ (cold nights bite — fire is life, orchards picked over), Spring 🌸 (storms with lightning, mosquitoes), Summer ☀ (white heat drains runners at noon). The canopy turns with the wheel. Years tick over past 1666; the Seigneur charges rent on all of them.</p>`},
- Credits:{t:'Debts & sources',b:`<h3>What the parish is built on</h3><p><b>ambientCG</b> — wood, plaster, roof, dirt and brick photo-textures (CC0-1.0). <b>Kenney (kenney.nl)</b> — RPG/UI Audio samples and Tiny Dungeon pixel portraits (CC0-1.0, credit appreciated, given gladly). Manuscripts and weaves via the Cleveland Museum of Art on archive.org (public domain). Music by A. Ricki and the Gonzo cassette. Freesound.org hosts thousands more CC0 sounds — download with a free account, drop the .ogg files into <i>lib/sfx/</i>, and add a line to SFX_FILES. Nothing here belongs to Project Zomboid or The Indie Stone; the resemblance is admiration, not appropriation.</p>`},
+ Credits:{t:'Debts & sources',b:`<h3>What the parish is built on</h3><p><b>ambientCG</b> — wood, plaster, roof, dirt, brick, thatch and bark photo-textures (CC0-1.0). <b>Kenney (kenney.nl)</b> — RPG/UI Audio samples, Tiny Dungeon pixel portraits and Graveyard Kit dressing (CC0-1.0, credit appreciated, given gladly). <b>archive.org</b> — Designer's Choice SFX collection (CC0-1.0). Manuscripts and weaves via the Cleveland Museum of Art on archive.org (public domain); maps and paintings via Wikimedia Commons (public domain: Illinois 1718, Teniers tavern). Music by A. Ricki and the Gonzo cassette. Freesound.org hosts thousands more CC0 sounds — download with a free account, drop the .ogg files into <i>lib/sfx/</i>, and add a line to SFX_FILES. Nothing here belongs to Project Zomboid or The Indie Stone; the resemblance is admiration, not appropriation.</p>`},
  Music:{t:'A gothic-Americana score',b:`<h3>Five songs for the parish (16-Horsepower weather)</h3><p>Menu brush-drums, day train-beat with banjo rolls, night dirge with reeds, combat war-drums at 132, chapel hymn at 60 — all in brooding minor keys. The strings are Karplus-Strong physical models through a tube-amp waveshaper into a dark analog echo; the accordion is detuned reeds with bellows swell; the drums are synthesized kick, snare, toms and steel ticks. No recordings — only mathematics, which in the bayou amounts to the same haunting.</p>`},
 };
 /* ============ WILD PARISH: forage, game, horses, carts ============ */
@@ -687,6 +687,7 @@ const TEX={
  thatch:canvasTex(512,(x,s)=>{x.fillStyle='#b09a68';x.fillRect(0,0,s,s);x.lineWidth=2;for(let r=0;r<16;r++){x.strokeStyle=r%2?'#a08a58':'#c0aa78';for(let i=0;i<80;i++){const y=r*32+rand(0,8);x.beginPath();x.moveTo(rand(-10,s),y);x.lineTo(rand(0,s+10),y+rand(-4,10));x.stroke();}}},2,2),
  shingle:canvasTex(512,(x,s)=>{x.fillStyle='#8a8078';x.fillRect(0,0,s,s);for(let r=0;r<16;r++)for(let cix=0;cix<16;cix++){x.fillStyle=(r+cix)%2?'#948a80':'#7a7068';x.fillRect(cix*32+(r%2?16:0)-16,r*32,30,30);}},2,2),
  wood:canvasTex(512,(x,s)=>{x.fillStyle='#a8845e';x.fillRect(0,0,s,s);for(let i=0;i<110;i++){x.strokeStyle='rgba(80,55,30,'+rand(0.3,0.7)+')';x.lineWidth=rand(1,3);const y=rand(0,s);x.beginPath();x.moveTo(0,y);x.bezierCurveTo(s*0.3,y+rand(-6,6),s*0.7,y+rand(-6,6),s,y);x.stroke();}},1,1),
+ bark:canvasTex(512,(x,s)=>{x.fillStyle='#4a3a28';x.fillRect(0,0,s,s);for(let i=0;i<130;i++){x.strokeStyle='rgba(20,12,6,'+rand(0.35,0.7)+')';x.lineWidth=rand(1,4);const px=rand(0,s);x.beginPath();x.moveTo(px,0);x.lineTo(px+rand(-14,14),s);x.stroke();}},1,2),
  stone:canvasTex(512,(x,s)=>{x.fillStyle='#c2c2b8';x.fillRect(0,0,s,s);grain(x,s,1200,['#b2b2a8','#d2d2c8','#a2a29a']);x.strokeStyle='rgba(90,90,86,0.6)';x.lineWidth=2;for(let i=0;i<=3;i++){x.beginPath();x.moveTo(0,i*85);x.lineTo(s,i*85);x.stroke();}},1,1),
  water:canvasTex(512,(x,s)=>{x.fillStyle='#b8d4de';x.fillRect(0,0,s,s);x.strokeStyle='rgba(70,110,120,0.4)';x.lineWidth=2;for(let i=0;i<60;i++){const y=rand(0,s);x.beginPath();x.moveTo(rand(0,s),y);x.lineTo(rand(0,s),y+rand(-3,3));x.stroke();}},3,3),
  glow:canvasTex(128,(x,s)=>{const g=x.createRadialGradient(64,64,4,64,64,62);g.addColorStop(0,'rgba(255,200,120,1)');g.addColorStop(0.4,'rgba(255,150,60,0.5)');g.addColorStop(1,'rgba(255,120,30,0)');x.fillStyle=g;x.fillRect(0,0,s,s);}),
@@ -695,7 +696,7 @@ const TEX={
 function texed(c,t){return new THREE.MeshLambertMaterial({color:c,map:t});}
 let waterTex=TEX.water;
 /* ---- CC0 photo textures (ambientCG, CC0-1.0) swapped over procedural grain ---- */
-for(const [key,file] of [['wood','textures/cc/wood.jpg'],['daub','textures/cc/plaster.jpg'],['shingle','textures/cc/roof.jpg'],['stone','textures/cc/brick.jpg'],['mud','textures/cc/dirt.jpg']]){new THREE.TextureLoader().load(file,t=>{t.wrapS=t.wrapT=THREE.RepeatWrapping;const o=TEX[key];if(!o)return;t.repeat.copy(o.repeat);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=4;o.image=t.image;o.needsUpdate=true;},undefined,()=>{});}
+for(const [key,file] of [['wood','textures/cc/wood.jpg'],['daub','textures/cc/plaster.jpg'],['shingle','textures/cc/roof.jpg'],['thatch','textures/cc/thatch.jpg'],['bark','textures/cc/bark.jpg'],['stone','textures/cc/brick.jpg'],['mud','textures/cc/dirt.jpg']]){new THREE.TextureLoader().load(file,t=>{t.wrapS=t.wrapT=THREE.RepeatWrapping;const o=TEX[key];if(!o)return;t.repeat.copy(o.repeat);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=4;o.image=t.image;o.needsUpdate=true;},undefined,()=>{});}
 function glowAt(x,y,z,s,op){const m=new THREE.SpriteMaterial({map:TEX.glow,transparent:true,opacity:op||0.7,depthWrite:false,blending:THREE.AdditiveBlending});const sp=new THREE.Sprite(m);sp.position.set(x,y,z);sp.scale.set(s,s,1);scene.add(sp);return sp;}
 /* ---- particles: embers, rain, blood ---- */
 const PMAX=360;let pGeo=null,pPts=null;const pData=[];
@@ -774,10 +775,10 @@ function buildWorld(){
  for(let i=0;i<130;i++){const x=rand(-115,115),z=rand(-115,115);if(Math.abs(x)<62&&Math.abs(z)<62&&Math.random()<0.7)continue;
   const swampy=dist2(x,z,10,80)<36;
   if(swampy&&Math.random()<0.5){ // cypress knee + trunk
-   const t=new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.9,rand(7,11),7),mat(0x4a3a28));t.position.set(x,3.5,z);t.castShadow=true;scene.add(t);
+   const t=new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.9,rand(7,11),7),texed(0x8a7458,TEX.bark));t.position.set(x,3.5,z);t.castShadow=true;scene.add(t);
    const c=new THREE.Mesh(new THREE.ConeGeometry(rand(2.5,4),rand(4,7),8),mat(0x2e4a2e));c.position.set(x,9,z);scene.add(c);regLeaf(c);regCut(c,5);
    const m=new THREE.Mesh(new THREE.PlaneGeometry(2.4,1.4),new THREE.MeshLambertMaterial({color:0x6a7a5a,transparent:true,opacity:0.7}));m.position.set(x+1,7,z);scene.add(m);
-  } else {const t=new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.6,rand(4,7),6),mat(0x4a3a28));t.position.set(x,2.5,z);t.castShadow=true;scene.add(t);
+  } else {const t=new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.6,rand(4,7),6),texed(0x8a7458,TEX.bark));t.position.set(x,2.5,z);t.castShadow=true;scene.add(t);
    const c=new THREE.Mesh(new THREE.SphereGeometry(rand(2,3.4),8,7),mat(Math.random()<0.5?0x2e4a26:0x3a5a2e));c.position.set(x,6,z);scene.add(c);regLeaf(c);regCut(c,4);}
  }
  // palisade walls (circle of stakes)
@@ -847,7 +848,7 @@ function buildWorld(){
  [[6,4],[-28,-4],[20,-12],[-12,20],[48,40]].forEach(([x,z])=>{addBox(x,1.5,z,0.25,3,0.25,0x3a2a1a);
   const l=new THREE.PointLight(0xffa04a,1.0,20);l.position.set(x,3.4,z);scene.add(l);torches.push(l);
   const f=new THREE.Mesh(new THREE.SphereGeometry(0.25,8,6),new THREE.MeshBasicMaterial({color:0xffc46a}));f.position.set(x,3.3,z);scene.add(f);glowAt(x,3.4,z,3.5,0.5);});
- plantForage();spawnHorses();placeCarts();placeBeds();placeWorks();buildGraveyard();buildMansion();buildCottages();placeAltars();buildPigstye();buildTavern();placeStrongboxes();placeBarrels();
+ plantForage();spawnHorses();placeCarts();placeBeds();placeWorks();buildGraveyard();placeGraveDressing();buildMansion();buildCottages();placeAltars();buildPigstye();buildTavern();placeStrongboxes();placeBarrels();
  // corral rails by the cabins
  [[26,34,8,0.3],[26,40,8,0.3]].forEach(([x,z,w,d])=>{addBox(x,0.6,z,w,1.0,d,0x5a4630);});
 }
@@ -990,7 +991,7 @@ function mendBarricade(b){if(b.shutter&&b.hp>=b.maxhp){toggleShutter(b);return;}
   scene.remove(b.mesh);if(b.coll)b.coll.dead=true;if(b.parts)for(const p of b.parts)p.dead=true;if(b.inter)b.inter.gone=true;barricades.splice(barricades.indexOf(b),1);
   addItem('plank',2);toast('🪵 Torn down. 2 planks reclaimed.','good');return;}
  if(!hasItem('plank',1)){toast('Need 1 plank to mend.','bad');return;}
- takeItem('plank',1);b.hp=Math.min(b.maxhp,b.hp+25+8*skillLvl('smith')+(T('handy')?15:0)+(hasItem('hammer',1)?10:0));AudioSys.sfx('craft');
+ takeItem('plank',1);b.hp=Math.min(b.maxhp,b.hp+25+8*skillLvl('smith')+(T('handy')?15:0)+(hasItem('hammer',1)?10:0));if(!playSample('bonk'))AudioSys.sfx('craft');
  toast('🔨 Mended ('+Math.round(b.hp)+'/'+b.maxhp+' HP).','good');refreshHotbar();}
 function graveMarker(g){const m=new THREE.Group();
  const mound=new THREE.Mesh(new THREE.SphereGeometry(0.9,8,5),mat(0x3a2c1c));mound.scale.y=0.4;mound.position.y=0.1;m.add(mound);
@@ -1076,6 +1077,9 @@ function buildTavern(){
  solid(X+6,Z-1.1,0.35,3.8);solid(X+6,Z+2.6,0.35,1.0);
  const trf=addRoof(X,6.2,Z,13.4,9.4,0x4a2e18,texed(0x4a2e18,TEX.thatch));
  INTERIORS.push({x0:X-6.7,x1:X+6.7,z0:Z-4.7,z1:Z+4.7,roofs:[trf]});
+ new THREE.TextureLoader().load('textures/props/teniers.jpg',t=>{t.colorSpace=THREE.SRGBColorSpace;
+  const fr=new THREE.Mesh(new THREE.BoxGeometry(3.4,2.6,0.15),mat(0x4a3018));fr.position.set(X+2,2.1,Z-3.8);scene.add(fr);
+  const art=new THREE.Mesh(new THREE.PlaneGeometry(3,2.2),new THREE.MeshLambertMaterial({map:t}));art.position.set(X+2,2.1,Z-3.7);scene.add(art);},undefined,()=>{});
  const lb=makeLabel('⚓ L’Ancre Noyée — tavern',1.0);lb.position.set(X,9.5,Z);scene.add(lb);
  interactables.push({kind:'door',name:'L’Ancre Noyée',x:X,z:Z+4.6,r:3,txt:'Enter the tavern'});
  addBox(X,0.55,Z-2.5,6,0.9,0.7,0x4a3018);solid(X,Z-2.5,6,0.7);
@@ -1578,7 +1582,7 @@ function nightSpawns(dt){spawnT-=dt;if(spawnT>0)return;const night=isNight();
  else if(roll<0.12)t='ghost';else if(roll<0.2)t='skeleton';
  if(t==='vamp'&&!isNight()&&Math.random()<0.7)t='risen';
  spawnFoe(t,x,z);}
-function bossSpawn(){const f=spawnFoe('demon',14,70);notify('😈','THE BÊTE DE L’ABÎME rises','The mud splits. The swamp’s interest, come to collect.',{tone:'war',major:true});AudioSys.sfx('wolf');AudioSys.setMode('combat');
+function bossSpawn(){const f=spawnFoe('demon',14,70);notify('😈','THE BÊTE DE L’ABÎME rises','The mud splits. The swamp’s interest, come to collect.',{tone:'war',major:true});AudioSys.sfx('wolf');try{playSample('bellBig');}catch(e){}AudioSys.setMode('combat');
  $('boss-bar').classList.remove('hidden');subtitle('The swamp’s compound interest, come to collect. Bring silver, fire, and friends.');}
 let spawnT=5;
 function isNight(){return G.time>=20||G.time<5;}
@@ -1607,7 +1611,7 @@ function shove(){if(shoveCd>0||G.dead||G.paused||!G.started||dlgOpen)return;shov
   c.mesh.position.x=clamp(c.mesh.position.x+dx/d*2.5,-112,112);c.mesh.position.z=clamp(c.mesh.position.z+dz/d*2.5,-112,112);
   hurtCritter(c,3+2*skillLvl('brawl'));hit=true;}}
   if(playerMesh.userData.arm){playerMesh.userData.atkT=0.2;}
- if(hit)gainXp('brawl',1);}
+  if(hit){try{playSample('slap');}catch(e){}gainXp('brawl',1);}}
 const WEAPON_STATS={fists:{range:1.8,arc:100,knock:1.0,crit:0.05},cudgel:{range:2.2,arc:110,knock:1.6,crit:0.08},rapier:{range:2.6,arc:70,knock:0.8,crit:0.15},axe:{range:2.5,arc:100,knock:2.0,crit:0.12},spear:{range:3.4,arc:55,knock:1.2,crit:0.12},silver:{range:2.4,arc:70,knock:0.8,crit:0.2},torch:{range:2.2,arc:100,knock:1.0,crit:0.05}};
 let targetRing=null;
 function facingAngle(){return (typeof aiming!=='undefined'&&aiming)?Math.atan2(aimX-G.pos.x,aimZ-G.pos.z):(playerMesh?playerMesh.rotation.y:0);}
@@ -2064,7 +2068,7 @@ function refreshTracker(){const t=$('quest-tracker');t.innerHTML='';
    return o.label;}).join(' · ');
   d.innerHTML='<b>'+q.n+'</b><div class="obj">'+objs+'</div>';t.appendChild(d);});}
 function closePanels(){['panel-inventory','panel-craft','panel-quests','panel-char','panel-map','panel-work','panel-spells','panel-skills','panel-songs','panel-health','panel-build'].forEach(p=>{const el=document.getElementById(p);if(el)el.classList.add('hidden');});}
-function togglePanel(id,render){const el=document.getElementById(id);if(!el)return;const was=el.classList.contains('hidden');closePanels();if(was){if(render)render();el.classList.remove('hidden');AudioSys.sfx('pickup');}}
+function togglePanel(id,render){const el=document.getElementById(id);if(!el)return;const was=el.classList.contains('hidden');closePanels();if(was){if(render)render();el.classList.remove('hidden');AudioSys.sfx('page');}}
 const SIZES={musket:[4,1],blunderbuss:[4,1],rapier:[3,1],axe:[3,1],spear:[3,1],silver:[2,1],cudgel:[2,1],torch:[2,1],plank:[2,1],barricade:[2,2],canoe:[2,2],keg:[2,2]};
 function itemSize(id){return SIZES[id]||[1,1];}
 function usedCells(){let u=0;for(const k in G.inv){const s=itemSize(k);u+=s[0]*s[1];}return u;}
@@ -2186,7 +2190,7 @@ function openDialogue(n){dlgOpen=n;$('dialogue').classList.remove('hidden');
 function showDlgPage(text,choices){$('dlg-text').innerHTML=text;const c=$('dlg-choices');c.innerHTML='';
  choices.forEach(ch=>{const b=document.createElement('button');b.className='choice '+(ch.cls||'');b.innerHTML=ch.label;
   b.onclick=()=>{AudioSys.sfx('pickup');ch.fn&&ch.fn();};c.appendChild(b);});}
-function closeDialogue(){dlgOpen=null;$('dialogue').classList.add('hidden');}
+function closeDialogue(){dlgOpen=null;$('dialogue').classList.add('hidden');try{playSample('doorClose');}catch(e){}}
 function mainPage(n){const disp=G.dispo[n.id]||0;
  const questsHere=QUESTS.filter(q=>q.giver===n.id&&['open','active'].includes(G.quests[q.id].st));
  let t='“'+n.d+'”';
@@ -2540,9 +2544,16 @@ function placeBuild(x,z){const b=buildSel;if(!b)return;
   const it={kind:'barr',name:b.n,x,z,r:2.6,txt:'Mend / tear down (E)'};
   const bb={x,z,hp:maxhp,maxhp,mesh:g,coll:(b.gap?null:coll),inter:it,parts:parts,shutter:!!b.low,open:false};
   it.ref=bb;interactables.push(it);barricades.push(bb);}
- gainXp('carp',4);AudioSys.sfx('craft');
+ gainXp('carp',4);if(!playSample('bonk'))AudioSys.sfx('craft');
  toast('🧱 Raised: '+b.n+'. The commune builds.','good');refreshHUD();refreshHotbar();cancelBuild();}
 /* PZ-style rain barrels: storms fill them, E drinks */
+/* Kenney Graveyard Kit v5 (CC0-1.0) billboard dressing + Teniers wall art */
+function billboard(file,x,y,z,w,h){new THREE.TextureLoader().load(file,t=>{t.colorSpace=THREE.SRGBColorSpace;const m=new THREE.SpriteMaterial({map:t,transparent:true,depthWrite:false});const s=new THREE.Sprite(m);s.position.set(x,y,z);s.scale.set(w,h,1);scene.add(s);},undefined,()=>{});}
+function placeGraveDressing(){const P='textures/props/grave/';
+ billboard(P+'coffin.png',-74,0.8,5,2.6,1.5);billboard(P+'coffin-old.png',-64,0.8,11,2.6,1.5);
+ billboard(P+'gravestone-cross.png',-72,1.0,12,1.3,1.9);billboard(P+'gravestone-broken.png',-68,0.8,4,1.3,1.4);
+ billboard(P+'fence.png',-62,0.9,16,4.2,1.7);billboard(P+'crypt-small.png',-60,1.4,2,3.2,2.8);
+ billboard(P+'lantern-candle.png',-66,1.0,17.2,0.9,1.4);billboard(P+'candle.png',-64,0.8,22.5,0.7,1.1);}
 function makeBarrel(x,z,water){const g=new THREE.Group();
  const body=new THREE.Mesh(new THREE.CylinderGeometry(0.6,0.55,1.3,12),texed(0x6a4a26,TEX.wood));
  body.position.y=0.65;body.castShadow=true;g.add(body);
@@ -2727,7 +2738,7 @@ function applyTextOverrides(){let all={};try{all=JSON.parse(localStorage.getItem
   if(typeof o.n==='string'&&o.n)ITEMS[id].n=o.n;if(typeof o.d==='string'&&o.d)ITEMS[id].d=o.d;}
  for(const id in (all.intro||{})){const o=all.intro[id];if(o&&typeof o.text==='string'&&o.text.trim())setIntroText(id,o.text);}}
 function renderCodex(key){const tabs=$('codex-tabs');tabs.innerHTML='';const body=$('codex-body');
- Object.keys(CODEX).forEach(k=>{const b=document.createElement('button');b.className='tab'+(k===key?' active':'');b.textContent=CODEX[k].t;b.onclick=()=>renderCodex(k);tabs.appendChild(b);});
+ Object.keys(CODEX).forEach(k=>{const b=document.createElement('button');b.className='tab'+(k===key?' active':'');b.textContent=CODEX[k].t;b.onclick=()=>{AudioSys.sfx('page');renderCodex(k);};tabs.appendChild(b);});
  body.innerHTML='<h3>'+CODEX[key].t+'</h3>'+CODEX[key].b;}
 /* ============ BOOT + LOOP ============ */
 function wireButtons(){
