@@ -47,7 +47,9 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 .qtask{background:rgba(10,8,6,.78);border-left:3px solid var(--gold);padding:6px 10px;margin:6px 0;border-radius:0 6px 6px 0}
 .qtask b{color:var(--gold)}.qtask .obj{color:var(--ink)}.qtask.done{border-color:#5fd06f;opacity:.75}
 #killfeed{position:absolute;right:14px;bottom:100px;width:280px;text-align:right;font-size:14px;font-style:italic;color:#d8c690}
-#interact-prompt{position:absolute;left:50%;bottom:110px;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--gold);padding:8px 18px;border-radius:20px;font-size:15px;pointer-events:none}
+ #interact-prompt{position:absolute;left:50%;bottom:110px;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--gold);padding:8px 18px;border-radius:20px;font-size:15px;pointer-events:none}
+ #foe-tip{position:absolute;left:50%;bottom:140px;transform:translateX(-50%);background:rgba(10,8,6,.85);border:1px solid #6b5626;padding:5px 14px;border-radius:14px;font-size:13px;pointer-events:none;white-space:nowrap}
+ #foe-tip b{color:var(--coral)}
 #controls-hint{position:absolute;left:50%;bottom:0;transform:translateX(-50%);font-size:12px;color:var(--dim);background:rgba(0,0,0,.65);padding:3px 14px;border-radius:8px 8px 0 0;white-space:nowrap}
 #boss-bar{position:absolute;left:50%;top:110px;transform:translateX(-50%);width:520px;text-align:center}
 #boss-name{letter-spacing:4px;color:var(--coral);text-shadow:0 0 12px #600;font-size:18px}
@@ -290,7 +292,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #traits .paper p{font-size:16px;color:#f0e2c0;background:rgba(10,8,6,.78);border-radius:6px;padding:8px 14px;text-shadow:0 1px 3px #000}
 #traits .paper h2{text-shadow:0 2px 6px rgba(0,0,0,.7)}
 /* music control window */
-#music-win{position:absolute;left:14px;bottom:52px;z-index:70;background:linear-gradient(rgba(26,21,30,.94),rgba(26,21,30,.96)),url('textures/props/tapestry.jpg') center/cover no-repeat;border:2px solid #6b5626;border-radius:50%;padding:8px 10px;width:210px;aspect-ratio:1/1;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:auto;box-shadow:0 0 24px #000,inset 0 0 40px rgba(0,0,0,.5);overflow:hidden}
+#music-win{position:absolute;left:14px;bottom:52px;z-index:70;background:linear-gradient(rgba(26,21,30,.94),rgba(26,21,30,.96)),url('textures/props/tapestry.jpg') center/cover no-repeat;border:2px solid #6b5626;border-radius:14px;padding:14px 16px;width:420px;pointer-events:auto;box-shadow:0 0 24px #000,inset 0 0 40px rgba(0,0,0,.5);overflow:visible}
 #music-win .mus-row,#music-win .mus-deck,#music-win .mus-auto,#music-win #mus-title{max-width:470px}
 #mus-title{font-size:17px;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:8px;cursor:move;touch-action:none;user-select:none}
 .mus-row{display:flex;gap:8px;align-items:center;font-size:15px}

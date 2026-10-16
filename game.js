@@ -514,11 +514,12 @@ function hurtCritter(c,dmg){if(c.d.flying)return;dmg*=(1+0.1*skillLvl('hunt'))*(
  else{c.tx=c.mesh.position.x+(c.mesh.position.x-G.pos.x);c.tz=c.mesh.position.z+(c.mesh.position.z-G.pos.z);c.wt=3;}}
 function killCritter(c){critters.splice(critters.indexOf(c),1);
  corpses.push({mesh:c.mesh,t:0,kind:'critter',seed:0});
- for(const [id,n,ch] of c.d.drops){if(Math.random()<ch)addItem(id,n);}
+ let dn=0;
+ for(const [id,n,ch] of c.d.drops){if(Math.random()<ch&&spawnDrop(c.mesh.position.x,c.mesh.position.z,id,n))dn++;}
  if(hasItem('knife',1)&&c.d.drops.length&&Math.random()<0.25){addItem(c.d.drops[0][0],1);toast('🔪 Clean skinning: bonus share.','good');}
  if(skillLvl('trap')>0&&c.d.drops.length&&Math.random()<0.1*skillLvl('trap')){addItem(c.d.drops[0][0],1);toast('🪤 A trapper’s clean work: bonus share.','good');}
  gainXp('hunt',3);
- toast(c.d.e+' '+c.d.n+' taken. The pot thanks you.');AudioSys.sfx('hurt');
+ toast(c.d.e+' '+c.d.n+' taken.'+(dn?' The meat lies in the mud — take it (E).':'')+' The pot thanks you.');AudioSys.sfx('hurt');
  if(c.type==='pig'){addKarma(-8,'livestock slain — Jean-Luc saw everything');G.dispo.jeanluc=(G.dispo.jeanluc||0)-3;toast('🐷 Jean-Luc howls from the pen. The parish will remember this theft.','bad');}
  wildProgress('hunt');refreshHUD();refreshHotbar();}
 function critterUpdate(c,dt){const m=c.mesh;c.cd-=dt;
@@ -651,7 +652,7 @@ function takeItem(id,n){n=n||1;if(id==='coin'){G.coins-=n;refreshHUD();return tr
 /* ============ THREE SETUP ============ */
 let renderer,scene,camera,sun,moon,hemi,torchLight,playerMesh,lanternLight;
 let camYaw=0,camDist=26,camH=20; // fixed isometric, Zomboid-style: W walks screen-up (north)
-const colliders=[],interactables=[],foes=[],npcs=[],fires=[],labels=[],torches=[],critters=[],horses=[],carts=[],barricades=[],boats=[],kegs=[],traps=[],WATER=[],FOLIAGE=[];
+const colliders=[],interactables=[],foes=[],npcs=[],fires=[],labels=[],torches=[],critters=[],horses=[],carts=[],barricades=[],boats=[],kegs=[],traps=[],barrels=[],WATER=[],FOLIAGE=[];
 function regLeaf(m){FOLIAGE.push({m,base:m.material.color.clone()});}
 const CUTAWAYS=[];
 function regCut(m,r){CUTAWAYS.push({m,r,faded:false});}
@@ -829,7 +830,7 @@ function buildWorld(){
  [[6,4],[-28,-4],[20,-12],[-12,20],[48,40]].forEach(([x,z])=>{addBox(x,1.5,z,0.25,3,0.25,0x3a2a1a);
   const l=new THREE.PointLight(0xffa04a,1.0,20);l.position.set(x,3.4,z);scene.add(l);torches.push(l);
   const f=new THREE.Mesh(new THREE.SphereGeometry(0.25,8,6),new THREE.MeshBasicMaterial({color:0xffc46a}));f.position.set(x,3.3,z);scene.add(f);glowAt(x,3.4,z,3.5,0.5);});
- plantForage();spawnHorses();placeCarts();placeBeds();placeWorks();buildGraveyard();buildMansion();buildCottages();placeAltars();buildPigstye();buildTavern();placeStrongboxes();
+ plantForage();spawnHorses();placeCarts();placeBeds();placeWorks();buildGraveyard();buildMansion();buildCottages();placeAltars();buildPigstye();buildTavern();placeStrongboxes();placeBarrels();
  // corral rails by the cabins
  [[26,34,8,0.3],[26,40,8,0.3]].forEach(([x,z,w,d])=>{addBox(x,0.6,z,w,1.0,d,0x5a4630);});
 }
@@ -1614,14 +1615,22 @@ function meleeAttack(w){const st=WEAPON_STATS[G.weapon]||WEAPON_STATS.rapier;
   if(inArc(c.mesh.position.x,c.mesh.position.z,st.range,st.arc))hurtCritter(c,base);}
  if(hits>0)gainXp(wt,2);}
 function makeTargetRing(){if(targetRing)return;targetRing=new THREE.Mesh(new THREE.RingGeometry(0.7,0.95,24),new THREE.MeshBasicMaterial({color:0xff3333,transparent:true,opacity:0.8,side:THREE.DoubleSide}));targetRing.rotation.x=-Math.PI/2;targetRing.visible=false;scene.add(targetRing);}
-function updateTargetRing(){if(!targetRing){return;}if(G.dead||!G.started){targetRing.visible=false;return;}
+function updateTargetRing(){if(!targetRing){return;}const tip=$('foe-tip');
+ if(G.dead||!G.started||G.paused){targetRing.visible=false;if(tip)tip.classList.add('hidden');return;}
+ // PZ-style hover outline: nearest living foe under the cursor
+ let hov=null,hd=4;
+ for(const f of foes){if(!f.mesh.visible)continue;
+  const d=Math.hypot(aimX-f.mesh.position.x,aimZ-f.mesh.position.z);if(d<hd){hd=d;hov=f;}}
  const w=ITEMS[G.weapon];let bd=0,st=null;
  if(w&&w.ranged){bd=aiming?(G.weapon==='blunderbuss'?13:(T('shortsighted')?20:28)):0;}
  else{st=WEAPON_STATS[G.weapon]||WEAPON_STATS.rapier;bd=st.range;}
  let best=null;
- if(bd>0){for(const f of foes){const d=w.ranged?dist2(G.pos.x,G.pos.z,f.mesh.position.x,f.mesh.position.z):inArc(f.mesh.position.x,f.mesh.position.z,st.range,st.arc);if(d>0&&d<bd){bd=d;best=f;}}}
- if(best){targetRing.visible=true;targetRing.position.set(best.mesh.position.x,0.12,best.mesh.position.z);const s=1+Math.sin(performance.now()/200)*0.12;targetRing.scale.set(s,s,1);}
- else targetRing.visible=false;}
+ if(bd>0){for(const f of foes){if(!f.mesh.visible)continue;const d=w.ranged?dist2(G.pos.x,G.pos.z,f.mesh.position.x,f.mesh.position.z):inArc(f.mesh.position.x,f.mesh.position.z,st.range,st.arc);if(d>0&&d<bd){bd=d;best=f;}}}
+ const show=best||hov;
+ if(show){targetRing.visible=true;targetRing.position.set(show.mesh.position.x,0.12,show.mesh.position.z);const s=1+Math.sin(performance.now()/200)*0.12;targetRing.scale.set(s,s,1);
+  targetRing.material.color.setHex(best?0xff3333:0xc9a227);
+  if(tip){tip.innerHTML='<b>'+show.d.e+' '+show.d.n+'</b> — '+Math.max(0,Math.ceil(show.hp))+'/'+show.maxhp+(best?' · IN RANGE':'');tip.classList.remove('hidden');}}
+ else{targetRing.visible=false;if(tip)tip.classList.add('hidden');}}
 let atkCd=0;
 function playerAttack(){if(atkCd>0||G.dead||G.paused||!G.started)return;
  const w=ITEMS[G.weapon]||ITEMS.rapier;atkCd=w.ranged?Math.max(0.6,1.1-0.05*skillLvl('musket')-(T('dextrous')?0.15:0)):(G.weapon==='axe'?0.7:(G.weapon==='spear'?0.6:((G.weapon==='cudgel'||G.weapon==='fists')?0.32:0.42)));
@@ -1653,6 +1662,7 @@ function killFoe(f){foes.splice(foes.indexOf(f),1);
  G.kills++;G.killsByFoe[f.type]=(G.killsByFoe[f.type]||0)+1;
  addKarma(2,'the commune breathes easier');gainXp('might',2);
  notify('☠',f.d.n+' laid to rest','The commune breathes easier. ('+G.kills+' total)');
+ G._dropN=0;
  if(f.type==='wolf'&&Math.random()<0.8)dropLoot(f,'pelt',1);
  if(f.type==='vamp'){dropLoot(f,'fang',1);if(Math.random()<0.5)dropLoot(f,'coin',8);if(Math.random()<0.5)dropLoot(f,'brocade_coat',1);if(Math.random()<0.25)dropLoot(f,'ring',1);if(Math.random()<0.3)dropLoot(f,'lace_gloves',1);}
  if(f.type==='skeleton'){dropLoot(f,'bone',1);if(Math.random()<0.4)dropLoot(f,'coin',4);if(Math.random()<0.3)dropLoot(f,'rusty_helm',1);}
@@ -1662,8 +1672,22 @@ function killFoe(f){foes.splice(foes.indexOf(f),1);
  if(f.type==='risen'&&Math.random()<0.25)dropLoot(f,'ragged_shirt',1);
  if(f.type==='risen'&&Math.random()<0.15)dropLoot(f,'breeches',1);
  if(f.type==='demon'){dropLoot(f,'ash',2);dropLoot(f,'coin',20);dropLoot(f,'medallion',1);onBossDead();}
+ if(G._dropN>0){toast('☠ The fallen left something in the mud — press E to take it.');G._dropN=0;}
  AudioSys.sfx('hurt');checkQuestKill(f.type);}
-function dropLoot(f,item,n){addItem(item,n);toast(f.d.e+' dropped: '+ITEMS[item].n+' ×'+n);}
+function dropLoot(f,item,n){const d=spawnDrop(f.mesh.position.x,f.mesh.position.z,item,n);if(d)G._dropN=(G._dropN||0)+1;}
+/* PZ-style ground loot: the dead drop takeables, E picks them up */
+const drops=[];
+function spawnDrop(x,z,item,n){if(!ITEMS[item])return null;
+ if(drops.length>40){const old=drops.shift();scene.remove(old.mesh);if(old.glow)scene.remove(old.glow);if(old.inter)old.inter.gone=true;}
+ const g=new THREE.Group();
+ const box=new THREE.Mesh(new THREE.BoxGeometry(0.45,0.3,0.45),new THREE.MeshLambertMaterial({color:0x8a6a3a,emissive:0x2a1c08}));
+ box.position.y=0.15;box.castShadow=true;g.add(box);
+ const dot=new THREE.Mesh(new THREE.SphereGeometry(0.12,8,6),new THREE.MeshBasicMaterial({color:0xffe9a0}));dot.position.y=0.45;g.add(dot);
+ g.position.set(x+rand(-1,1),0,z+rand(-1,1));scene.add(g);
+ const glow=glowAt(g.position.x,0.6,g.position.z,2,0.45);
+ const it={kind:'pickup',name:ITEMS[item].n,x:g.position.x,z:g.position.z,r:2.6,txt:'Take '+ITEMS[item].n+' ×'+n+' (E)',drop:null};
+ const d={x:g.position.x,z:g.position.z,item,n,mesh:g,glow,inter:it};it.drop=d;
+ interactables.push(it);drops.push(d);return d;}
 function hurtPlayer(dmg,why){if(G.dead||!G.started||G.paused||dlgOpen)return;
  if(G.wardUntil&&performance.now()<G.wardUntil)dmg*=Math.max(0.2,0.5-(((typeof AudioSys!=='undefined'&&AudioSys.dub)||{}).verb||0.35)*0.2);
  if(T('thickskin'))dmg*=0.85;if(T('thinskin'))dmg*=1.15;
@@ -1873,25 +1897,26 @@ function updateSky(){const t=G.time;let dayAmt=clamp(1-Math.abs(t-13)/8,0,1);
  if(G.weather==='rain')sky.multiplyScalar(0.7);
  scene.background=sky;scene.fog.color.copy(sky).multiplyScalar(0.95);
  // Project-Zomboid-style light: pitch nights with warm pools, flat desaturated days
- if(night){scene.background.setHex(0x04060c);scene.fog.color.setHex(0x04060c);scene.fog.density=0.0095+Math.min(0.002,(G.erosion||0)*0.0001);
-  sun.intensity=0;moon.intensity=G.weather==='rain'?0.08:0.22;moon.color.setHex(0x8a9aff);
-  hemi.intensity=0.12;if(scene.userData.amb)scene.userData.amb.intensity=0.08;
-  renderer.toneMappingExposure=0.9;}
- else{scene.fog.density=0.004+Math.min(0.002,(G.erosion||0)*0.0001);
-  sun.intensity=(0.7+dayAmt*1.2)*(G.weather==='rain'?0.5:1);
-  moon.intensity=0;hemi.intensity=0.85;
-  if(scene.userData.amb)scene.userData.amb.intensity=0.3;
-  renderer.toneMappingExposure=1.05;}
+ if(night){scene.background.setHex(0x070a12);scene.fog.color.setHex(0x070a12);scene.fog.density=0.0095+Math.min(0.002,(G.erosion||0)*0.0001);
+  sun.intensity=0;moon.intensity=G.weather==='rain'?0.12:0.3;moon.color.setHex(0x8a9aff);
+  hemi.intensity=0.16;if(scene.userData.amb)scene.userData.amb.intensity=0.12;
+  renderer.toneMappingExposure=0.95;}
+ else{scene.fog.density=0.0035+Math.min(0.002,(G.erosion||0)*0.0001);
+  sun.intensity=(0.9+dayAmt*1.3)*(G.weather==='rain'?0.6:1);
+  moon.intensity=0;hemi.intensity=1.0;
+  if(scene.userData.amb)scene.userData.amb.intensity=0.42;
+  renderer.toneMappingExposure=1.15;}
  sun.color.setHex(lowSun>0.25?0xff9a5a:(dayAmt>0.5?0xfff4e0:0xffd9a0));
- const ang=(t/24)*Math.PI*2;
- sun.position.set(G.pos.x+50*Math.cos(ang),Math.max(8,60*Math.sin(ang)+18),G.pos.z+30);
+ // sun rides highest near 13:00, in step with the daylight curve
+ const dang=(t-6)/12*Math.PI;
+ sun.position.set(G.pos.x+50*Math.cos(dang),Math.max(8,75*Math.sin(dang)+6),G.pos.z+30);
  moon.position.set(G.pos.x-30,50,G.pos.z-20);
  const flick=1+Math.sin(performance.now()/90)*0.12;
  torchLight.intensity=(G.lantern?2.6:0)*flick;torchLight.position.set(G.pos.x,2.5,G.pos.z);
  lanternLight.intensity=night?0.9:0;lanternLight.position.set(G.pos.x,6,G.pos.z);
  fires.forEach(f=>{f.light.intensity=((night?2.2:0.9)*(1+Math.sin(performance.now()/110+(f.x+f.z))*0.15));f.flame.scale.setScalar(night?1.2:0.8);});
  for(const L of torches)L.intensity=night?1.1:0.5;
- const vg=$('vignette');if(vg)vg.style.opacity=night?1:0.7;
+ const vg=$('vignette');if(vg)vg.style.opacity=night?0.85:0.45;
  if(G.flash>0){scene.background.setHex(0x8a90b0);hemi.intensity+=2.5;}
  // rain visual: simple particles skip; tint
 }
@@ -2113,6 +2138,8 @@ function drawMini(){const c=$('minimap'),x=c.getContext('2d');x.clearRect(0,0,16
  boats.forEach(b=>{x.fillStyle='#7db8ff';x.fillRect(px(b.mesh.position.x)-1.5,px(b.mesh.position.z)-1.5,3,3);});
  for(const it of interactables){if(it.kind!=='forage')continue;if(it.cd&&performance.now()<it.cd)continue;
   x.fillStyle='#5fd06f';x.fillRect(px(it.x)-1,px(it.z)-1,2,2);}
+ drops.forEach(d=>{x.fillStyle='#ffd76a';x.fillRect(px(d.x)-1,px(d.z)-1,2,2);});
+ barrels.forEach(b=>{x.fillStyle='#4a9ac8';x.fillRect(px(b.x)-1.5,px(b.z)-1.5,3,3);});
  barricades.forEach(b=>{x.fillStyle='#c98a3a';x.fillRect(px(b.x)-1.5,px(b.z)-1.5,3,3);});
  if(G.home){x.fillStyle='#ffd76a';x.fillRect(px(G.home.x)-2.5,px(G.home.z)-2.5,5,5);}
  if(G.grave){x.fillStyle='#fff';x.fillRect(px(G.grave.x)-2,px(G.grave.z)-2,4,4);}
@@ -2296,6 +2323,10 @@ function doInteract(it){if(!it)return;AudioSys.sfx('pickup');
  if(it.kind==='work'){workShift(it);return;}
  if(it.kind==='barr'&&it.ref){mendBarricade(it.ref);return;}
  if(it.kind==='grave2'){recoverGrave(it);return;}
+ if(it.kind==='pickup'&&it.drop){const d=it.drop;addItem(d.item,d.n);
+  if(T('keen')&&Math.random()<0.15){addItem(choice(['bread','herb','nail']),1);toast('👁 Keen eyes: something extra in the leavings.','good');}
+  else toast(ITEMS[d.item].e+' Taken: '+ITEMS[d.item].n+' ×'+d.n+'.','good');
+  scene.remove(d.mesh);if(d.glow)scene.remove(d.glow);it.gone=true;drops.splice(drops.indexOf(d),1);refreshHUD();refreshHotbar();return;}
  if(it.kind==='stash'){openStash({name:it.name,stash:it.stash||(it.stash={})});return;}
  if(it.kind==='hdoor'){claimHouse(it);return;}
  if(it.kind==='altar'){doRitual(it);return;}
@@ -2303,6 +2334,10 @@ function doInteract(it){if(!it)return;AudioSys.sfx('pickup');
  if(it.kind==='trap'&&it.ref){const tr=it.ref;
   if(tr.caught){addItem(tr.caught,1);toast('🪤 Snared: '+ITEMS[tr.caught].n+'! Reset the twine.','good');tr.caught=null;tr.t=0;it.txt='Check snare (E)';}
   else toast('🪤 Empty twine. Patience, and Trapping skill.');return;}
+ if(it.kind==='barrel'&&it.ref){const b=it.ref;
+  if(b.water>=25){b.water-=25;G.hunger=clamp(G.hunger+12,0,100);G.sanity=clamp(G.sanity+5,0,100);G.hp=clamp(G.hp+4,0,G.maxhp);
+   AudioSys.sfx('eat');toast('🛢 Clean rainwater. (+12 🍖, +5 🕯)','good');}
+  else toast('🛢 Nearly dry — '+Math.round(b.water)+'%. Wait for rain.','bad');return;}
  if(it.kind==='locked'){openLock(it);return;}
  if(it.kind==='grave'){if(G.looted[it.id]){subtitle('A tended mound. Someone scratched: “PAID IN FULL.”');return;}
   G.looted[it.id]=1;buryAt();if(Math.random()<0.4){addItem('coin',2);toast('Among the roots: 2 forgotten livres.','good');}return;}
@@ -2414,6 +2449,7 @@ const BUILDABLES=[
  {id:'torchpost',n:'Torch Post',e:'🕯',need:{plank:2},carp:0,w:0.3,h:3,d:0.3,light:1,txt:'2 plank · light for dark corners'},
  {id:'bedroll',n:'Bedroll',e:'🛏',need:{plank:1,herb:2},carp:1,w:1.0,h:0.4,d:2.0,bed:1,txt:'1 plank + 2 herb · carpentry 1 · sleep anywhere'},
  {id:'palisade',n:'Palisade Stake',e:'🪵',need:{plank:6,nail:2},carp:3,w:2.4,h:3.4,d:0.4,hp:140,txt:'6 plank + 2 nail · carpentry 3 · the serious wall'},
+ {id:'barrel',n:'Rain Barrel',e:'🛢',need:{plank:4,nail:2},carp:1,w:1.2,h:1.4,d:1.2,barrel:1,txt:'4 plank + 2 nail · carpentry 1 · catches storms, drink with E'},
 ];
 function renderBuild(){const l=$('build-list');if(!l)return;const cl=skillLvl('carp');
  l.innerHTML='<p style="font-size:12px;color:#a89a76">Carpentry '+cl+' · click to lift the ghost, click ground to raise it (RMB/Esc puts it down). Green ghost: sound. Red: the mud refuses.</p>';
@@ -2462,11 +2498,12 @@ function placeBuild(x,z){const b=buildSel;if(!b)return;
   const f=new THREE.Mesh(new THREE.SphereGeometry(0.22,8,6),new THREE.MeshBasicMaterial({color:0xffc46a}));f.position.set(0,3.3,0);g.add(f);glowAt(x,3.4,z,3.5,0.5);torches.push(li);}
  else if(b.bed){put(1.0,0.35,2.0,0,0.2,0);put(0.9,0.2,1.8,0,0.45,0);
   interactables.push({kind:'bed',name:'Bedroll',x,z,r:2.6,txt:'Sleep (E)'});}
+ else if(b.barrel){makeBarrel(x,z,0);}
  else put(b.w,b.h,b.d,0,b.h/2,0);
  const yaw=Math.atan2(x-G.pos.x,z-G.pos.z);g.position.set(x,0,z);
  if(!b.flat&&!b.fire&&!b.light)g.rotation.y=Math.round(yaw/(Math.PI/2))*(Math.PI/2);
  scene.add(g);
- if(!b.flat&&!b.fire&&!b.light){
+ if(!b.flat&&!b.fire&&!b.light&&!b.barrel){
   const hw=(b.gap?b.w:b.w)/2,hd=b.d/2;
   const coll={x0:x-hw,x1:x+hw,z0:z-hd,z1:z+hd};
   let parts=null;
@@ -2480,7 +2517,25 @@ function placeBuild(x,z){const b=buildSel;if(!b)return;
   it.ref=bb;interactables.push(it);barricades.push(bb);}
  gainXp('carp',4);AudioSys.sfx('craft');
  toast('🧱 Raised: '+b.n+'. The commune builds.','good');refreshHUD();refreshHotbar();cancelBuild();}
-/* ============ INPUT ============ */
+/* PZ-style rain barrels: storms fill them, E drinks */
+function makeBarrel(x,z,water){const g=new THREE.Group();
+ const body=new THREE.Mesh(new THREE.CylinderGeometry(0.6,0.55,1.3,12),texed(0x6a4a26,TEX.wood));
+ body.position.y=0.65;body.castShadow=true;g.add(body);
+ for(const hy of [0.3,1.0]){const hoop=new THREE.Mesh(new THREE.TorusGeometry(0.6,0.045,6,16),mat(0x2a2a2e));hoop.rotation.x=Math.PI/2;hoop.position.y=hy;g.add(hoop);}
+ const disc=new THREE.Mesh(new THREE.CircleGeometry(0.5,16),new THREE.MeshLambertMaterial({color:0x3a6a8a,transparent:true,opacity:0.9}));
+ disc.rotation.x=-Math.PI/2;disc.position.y=0.3;g.add(disc);
+ g.position.set(x,0,z);scene.add(g);
+ solid(x,z,1.2,1.2);
+ const it={kind:'barrel',name:'Rain barrel',x,z,r:2.8,txt:'Drink (E)'};
+ const b={x,z,water:water||0,mesh:g,disc,inter:it};it.ref=b;
+ interactables.push(it);barrels.push(b);return b;}
+function updateBarrels(dt){const raining=G.weather==='rain'||G.weather==='storm';
+ for(const b of barrels){
+  if(raining)b.water=Math.min(100,b.water+dt*(G.weather==='storm'?12:6));
+  else if(G.time>=11&&G.time<16)b.water=Math.max(0,b.water-dt*0.5);
+  b.disc.visible=b.water>1;b.disc.position.y=0.25+(b.water/100)*0.9;
+  b.inter.txt='Rain barrel '+Math.round(b.water)+'% — Drink (E)';}}
+function placeBarrels(){makeBarrel(30,36,20);makeBarrel(38,-2,20);}
 const keys={};let dragging=false,lastMX=0,movedPx=0;
 function bindInput(){window.addEventListener('keydown',e=>{const k=e.key.toLowerCase();
  if([' ','tab'].includes(k))e.preventDefault();keys[k]=true;
@@ -2790,7 +2845,7 @@ function animate(t){requestAnimationFrame(animate);const dt=Math.min(0.05,(t-las
   const moving=Math.hypot(dx,dz)>0.0008;u.lx=o.position.x;u.lz=o.position.z;
   if(!G.paused)animHumanoid(o,t||performance.now(),6,moving,false);}
  critters.forEach(c=>critterUpdate(c,dt));critterSpawns(dt);horses.forEach(h=>horseUpdate(h,dt));
- fires.forEach(f=>{f.flame.rotation.y+=dt*3;});forageUpdate();updateParticles(dt);updateTargetRing();updateCutaway();updateCorpses(dt);
+ fires.forEach(f=>{f.flame.rotation.y+=dt*3;});forageUpdate();updateParticles(dt);updateTargetRing();updateCutaway();updateCorpses(dt);updateBarrels(dt);
  if(buildSel&&ghostMesh){let gx=aimX,gz=aimZ;const dd=dist2(G.pos.x,G.pos.z,gx,gz);
   if(dd>7){const a=Math.atan2(gx-G.pos.x,gz-G.pos.z);gx=G.pos.x+Math.sin(a)*7;gz=G.pos.z+Math.cos(a)*7;}
   ghostMesh.position.set(gx,(buildSel.flat?0.2:buildSel.h/2),gz);
@@ -2843,7 +2898,7 @@ function boot(){initThree();buildWorld();initParticles();initMist();bootWindows(
  unlockQuests();refreshHUD();refreshHotbar();
  $('loading').style.display='none';
  // expose for tests
- window.__game={G,AudioSys,foes,npcs,critters,horses,carts,boats,barricades,traps,corpses,interactables,spawnFoe,spawnCritter,acceptQuest,completeQuest,addItem,useItem,startGame,mountHorse,mountCart,dismount,openStash,boardBoat};
+ window.__game={G,AudioSys,foes,npcs,critters,horses,carts,boats,barricades,traps,corpses,barrels,drops,interactables,spawnFoe,spawnCritter,acceptQuest,completeQuest,addItem,useItem,startGame,mountHorse,mountCart,dismount,openStash,boardBoat};
  requestAnimationFrame(animate);}
 boot();
 
