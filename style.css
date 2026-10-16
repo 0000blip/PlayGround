@@ -179,7 +179,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 .mpoint.m4 .mp-ico{animation:pulse 3.4s ease-in-out infinite}
 .mpoint.m5 .mp-ico{animation:drift 4.6s ease-in-out infinite}
 @media (max-width:640px){.menu-points{gap:14px}.mpoint .mp-ico{width:54px;height:54px;font-size:25px}}
-@media (prefers-reduced-motion:reduce){.menu-buttons .btn,.game-title,.menu-bg-orn{animation:none!important}}
+@media (prefers-reduced-motion:reduce){.mpoint .mp-ico,.game-title,.menu-bg-orn{animation:none!important}}
 .btn{background:linear-gradient(180deg,#33302a,#1a1712);border:1px solid #6b5626;color:var(--ink);padding:10px 22px;border-radius:6px;font-family:inherit;font-size:15px;cursor:pointer;letter-spacing:1px}
 .btn:hover{border-color:var(--teal);background:linear-gradient(180deg,#2c3440,#141a20);box-shadow:0 0 14px rgba(102,242,219,.3);text-shadow:0 0 8px rgba(102,242,219,.6)}
 .btn.big{font-size:18px;padding:13px 26px;border-color:var(--gold)}
@@ -193,7 +193,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 .paper em,.paper i{color:#4a2e1e}
 .paper.wide h2::before{color:#5a4a38}.paper.wide h2::after{color:#5a4a38}
 .paper .help-grid h3{color:var(--blood-dark)}
-.paper #trait-points{color:#4a2e1e}.paper #trait-points b{color:var(--blood-dark)}
+.paper #trait-points{color:#f0e2c0;background:rgba(10,8,6,.78);border:1px solid #5a4a38;border-radius:6px;padding:8px 14px;font-size:18px;text-shadow:0 1px 3px #000}.paper #trait-points b{color:var(--candle)}
 .paper .codex-body{background:rgba(10,8,6,.82)}
 .paper::before{background:#241a12;border-color:#5a4a38;color:var(--parch)}
 .paper.wide{max-width:860px}.paper.dark{border-color:var(--blood)}
@@ -277,15 +277,18 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 .nact:hover{background:#1e3a38;border-color:var(--teal)}
 .nx{cursor:pointer;color:#8a6a4a;font-size:13px;padding:0 2px}.nx:hover{color:#ff8888}
 #trait-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-height:46vh;overflow:auto;margin:10px 0}
-.trait{display:flex;gap:12px;background:linear-gradient(180deg,#3a2c1c,#241a10);border:2px solid #5a4a38;border-radius:8px;padding:12px 14px;cursor:pointer;font-size:16px;line-height:1.5;color:#f0e2c0}
-.trait b{color:var(--candle);font-size:17px}
-.trait small{color:#d8c8a8;font-size:14px}
+.trait{display:flex;gap:12px;background:rgba(10,8,6,.82);border:2px solid #6b6a72;border-radius:8px;padding:12px 14px;cursor:pointer;font-size:16px;line-height:1.55;color:#f4ecd8;text-shadow:0 1px 3px #000}
+.trait b{color:#ffe9a8;font-size:17px;text-shadow:0 1px 3px #000}
+.trait small{color:#e2d4b4;font-size:14px}
+.trait .tem{text-shadow:0 2px 6px #000}
+.trait .tcost{text-shadow:0 1px 3px #000}
 .trait:hover{border-color:var(--candle)}
 .trait.on{border-color:var(--candle);box-shadow:0 0 12px rgba(216,169,60,.5)}
 .trait.neg.on{border-color:var(--coral);box-shadow:0 0 10px rgba(245,72,66,.4)}
 .tem{font-size:34px}.tcost{color:var(--candle);font-size:14px;font-weight:bold}
 #trait-points b{color:var(--gold);font-size:19px}
-#traits .paper p{font-size:16px}
+#traits .paper p{font-size:16px;color:#f0e2c0;background:rgba(10,8,6,.78);border-radius:6px;padding:8px 14px;text-shadow:0 1px 3px #000}
+#traits .paper h2{text-shadow:0 2px 6px rgba(0,0,0,.7)}
 /* music control window */
 #music-win{position:absolute;left:14px;bottom:52px;z-index:70;background:linear-gradient(rgba(26,21,30,.94),rgba(26,21,30,.96)),url('textures/props/tapestry.jpg') center/cover no-repeat;border:2px solid #6b5626;border-radius:50%;padding:8px 10px;width:210px;aspect-ratio:1/1;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:auto;box-shadow:0 0 24px #000,inset 0 0 40px rgba(0,0,0,.5);overflow:hidden}
 #music-win .mus-row,#music-win .mus-deck,#music-win .mus-auto,#music-win #mus-title{max-width:470px}
@@ -296,7 +299,6 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #mus-vol{flex:1;accent-color:var(--teal);cursor:pointer}
 #mus-speed{flex:1;accent-color:var(--gold);cursor:pointer}
 /* Fallout-style brass deck */
-#music-win{width:min(560px,94vw)}
 .mus-deck{display:flex;gap:12px;align-items:center;justify-content:space-between;margin:12px 0 6px}
 .deck-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px 12px}
 .deck-grid>div{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:12px;color:var(--dim);letter-spacing:1px}
@@ -312,7 +314,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 .mus-mode{font-size:14px!important;padding:5px 12px!important}
 .mus-emode{font-size:12px!important;padding:4px 10px!important}
 .mus-emode.on{border-color:var(--teal)!important;color:#eafffb!important}
-#music-win::before{content:'♪';position:absolute;right:6px;bottom:-24px;font-size:140px;line-height:1;color:var(--gold);opacity:.10;pointer-events:none;font-family:var(--display-font)}
+#music-win::before{content:'♪';position:absolute;right:8px;bottom:0;font-size:88px;line-height:1;color:var(--gold);opacity:.08;pointer-events:none;font-family:var(--display-font)}
 .mus-mode.on{border-color:var(--teal)!important;color:#eafffb!important}
 .mus-auto{font-size:15px;color:var(--dim);display:flex;gap:6px;align-items:center;margin-top:6px;cursor:pointer}
 #mus-speed-v{font-size:14px!important;min-width:46px!important}
