@@ -513,7 +513,7 @@ function hurtCritter(c,dmg){if(c.d.flying)return;dmg*=(1+0.1*skillLvl('hunt'))*(
  else if(c.type==='opossum'&&!c.trick&&c.hp<c.d.hp*0.5){c.trick=true;c.mesh.rotation.z=1.4;toast('🐀 The opossum plays dead. It is very convincing. Sometimes mercy is the smarter tax.');}
  else{c.tx=c.mesh.position.x+(c.mesh.position.x-G.pos.x);c.tz=c.mesh.position.z+(c.mesh.position.z-G.pos.z);c.wt=3;}}
 function killCritter(c){critters.splice(critters.indexOf(c),1);
- corpses.push({mesh:c.mesh,t:0});
+ corpses.push({mesh:c.mesh,t:0,kind:'critter',seed:0});
  for(const [id,n,ch] of c.d.drops){if(Math.random()<ch)addItem(id,n);}
  if(hasItem('knife',1)&&c.d.drops.length&&Math.random()<0.25){addItem(c.d.drops[0][0],1);toast('🔪 Clean skinning: bonus share.','good');}
  if(skillLvl('trap')>0&&c.d.drops.length&&Math.random()<0.1*skillLvl('trap')){addItem(c.d.drops[0][0],1);toast('🪤 A trapper’s clean work: bonus share.','good');}
@@ -640,7 +640,7 @@ const G={started:false,paused:false,dead:false,ending:false,day:1,time:8.0,weath
  killsByFoe:{},taxPaid:false,debtBook:0,shoeFound:0,bellRung:false,endingShown:false,pos:{x:6,z:10}};
 QUESTS.forEach(q=>G.quests[q.id]={st:'lock',have:{}});
 G.work={};G.shifts=0;G.grave=null;G.mana=100;G.maxmana=100;G.haggle={xp:0,tier:0};G.traits=[];
-G.song=null;G.songGap=6;G.autoplay=false;G.musicHold=false;G.lastSong=null;G.sneaking=false;G.flash=0;G.worn={};G.craftSel=null;G.reloadT=0;G.dryT=0;G.playRate=0.7;
+G.song=null;G.songGap=6;G.autoplay=false;G.musicHold=false;G.lastSong=null;G.sneaking=false;G.flash=0;G.worn={};G.craftSel=null;G.reloadT=0;G.dryT=0;G.playRate=0.7;G.dayLen=480;G.erosion=0;
 function qdef(id){return QUESTS.find(q=>q.id===id);}
 function karmaTitle(k){if(k>=60)return 'Saint of the Bayou';if(k>=35)return 'Friend of the Commune';if(k>=12)return 'Trusted Neighbour';if(k>-12)return 'Wanderer of the Bayou';if(k>-35)return 'Suspect Soul';if(k>-60)return 'Hound of the Seigneur';return 'Butcher of the Mud';}
 function addKarma(n,why){G.karma=clamp(G.karma+n,-100,100);toast((n>0?'+':'')+n+' ⚖ '+(why||''),n>=0?'good':'bad');refreshHUD();}
@@ -1509,7 +1509,12 @@ function updateCorpses(dt){for(let i=corpses.length-1;i>=0;i--){const c=corpses[
  const m=c.mesh;
  if(c.t<0.45){const k=c.t/0.45;m.rotation.x=-Math.PI/2*k;m.position.y=0.35*Math.sin(k*Math.PI)+0.1;}
  else{m.rotation.x=-Math.PI/2;m.position.y=0.1;}
- if(c.t>30){scene.remove(m);corpses.splice(i,1);}}}
+ const risable=c.kind!=='critter'&&c.kind!=='demon'&&c.kind!=='wolf'&&c.kind!=='ghost';
+ if(!c.rose&&risable&&c.t>60+(c.seed||0)){c.rose=true;
+  if(Math.random()<0.35){scene.remove(m);corpses.splice(i,1);
+   spawnFoe('risen',clamp(m.position.x,-110,110),clamp(m.position.z,-110,110));
+   toast('⚰ The unburied rise. Bury your dead.','bad');continue;}}
+ if(c.t>(c.kind==='critter'?30:150)){scene.remove(m);corpses.splice(i,1);}}}
 function buildPlayer(){playerMesh=makeHumanoid(0x4a3a5a,0xd9b48f,'tricorn');playerMesh.position.set(G.pos.x,0,G.pos.z);scene.add(playerMesh);
  const sw=new THREE.Mesh(new THREE.BoxGeometry(0.1,1.1,0.2),mat(0xb0b0b0));sw.position.set(0.5,1.3,0.5);playerMesh.add(sw);playerMesh.userData.sword=sw;}
 function spawnSkelFarmers(){[['Brother Rattle',22,35],['Sister Clatter',24,33],['Old Marrow',32,35]].forEach(([nm,x,z])=>{
@@ -1644,7 +1649,7 @@ function blood(x,z){const p=new THREE.Mesh(new THREE.SphereGeometry(0.16,6,4),ne
  p.position.set(x,rand(0.5,1.5),z);scene.add(p);setTimeout(()=>scene.remove(p),600);
  for(let i=0;i<8;i++)spawnP(x,1,z,rand(-3,3),rand(1,5),rand(-3,3),rand(0.4,0.9),0xaa1818);}
 function killFoe(f){foes.splice(foes.indexOf(f),1);
- f.mesh.userData.deadT=0;corpses.push({mesh:f.mesh,t:0});
+ f.mesh.userData.deadT=0;corpses.push({mesh:f.mesh,t:0,kind:f.type,seed:rand(0,60)});
  G.kills++;G.killsByFoe[f.type]=(G.killsByFoe[f.type]||0)+1;
  addKarma(2,'the commune breathes easier');gainXp('might',2);
  notify('☠',f.d.n+' laid to rest','The commune breathes easier. ('+G.kills+' total)');
@@ -1741,6 +1746,9 @@ function checkQuestVisit(){for(const id of [...G.qactive]){const q=qdef(id),s=G.
  let done=q.obj.every(o=>o.t!=='visit'||s.have['v_'+o.zone]);const othersDone=q.obj.filter(o=>o.t!=='visit').every(o=>{if(o.t==='collect')return (o.item==='coin'?G.coins:(G.inv[o.item]||0))>=o.n;return false;});
  if(done&&othersDone&&q.obj.some(o=>o.t==='visit'))completeQuest(id);}refreshTracker();}
 function buryAt(){G.buried++;addKarma(4,'the dead rest easier');
+ if(corpses.length){const c=corpses.find(c=>c.kind!=='critter')||corpses[0];
+  scene.remove(c.mesh);corpses.splice(corpses.indexOf(c),1);
+  toast('⚰ And one cold corpse goes into consecrated mud. One less future Risen.','good');}
  for(const id of [...G.qactive]){const q=qdef(id),s=G.quests[id];for(const o of q.obj){if(o.t==='bury'){s.have.bury=(s.have.bury||0)+1;
   if(s.have.bury>=o.n)completeQuest(id);}}}
  AudioSys.sfx('pray');subtitle(choice(['“Dust you were, ledger you are not.”','“No rent in this grave.”','“Rest, worker. The strike continues.”']));refreshTracker();}
@@ -1819,8 +1827,33 @@ function thunder(){if(!AudioSys.ctx||AudioSys.muted)return;const c=AudioSys.ctx,
  for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2);
  const src=c.createBufferSource();src.buffer=b;const f=c.createBiquadFilter();f.type='lowpass';f.frequency.value=220;
  const g=c.createGain();g.gain.value=0.6;src.connect(f);f.connect(g);g.connect(AudioSys.master);src.start(t);}
-function advanceTime(dt){const prev=G.time;G.time+=dt*(24/480);
- if(G.time>=24){G.time-=24;G.day++;AudioSys.bell();toast('☀ Day '+G.day+' — the bell counts what the Seigneur cannot.','good');
+/* PZ-style line-of-sight: walls hide the hungry */
+let losT=0;
+function segHitsRect(px,pz,fx,fz,c){if(px>c.x0&&px<c.x1&&pz>c.z0&&pz<c.z1)return true;
+ if(fx>c.x0&&fx<c.x1&&fz>c.z0&&fz<c.z1)return true;
+ const ex=[[c.x0,c.z0,c.x1,c.z0],[c.x1,c.z0,c.x1,c.z1],[c.x1,c.z1,c.x0,c.z1],[c.x0,c.z1,c.x0,c.z0]];
+ for(const [ax,az,bx,bz] of ex){const d=(fx-px)*(bz-az)-(fz-pz)*(bx-ax);if(Math.abs(d)<1e-9)continue;
+  const t=((ax-px)*(bz-az)-(az-pz)*(bx-ax))/d,u=((ax-px)*(fz-pz)-(az-pz)*(fx-px))/d;
+  if(t>=0&&t<=1&&u>=0&&u<=1)return true;}
+ return false;}
+function updateLOS(dt){losT-=dt;if(losT>0)return;losT=0.25;
+ for(const f of foes){if(f.type==='demon'){f.mesh.visible=true;continue;}
+  const d=dist2(G.pos.x,G.pos.z,f.mesh.position.x,f.mesh.position.z);
+  if(d<7){f.mesh.visible=true;continue;}
+  let blocked=false;
+  for(const c of colliders){if(c.dead)continue;
+   if(Math.max(c.x1-c.x0,c.z1-c.z0)<4)continue;
+   if(segHitsRect(G.pos.x,G.pos.z,f.mesh.position.x,f.mesh.position.z,c)){blocked=true;break;}}
+  f.mesh.visible=!blocked;}}
+/* parish wireless: distant bells, dogs, hymns on the wind */
+let ambientT=50;
+function ambientTick(dt){if(!G.started||G.paused||G.dead||G.musicHold)return;ambientT-=dt;if(ambientT>0)return;
+ ambientT=rand(45,100);
+ if(isNight()){AudioSys.howl();subtitle('A dog answers nothing, far off past the palisade.');}
+ else if(dist2(G.pos.x,G.pos.z,10,80)<40){AudioSys.drum();subtitle('Something bellows in the deep swamp. The water carries it.');}
+ else{AudioSys.bell();subtitle('A far-off hymn frays at the edges and gives up.');}}
+function advanceTime(dt){const prev=G.time;G.time+=dt*(24/(G.dayLen||480));
+ if(G.time>=24){G.time-=24;G.day++;G.erosion=(G.erosion||0)+1;AudioSys.bell();toast('☀ Day '+G.day+' — the bell counts what the Seigneur cannot.','good');
   if(T('smoker')&&!hasItem('tobacco',1)){G.sanity=clamp(G.sanity-10,0,100);toast('🚬 Dawn and no leaf. The hands shake till noon. (−10 🕯)','bad');}
   if(G.day===3){subtitle('The air tastes of iron. Tonight the bell will toll thirteen.');AudioSys.setMode('night');}
   if((G.day-1)%5===0&&G.day>1){const s=seasonFor(G.day);updateSeasonVisual();updateMenuSeason();notify(s.e,'The wheel turns: '+s.n+' '+yearFor(G.day),s.note,{tone:'lore',major:true});}
@@ -1840,11 +1873,11 @@ function updateSky(){const t=G.time;let dayAmt=clamp(1-Math.abs(t-13)/8,0,1);
  if(G.weather==='rain')sky.multiplyScalar(0.7);
  scene.background=sky;scene.fog.color.copy(sky).multiplyScalar(0.95);
  // Project-Zomboid-style light: pitch nights with warm pools, flat desaturated days
- if(night){scene.background.setHex(0x04060c);scene.fog.color.setHex(0x04060c);scene.fog.density=0.0095;
+ if(night){scene.background.setHex(0x04060c);scene.fog.color.setHex(0x04060c);scene.fog.density=0.0095+Math.min(0.002,(G.erosion||0)*0.0001);
   sun.intensity=0;moon.intensity=G.weather==='rain'?0.08:0.22;moon.color.setHex(0x8a9aff);
   hemi.intensity=0.12;if(scene.userData.amb)scene.userData.amb.intensity=0.08;
   renderer.toneMappingExposure=0.9;}
- else{scene.fog.density=0.004;
+ else{scene.fog.density=0.004+Math.min(0.002,(G.erosion||0)*0.0001);
   sun.intensity=(0.7+dayAmt*1.2)*(G.weather==='rain'?0.5:1);
   moon.intensity=0;hemi.intensity=0.85;
   if(scene.userData.amb)scene.userData.amb.intensity=0.3;
@@ -2489,17 +2522,18 @@ function bindInput(){window.addEventListener('keydown',e=>{const k=e.key.toLower
   if(dragging&&movedPx<6&&G.started&&!G.paused&&!dlgOpen){const el=document.elementFromPoint(lastMX,innerHeight/2);if(el===cv)playerAttack();}dragging=false;});
  cv.addEventListener('wheel',e=>{camDist=clamp(camDist+e.deltaY*0.02,14,46);updateIsoFraming();},{passive:true});
  window.addEventListener('contextmenu',e=>{if(e.target===cv)e.preventDefault();});}
-function togglePause(){G.paused=!G.paused;$('pause').classList.toggle('hidden',!G.paused);AudioSys.sfx('pickup');}
+function togglePause(){G.paused=!G.paused;$('pause').classList.toggle('hidden',!G.paused);AudioSys.sfx('pickup');
+ if(G.paused){const s=$('daylen'),v=$('daylen-v');if(s){s.value=G.dayLen||480;if(v)v.textContent=Math.round((G.dayLen||480)/60)+' min';}}}
 /* ============ SAVE ============ */
 function save(){try{const d={day:G.day,time:G.time,hp:G.hp,hunger:G.hunger,sanity:G.sanity,karma:G.karma,coins:G.coins,
  inv:G.inv,weapon:G.weapon,maxhp:G.maxhp,quests:Object.fromEntries(Object.entries(G.quests).map(([k,v])=>[k,v.st])),
  have:Object.fromEntries(Object.entries(G.quests).map(([k,v])=>[k,v.have])),qactive:G.qactive,buried:G.buried,kills:G.kills,
- looted:G.looted,work:G.work,shifts:G.shifts||0,haggle:G.haggle||{xp:0,tier:0},skills:G.skills||{},worn:G.worn||{},parts:G.parts||null,bleed:G.bleed||{},traits:G.traits||[],homeId:G.homeId||null,home:G.home||null,mana:Math.floor(G.mana),maxmana:G.maxmana,charm:!!G.charm,grave:G.grave?{x:G.grave.x,z:G.grave.z,inv:G.grave.inv,coins:G.grave.coins}:null,npc:npcs.map(n=>({id:n.id,dead:n.dead,follow:n.follow}))};
+ looted:G.looted,work:G.work,shifts:G.shifts||0,haggle:G.haggle||{xp:0,tier:0},skills:G.skills||{},worn:G.worn||{},parts:G.parts||null,bleed:G.bleed||{},traits:G.traits||[],homeId:G.homeId||null,home:G.home||null,mana:Math.floor(G.mana),maxmana:G.maxmana,charm:!!G.charm,dayLen:G.dayLen||480,erosion:G.erosion||0,grave:G.grave?{x:G.grave.x,z:G.grave.z,inv:G.grave.inv,coins:G.grave.coins}:null,npc:npcs.map(n=>({id:n.id,dead:n.dead,follow:n.follow}))};
  localStorage.setItem('bayou-requiem-save',JSON.stringify(d));toast('💾 Soul recorded in the parish register.','good');}catch(e){toast('Save failed: '+e,'bad');}}
 function load(){try{const raw=localStorage.getItem('bayou-requiem-save');if(!raw)return false;const d=JSON.parse(raw);
  Object.assign(G,{day:d.day,time:d.time,hp:d.hp,hunger:d.hunger,sanity:d.sanity,karma:d.karma,coins:d.coins,inv:d.inv,weapon:d.weapon,maxhp:d.maxhp,qactive:d.qactive||[],buried:d.buried||0,kills:d.kills||0,looted:d.looted||{}});
  for(const k in d.quests)if(G.quests[k])G.quests[k].st=d.quests[k];
- initWork();if(d.work)for(const k in d.work)if(G.work[k])G.work[k]=d.work[k];G.shifts=d.shifts||0;if(d.haggle)G.haggle=d.haggle;if(d.traits)G.traits=d.traits;initSkills();if(d.parts)G.parts=d.parts;if(d.bleed)G.bleed=d.bleed;if(d.worn)G.worn=d.worn;if(d.skills)for(const k in d.skills)if(G.skills[k])G.skills[k]=d.skills[k];G.homeId=d.homeId||null;G.home=d.home||null;if(typeof d.mana==='number')G.mana=d.mana;if(d.maxmana)G.maxmana=d.maxmana;G.charm=!!d.charm;G.wardUntil=0;G.hasteUntil=0;
+ initWork();if(d.work)for(const k in d.work)if(G.work[k])G.work[k]=d.work[k];G.shifts=d.shifts||0;if(d.haggle)G.haggle=d.haggle;if(d.traits)G.traits=d.traits;initSkills();if(d.dayLen)G.dayLen=d.dayLen;if(typeof d.erosion==='number')G.erosion=d.erosion;if(d.parts)G.parts=d.parts;if(d.bleed)G.bleed=d.bleed;if(d.worn)G.worn=d.worn;if(d.skills)for(const k in d.skills)if(G.skills[k])G.skills[k]=d.skills[k];G.homeId=d.homeId||null;G.home=d.home||null;if(typeof d.mana==='number')G.mana=d.mana;if(d.maxmana)G.maxmana=d.maxmana;G.charm=!!d.charm;G.wardUntil=0;G.hasteUntil=0;
  if(d.grave){G.grave={x:d.grave.x,z:d.grave.z,inv:d.grave.inv||{},coins:d.grave.coins||0};G.grave.mesh=graveMarker(G.grave);linkGrave();}
  for(const k in d.have)if(G.quests[k])G.quests[k].have=d.have[k];
  (d.npc||[]).forEach(s=>{const n=npcs.find(n=>n.id===s.id);if(n){n.dead=s.dead;n.follow=s.follow;if(n.dead)scene.remove(n.mesh);if(s.follow)G.companions.push(n.id);}});
@@ -2680,6 +2714,9 @@ function playLibFaded(dir){const go=()=>playLibNext(dir);
   if(T('consumption'))G.maxhp=80;if(T('stout'))G.maxhp+=10;if(T('gaunt'))G.maxhp-=10;if(T('haunted'))G.sanity=60;
   startGame(false);};
  $('btn-resume').onclick=togglePause;$('btn-save').onclick=save;
+ const dl=$('daylen'),dlv=$('daylen-v');
+ if(dl)dl.oninput=()=>{G.dayLen=+dl.value;if(dlv)dlv.textContent=Math.round(G.dayLen/60)+' min';try{localStorage.setItem('bayou-requiem-daylen',String(G.dayLen));}catch(e){}};
+ try{const sv=parseInt(localStorage.getItem('bayou-requiem-daylen'));if(!isNaN(sv))G.dayLen=clamp(sv,180,1200);}catch(e){}
  $('btn-full').onclick=()=>{document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen();};
  $('btn-quit').onclick=()=>{save();location.reload();};
  $('btn-respawn').onclick=()=>{G.dead=false;G.hp=G.maxhp*0.6;G.hunger=60;G.sanity=60;G.infected=0;G.coins=Math.floor(G.coins*0.7);
@@ -2746,7 +2783,7 @@ function animate(t){requestAnimationFrame(animate);const dt=Math.min(0.05,(t-las
  camera.lookAt(G.pos.x,1.5,G.pos.z);
  torchLight.position.set(G.pos.x,2.5,G.pos.z);
  // systems
- advanceTime(dt);survival(dt);sanityAura(dt);updateSky();nightSpawns(dt);
+ advanceTime(dt);survival(dt);sanityAura(dt);updateSky();nightSpawns(dt);ambientTick(dt);updateLOS(dt);
  foes.forEach(f=>foeUpdate(f,dt));npcs.forEach(n=>npcUpdate(n,dt));
  for(const o of [...npcs.map(n=>n.mesh),...foes.map(f=>f.mesh)]){const u=o.userData;if(!u||!u.legL||o.rotation.x!==0)continue;
   const dx=o.position.x-(u.lx??o.position.x),dz=o.position.z-(u.lz??o.position.z);
